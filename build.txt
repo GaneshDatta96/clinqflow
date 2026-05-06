@@ -39,3 +39,9 @@ Build Log Initialized.
 - Updated src/components/ui/aurora-background.tsx to better fit the app layout and current Next.js client-component usage.
 - Added components.json so the shadcn CLI understands the src-based component aliases and src/app/globals.css stylesheet path.
 - Verified with npm run lint, npm run typecheck, and npm run build.
+
+[2026-05-06] - feat: Redesign homepage and refine shared site chrome
+- Rebuilt the homepage in src/components/home/homepage-landing.tsx with stronger editorial hierarchy, clearer workflow storytelling, and restrained motion using framer-motion.
+- Simplified src/app/page.tsx into a route entry that renders the dedicated homepage landing component.
+- Refined src/components/layout/header.tsx and src/components/layout/footer.tsx so the shared navigation and footer match the new premium visual direction.
+- Verified with npm run lint, npm run typecheck, and npm run build.

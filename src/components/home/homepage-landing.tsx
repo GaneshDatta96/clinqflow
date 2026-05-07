@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Activity,
-  ArrowRight,
   ArrowUpRight,
   BadgeCheck,
   CalendarClock,
@@ -505,9 +504,9 @@ export function HomepageLanding() {
               Modern Health is modular. We tailor the intake logic, patient
               route, and review framing to your specialty and workflow.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <a
-                href="https://cal.com/ganesh-datta-bygktk/sales-throughput-session"
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <a
+              href="https://cal.com/ganesh-datta-bygktk/sales-throughput-session"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-[color:var(--accent)] transition hover:scale-[1.03]"
@@ -515,13 +514,6 @@ export function HomepageLanding() {
                 Request custom version
                 <ArrowUpRight className="h-4 w-4" />
               </a>
-              <Link
-                href="/create-demo"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/18 bg-white/10 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/16"
-              >
-                Create Demo Route
-                <ArrowRight className="h-4 w-4" />
-              </Link>
             </div>
           </div>
         </motion.div>

@@ -52,3 +52,9 @@ Build Log Initialized.
 - Updated src/components/layout/header.tsx so the homepage uses a marketing-style anchored navigation while internal product pages keep the application navigation.
 - Refined src/components/layout/footer.tsx to match the new homepage direction and request-demo framing.
 - Verified with npm run lint, npm run typecheck, and npm run build.
+
+[2026-05-07] - fix: Route public intake traffic to the actual intake experience
+- Moved the public-facing intake path to a real patient intake experience at src/app/intake/page.tsx and added a dedicated internal demo directory page at src/app/demo-routes/page.tsx.
+- Updated src/components/intake/patient-intake-experience.tsx and src/app/questionnaire/page.tsx to support a public intake mode that hides internal demo-sharing UI.
+- Removed the public Create Demo Route CTA, pointed internal navigation and create-demo success links to the internal demo routes area, and marked internal demo pages as noindex.
+- Verified with npm run lint, npm run typecheck, and npm run build.

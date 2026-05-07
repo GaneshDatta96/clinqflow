@@ -240,7 +240,7 @@ export function CreateDemoForm(props: {
             </Link>
 
             <Link
-              href="/intake"
+              href="/demo-routes"
               className="rounded-[1.5rem] border border-[color:var(--line)] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="flex items-center justify-between">
@@ -248,7 +248,7 @@ export function CreateDemoForm(props: {
                 <ExternalLink className="h-4 w-4 text-[color:var(--muted)]" />
               </div>
               <p className="mt-3 text-lg font-semibold text-[color:var(--foreground)]">
-                View Clinic Demos
+                View Demo Routes
               </p>
               <p className="mt-2 text-sm leading-6 text-[color:var(--muted)]">
                 Return to the demo directory and open any route from there.

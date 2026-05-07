@@ -8,7 +8,7 @@ import clsx from "clsx";
 const appNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Patients", href: "/patients", icon: Users },
-  { name: "New Intake", href: "/intake", icon: Stethoscope },
+  { name: "New Intake", href: "/create-demo", icon: Stethoscope },
 ];
 
 const marketingNavigation = [

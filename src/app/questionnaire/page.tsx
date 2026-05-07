@@ -20,6 +20,7 @@ export default async function QuestionnairePage({
     <PatientIntakeExperience
       clinic={clinic ?? getDefaultClinic()}
       initialPatientId={patientId}
+      mode="public"
     />
   );
 }

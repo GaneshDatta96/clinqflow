@@ -20,6 +20,7 @@ import {
 import { type NicheIntakePayload } from "@/lib/schemas/niche-intake";
 import { type SoapDraft } from "@/lib/schemas/soap";
 import { ClinicDemoLanding } from "./clinic-demo-landing";
+import { PatientCreationForm } from "./patient-creation-form";
 import { type PatientDetails } from "./patient-creation-form";
 
 type SubmissionState = {
@@ -42,6 +43,7 @@ type BookingState = {
 export function PatientIntakeExperience(props: {
   initialPatientId?: string | null;
   clinic: ClinicDefinition;
+  mode?: "demo" | "public";
 }) {
   const [patient, setPatient] = useState<PatientDetails | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -63,6 +65,7 @@ export function PatientIntakeExperience(props: {
   });
 
   const activePatientId = patient?.id ?? props.initialPatientId ?? null;
+  const isPublicMode = props.mode === "public";
   const patientPath = activePatientId
     ? `/${props.clinic.slug}?patientId=${activePatientId}`
     : null;
@@ -144,6 +147,28 @@ export function PatientIntakeExperience(props: {
   }
 
   if (!activePatientId) {
+    if (isPublicMode) {
+      return (
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
+          <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
+            <div className="space-y-3">
+              <p className="section-label">Patient Intake</p>
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                Start your intake form.
+              </h1>
+              <p className="max-w-3xl leading-7 text-[color:var(--muted)]">
+                Enter your details to begin the {props.clinic.config.label.toLowerCase()}{" "}
+                intake. Once created, you can continue straight through the
+                questionnaire on this page.
+              </p>
+            </div>
+          </section>
+
+          <PatientCreationForm clinic={props.clinic} setPatient={setPatient} />
+        </div>
+      );
+    }
+
     return <ClinicDemoLanding clinic={props.clinic} setPatient={setPatient} />;
   }
 
@@ -269,18 +294,23 @@ export function PatientIntakeExperience(props: {
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <div className="space-y-3">
-          <p className="section-label">{props.clinic.clinicName}</p>
+          <p className="section-label">
+            {isPublicMode ? "Patient Intake" : props.clinic.clinicName}
+          </p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {props.clinic.config.label} intake experience
+            {isPublicMode
+              ? `${props.clinic.config.label} intake form`
+              : `${props.clinic.config.label} intake experience`}
           </h1>
           <p className="max-w-4xl leading-7 text-[color:var(--muted)]">
-            {props.clinic.headline} This route is driven by the same niche
-            config used to render the form and assemble the SOAP preview.
+            {isPublicMode
+              ? `Complete the questionnaire below to send structured intake information before the consultation begins.`
+              : `${props.clinic.headline} This route is driven by the same niche config used to render the form and assemble the SOAP preview.`}
           </p>
         </div>
       </section>
 
-      {patient ? (
+      {patient && !isPublicMode ? (
         <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
           <div className="space-y-3">
             <p className="section-label">Unique Patient Link</p>

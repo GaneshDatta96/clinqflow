@@ -9,24 +9,24 @@ const footerLinks = [
 
 export function GlobalFooter() {
   return (
-    <footer className="border-t border-[color:var(--line)] bg-white/46 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-[1380px] flex-col gap-6 px-5 py-6 sm:px-8 lg:flex-row lg:items-end lg:justify-between xl:px-12">
-        <div className="max-w-xl">
-          <p className="section-label">Modern Health</p>
-          <p className="mt-3 text-sm leading-7 text-[color:var(--muted-strong)]">
-            Custom patient intake flows for clinics that want calmer pre-visit
-            operations, cleaner practitioner review, and a more polished first
-            impression.
+    <footer className="w-full border-t border-[color:var(--line)]/60 bg-white/50 px-6 py-16 backdrop-blur-sm xl:px-10">
+      <div className="mx-auto flex max-w-7xl flex-col gap-10 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col items-center gap-3 md:items-start">
+          <div className="display-font text-[1.7rem] font-bold tracking-[-0.04em] text-[color:var(--accent)]">
+            ModernHealth
+          </div>
+          <p className="text-sm text-[color:var(--muted)] opacity-70">
+            Built for clinical excellence.
           </p>
         </div>
 
-        <div className="flex flex-col gap-4 lg:items-end">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col items-center gap-5 md:items-end">
+          <div className="flex flex-wrap justify-center gap-3">
             {footerLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex items-center rounded-full border border-[color:var(--line)] bg-white/72 px-3.5 py-2 text-sm font-semibold text-[color:var(--muted-strong)] transition hover:bg-white hover:text-[color:var(--foreground)]"
+                className="text-sm font-semibold text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--accent)]"
               >
                 {link.label}
               </Link>
@@ -35,9 +35,9 @@ export function GlobalFooter() {
               href="https://cal.com/ganesh-datta-bygktk/sales-throughput-session"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[color:var(--foreground)] px-3.5 py-2 text-sm font-semibold text-white transition hover:opacity-92"
+              className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-92"
             >
-              Request custom version
+              Request Demo
               <ArrowUpRight className="h-4 w-4" />
             </a>
           </div>

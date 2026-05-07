@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
 import "./globals.css";
@@ -17,6 +17,12 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Intake V1",
   description:
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-gray-50 text-[15.5px] text-[color:var(--foreground)]">
         <GlobalHeader />

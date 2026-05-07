@@ -45,3 +45,10 @@ Build Log Initialized.
 - Simplified src/app/page.tsx into a route entry that renders the dedicated homepage landing component.
 - Refined src/components/layout/header.tsx and src/components/layout/footer.tsx so the shared navigation and footer match the new premium visual direction.
 - Verified with npm run lint, npm run typecheck, and npm run build.
+
+[2026-05-07] - feat: Translate static marketing reference into app-native homepage
+- Added Newsreader as a display font in src/app/layout.tsx and extended src/app/globals.css with new display, glass, ambient shadow, and marquee/floating primitives.
+- Rebuilt src/components/home/homepage-landing.tsx around the provided marketing reference with an editorial hero, trust strip, practitioner showcase, feature grid, outcomes section, workflow section, and stronger CTA structure.
+- Updated src/components/layout/header.tsx so the homepage uses a marketing-style anchored navigation while internal product pages keep the application navigation.
+- Refined src/components/layout/footer.tsx to match the new homepage direction and request-demo framing.
+- Verified with npm run lint, npm run typecheck, and npm run build.

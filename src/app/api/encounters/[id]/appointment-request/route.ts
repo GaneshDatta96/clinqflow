@@ -1,76 +1,33 @@
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import { notFound } from "@/lib/api/errors";
+import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
 import { storeAppointmentRequest } from "@/lib/intake/workflow";
-import { createRequestLog, logError, logInfo, logWarn } from "@/lib/logging/logger";
 import { appointmentRequestSchema } from "@/lib/schemas/intake";
+import { requirePermission } from "@/lib/tenancy/context";
 
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const startedAt = Date.now();
-  const { id } = await context.params;
-  const requestLog = createRequestLog(
-    request,
-    "/api/encounters/[id]/appointment-request",
-  );
+const bodySchema = appointmentRequestSchema;
 
-  logInfo({
-    ...requestLog,
-    message: "route.start",
-    step: "appointment_request",
-    status: "started",
-    encounter_id: id,
-  });
+export const POST = createApiHandler({
+  route: "/api/encounters/[id]/appointment-request",
+  step: "appointment_request",
+  schema: bodySchema,
+  handler: async ({ body, request }) => {
+    const id = request.url.split("/encounters/")[1]?.split("/")[0];
+    if (!id) throw notFound();
 
-  try {
-    const body = await request.json();
-    const input = appointmentRequestSchema.parse(body);
-    const stored = await storeAppointmentRequest(id, input);
+    const { supabase, context } = await requirePermission("encounter:write");
+    const encounter = await getEncounterForTenant(supabase, context.tenantId, id);
 
-    if (!stored.persisted) {
-      logWarn({
-        ...requestLog,
-        message: "supabase.unavailable",
-        step: "appointment_request",
-        status: "degraded",
-        encounter_id: id,
-        metadata: {
-          reason: "Missing Supabase env vars. Appointment request could not be persisted.",
-        },
-      });
-    }
+    if (!encounter) throw notFound();
 
-    revalidatePath("/dashboard");
-
-    logInfo({
-      ...requestLog,
-      message: "route.complete",
-      step: "appointment_request",
-      status: "ok",
-      encounter_id: id,
-      latency_ms: Date.now() - startedAt,
-      metadata: {
-        persisted: stored.persisted,
-      },
-    });
-
-    return Response.json(stored);
-  } catch (error) {
-    logError({
-      ...requestLog,
-      message: "route.failed",
-      step: "appointment_request",
-      status: "error",
-      encounter_id: id,
-      latency_ms: Date.now() - startedAt,
-      error,
-    });
-
-    return Response.json(
-      {
-        error: "Unable to request an appointment.",
-      },
-      { status: 400 },
+    const result = await storeAppointmentRequest(
+      supabase,
+      context.tenantId,
+      id,
+      body,
     );
-  }
-}
+
+    return jsonOk(result);
+  },
+});

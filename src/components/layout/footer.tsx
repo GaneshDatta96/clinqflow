@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 const footerLinks = [
   { label: "Patient Experience", href: "/intake" },
   { label: "Practitioner View", href: "/dashboard" },
-  { label: "Patients", href: "/patients" },
+  { label: "Patients", href: "/app/patients" },
 ];
 
 export function GlobalFooter() {

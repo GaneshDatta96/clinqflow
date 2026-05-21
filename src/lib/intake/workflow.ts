@@ -1,8 +1,10 @@
 import { generateSoapDraft } from "@/lib/ai/generate-soap";
 import { scorePatterns } from "@/lib/assessment/score-patterns";
+import { badRequest, notFound } from "@/lib/api/errors";
 import { getClinicByNiche } from "@/lib/clinics/niche-configs";
 import { getClinicForSlug } from "@/lib/clinics/store";
-import { getSupabaseAdmin } from "@/lib/db/supabase";
+import { persistEncounterPipeline } from "@/lib/db/repositories/encounters";
+import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { transformNicheSubmission } from "@/lib/intake/niche-intake";
 import {
   type AppointmentRequestInput,
@@ -10,438 +12,258 @@ import {
 } from "@/lib/schemas/intake";
 import { type NicheIntakePayload } from "@/lib/schemas/niche-intake";
 import { type AssessmentResult, type SoapDraft } from "@/lib/schemas/soap";
+import { type SupabaseClient } from "@supabase/supabase-js";
+import { verifyIntakeJwt } from "@/lib/auth/intake-tokens";
+import { assertAiGenerationAllowed } from "@/lib/billing/entitlements";
+import { assertPublicIntakeRateLimit } from "@/lib/api/rate-limit";
 
 export type ProcessedEncounter = {
-  encounterId: string | null;
+  encounterId: string;
   patientId: string;
-  persisted: boolean;
-  supportsAppointments: boolean;
+  tenantId: string;
+  clinicId: string;
   normalizedIntake: NormalizedIntake;
   assessmentResults: AssessmentResult[];
   soap: SoapDraft;
   promptVersion: string;
   model: string;
   usedFallback: boolean;
-  tokenUsage?: unknown;
+  supportsAppointments: boolean;
 };
 
-type ResolvedPatientContext = {
-  patientId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  sexAtBirth: string;
-  genderIdentity: string;
-  clinicId?: string;
-  existsInDatabase: boolean;
-  storageMode: "legacy" | "tenant" | "ephemeral";
-};
-
-function splitName(name: string) {
-  const [firstName = "Demo", ...rest] = name.trim().split(/\s+/);
-  return {
-    firstName,
-    lastName: rest.join(" ") || "Patient",
-  };
-}
-
-function buildFallbackPatientContext(
+async function resolvePatient(
+  supabase: SupabaseClient,
   patientId: string,
-  clinicId?: string,
-): ResolvedPatientContext {
-  return {
-    patientId,
-    firstName: "Demo",
-    lastName: "Patient",
-    email: "",
-    phone: "",
-    sexAtBirth: "Not specified",
-    genderIdentity: "",
-    clinicId,
-    existsInDatabase: false,
-    storageMode: "ephemeral",
-  };
-}
-
-async function resolvePatientContext(patientId: string) {
-  const supabase = getSupabaseAdmin();
-  const fallback = buildFallbackPatientContext(patientId);
-
-  if (!supabase) {
-    return {
-      supabase,
-      patient: fallback,
-    };
-  }
-
-  const legacyPatient = await supabase
+  tenantId: string,
+) {
+  const { data, error } = await supabase
     .from("patients")
     .select(
-      "id, first_name, last_name, email, phone, sex_at_birth, gender_identity",
+      "id, tenant_id, clinic_id, first_name, last_name, email, phone, sex_at_birth, gender_identity",
     )
     .eq("id", patientId)
+    .eq("tenant_id", tenantId)
+    .is("deleted_at", null)
     .maybeSingle();
 
-  if (!legacyPatient.error && legacyPatient.data) {
-    return {
-      supabase,
-      patient: {
-        patientId: legacyPatient.data.id,
-        firstName: legacyPatient.data.first_name?.trim() || fallback.firstName,
-        lastName: legacyPatient.data.last_name?.trim() || fallback.lastName,
-        email: legacyPatient.data.email?.trim() || "",
-        phone: legacyPatient.data.phone?.trim() || "",
-        sexAtBirth: legacyPatient.data.sex_at_birth?.trim() || fallback.sexAtBirth,
-        genderIdentity: legacyPatient.data.gender_identity?.trim() || "",
-        existsInDatabase: true,
-        storageMode: "legacy" as const,
-      },
-    };
+  if (error || !data) {
+    throw notFound("Patient not found.");
   }
 
-  const tenantPatient = await supabase
-    .from("patients")
-    .select("id, clinic_id, name, email, phone")
-    .eq("id", patientId)
-    .maybeSingle();
-
-  if (!tenantPatient.error && tenantPatient.data) {
-    const parsedName = splitName(tenantPatient.data.name ?? "");
-
-    return {
-      supabase,
-      patient: {
-        patientId: tenantPatient.data.id,
-        firstName: parsedName.firstName,
-        lastName: parsedName.lastName,
-        email: tenantPatient.data.email?.trim() || "",
-        phone: tenantPatient.data.phone?.trim() || "",
-        sexAtBirth: fallback.sexAtBirth,
-        genderIdentity: "",
-        clinicId: tenantPatient.data.clinic_id ?? undefined,
-        existsInDatabase: true,
-        storageMode: "tenant" as const,
-      },
-    };
-  }
-
-  return {
-    supabase,
-    patient: fallback,
-  };
+  return data;
 }
 
-async function persistToTenantSchema(args: {
-  clinicId: string;
-  patient: ResolvedPatientContext;
-  input: NicheIntakePayload;
-  normalizedIntake: NormalizedIntake;
-  assessmentResults: AssessmentResult[];
-  generated: Awaited<ReturnType<typeof generateSoapDraft>>;
-}) {
-  const supabase = getSupabaseAdmin();
-
-  if (!supabase) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  if (!args.patient.existsInDatabase) {
-    const patientInsert = await supabase.from("patients").insert({
-      id: args.patient.patientId,
-      clinic_id: args.clinicId,
-      name: `${args.patient.firstName} ${args.patient.lastName}`.trim(),
-      email: args.patient.email || null,
-      phone: args.patient.phone || null,
-    });
-
-    if (patientInsert.error) {
-      return {
-        persisted: false,
-        encounterId: null,
-        supportsAppointments: false,
-      };
-    }
-  }
-
-  const intakeInsert = await supabase
-    .from("intakes")
-    .insert({
-      patient_id: args.patient.patientId,
-      clinic_id: args.clinicId,
-      intake_json: {
-        raw: args.input,
-        normalized: args.normalizedIntake,
-        assessment_results: args.assessmentResults,
-      },
-    })
-    .select("id")
-    .single();
-
-  if (intakeInsert.error || !intakeInsert.data) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  const soapInsert = await supabase
-    .from("soap_reports")
-    .insert({
-      patient_id: args.patient.patientId,
-      clinic_id: args.clinicId,
-      soap_json: {
-        ...args.generated.soap,
-        prompt_version: args.generated.promptVersion,
-        model: args.generated.model,
-        used_fallback: args.generated.usedFallback,
-      },
-    })
-    .select("id")
-    .single();
-
-  if (soapInsert.error) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  return {
-    persisted: true,
-    encounterId: intakeInsert.data.id,
-    supportsAppointments: false,
-  };
-}
-
-async function persistToLegacySchema(args: {
-  patient: ResolvedPatientContext;
-  normalizedIntake: NormalizedIntake;
-  input: NicheIntakePayload;
-  assessmentResults: AssessmentResult[];
-  generated: Awaited<ReturnType<typeof generateSoapDraft>>;
-}) {
-  const supabase = getSupabaseAdmin();
-
-  if (!supabase) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  const encounterId = crypto.randomUUID();
-
-  if (!args.patient.existsInDatabase) {
-    const patientInsert = await supabase.from("patients").insert({
-      id: args.patient.patientId,
-      first_name: args.normalizedIntake.patient_info.first_name,
-      last_name: args.normalizedIntake.patient_info.last_name,
-      dob: null,
-      sex_at_birth: args.normalizedIntake.patient_info.sex_at_birth,
-      gender_identity: args.normalizedIntake.patient_info.gender_identity,
-      phone: args.normalizedIntake.patient_info.contact.phone,
-      email: args.normalizedIntake.patient_info.contact.email,
-    });
-
-    if (patientInsert.error) {
-      return {
-        persisted: false,
-        encounterId: null,
-        supportsAppointments: false,
-      };
-    }
-  }
-
-  const encounterInsert = await supabase.from("encounters").insert({
-    id: encounterId,
-    patient_id: args.patient.patientId,
-    status: "submitted",
-    chief_complaint: args.normalizedIntake.chief_complaint.primary_issue,
-    submitted_at: args.normalizedIntake.metadata.submitted_at,
-  });
-
-  if (encounterInsert.error) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  const intakeInsert = await supabase.from("intake_submissions").insert({
-    encounter_id: encounterId,
-    schema_version: args.normalizedIntake.schema_version,
-    raw_json: args.input,
-    normalized_json: args.normalizedIntake,
-  });
-
-  if (intakeInsert.error) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  const assessmentInsert = await supabase.from("assessment_results").insert(
-    args.assessmentResults.map((item) => ({
-      encounter_id: encounterId,
-      pattern_key: item.pattern_key,
-      confidence: item.confidence,
-      evidence: item.evidence,
-      data_gaps: item.data_gaps,
-      risk_level: item.risk_level,
-      rank: item.rank,
-    })),
-  );
-
-  if (assessmentInsert.error) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  const soapInsert = await supabase.from("soap_notes").upsert(
-    {
-      encounter_id: encounterId,
-      subjective: args.generated.soap.subjective,
-      objective: args.generated.soap.objective,
-      assessment: args.generated.soap.assessment,
-      plan: args.generated.soap.plan_draft,
-      soap_json: args.generated.soap,
-      prompt_version: args.generated.promptVersion,
-      model: args.generated.model,
-      review_status: "draft",
-    },
-    {
-      onConflict: "encounter_id",
-    },
-  );
-
-  if (soapInsert.error) {
-    return {
-      persisted: false,
-      encounterId: null,
-      supportsAppointments: false,
-    };
-  }
-
-  return {
-    persisted: true,
-    encounterId,
-    supportsAppointments: true,
-  };
-}
-
-export async function processIntakeSubmission(
+export async function processAuthenticatedIntakeSubmission(
   input: NicheIntakePayload,
+  context: {
+    supabase: SupabaseClient;
+    tenantId: string;
+    userId: string;
+  },
 ): Promise<ProcessedEncounter> {
-  const clinic = (await getClinicForSlug(input.clinic_slug)) ?? getClinicByNiche(input.niche);
+  const clinic =
+    (await getClinicForSlug(input.clinic_slug, context.tenantId)) ??
+    getClinicByNiche(input.niche);
 
-  if (!clinic) {
-    throw new Error("Unable to resolve clinic config for intake submission.");
+  if (!clinic?.id) {
+    throw badRequest("Clinic configuration is invalid.");
   }
 
-  const { supabase, patient } = await resolvePatientContext(input.patient_id);
+  const patient = await resolvePatient(
+    context.supabase,
+    input.patient_id,
+    context.tenantId,
+  );
+
+  if (patient.clinic_id && patient.clinic_id !== clinic.id) {
+    throw badRequest("Patient does not belong to this clinic.");
+  }
+
   const transformed = transformNicheSubmission({
     clinic,
     payload: input,
     patient: {
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      email: patient.email,
-      phone: patient.phone,
-      sexAtBirth: patient.sexAtBirth,
-      genderIdentity: patient.genderIdentity,
+      firstName: patient.first_name,
+      lastName: patient.last_name,
+      email: patient.email ?? "",
+      phone: patient.phone ?? "",
+      sexAtBirth: patient.sex_at_birth ?? "Not specified",
+      genderIdentity: patient.gender_identity ?? "",
     },
   });
+
   const normalizedIntake = transformed.normalizedIntake;
   const assessmentResults = scorePatterns(normalizedIntake);
+  await assertAiGenerationAllowed(context.tenantId);
   const generated = await generateSoapDraft({
     intake: normalizedIntake,
     assessmentResults,
     clinic,
     soapContext: transformed.soapContext,
   });
-  const patientId = patient.patientId;
 
-  let persisted = false;
-  let encounterId: string | null = null;
-  let supportsAppointments = false;
+  const encounterId = await persistEncounterPipeline({
+    supabase: context.supabase,
+    tenantId: context.tenantId,
+    clinicId: clinic.id,
+    patientId: patient.id,
+    createdBy: context.userId,
+    normalizedIntake,
+    rawInput: input,
+    assessmentResults,
+    soap: generated.soap,
+    promptVersion: generated.promptVersion,
+    model: generated.model,
+  });
 
-  if (supabase) {
-    const tenantClinicId = patient.clinicId ?? clinic.id;
+  await context.supabase.from("ai_generations").insert({
+    tenant_id: context.tenantId,
+    encounter_id: encounterId,
+    prompt_version: generated.promptVersion,
+    model: generated.model,
+    used_fallback: generated.usedFallback,
+    created_by: context.userId,
+  });
 
-    if (tenantClinicId) {
-      const tenantResult = await persistToTenantSchema({
-        clinicId: tenantClinicId,
-        patient,
-        input,
-        normalizedIntake,
-        assessmentResults,
-        generated,
-      });
-
-      persisted = tenantResult.persisted;
-      encounterId = tenantResult.encounterId;
-      supportsAppointments = tenantResult.supportsAppointments;
-    }
-
-    if (!persisted) {
-      const legacyResult = await persistToLegacySchema({
-        patient,
-        normalizedIntake,
-        input,
-        assessmentResults,
-        generated,
-      });
-
-      persisted = legacyResult.persisted;
-      encounterId = legacyResult.encounterId;
-      supportsAppointments = legacyResult.supportsAppointments;
-    }
-  }
+  await context.supabase.from("usage_tracking").insert({
+    tenant_id: context.tenantId,
+    metric_key: "ai_soap_generation",
+    quantity: 1,
+  });
 
   return {
     encounterId,
-    patientId,
-    persisted,
-    supportsAppointments,
+    patientId: patient.id,
+    tenantId: context.tenantId,
+    clinicId: clinic.id,
     normalizedIntake,
     assessmentResults,
     soap: generated.soap,
     promptVersion: generated.promptVersion,
     model: generated.model,
     usedFallback: generated.usedFallback,
-    tokenUsage: "tokenUsage" in generated ? generated.tokenUsage : undefined,
+    supportsAppointments: true,
+  };
+}
+
+export async function processPublicIntakeSubmission(
+  input: NicheIntakePayload,
+  intakeToken: string,
+): Promise<ProcessedEncounter> {
+  const claims = await verifyIntakeJwt(intakeToken);
+  const admin = getSupabaseAdmin();
+
+  if (!admin) {
+    throw badRequest("Intake service is not configured.");
+  }
+
+  if (claims.patientId !== input.patient_id) {
+    throw badRequest("Intake token does not match patient.");
+  }
+
+  await assertPublicIntakeRateLimit(claims.tenantId);
+
+  const clinic = await getClinicForSlug(input.clinic_slug, claims.tenantId);
+
+  if (!clinic?.id || clinic.id !== claims.clinicId) {
+    throw badRequest("Invalid clinic for intake token.");
+  }
+
+  const { data: linkRow } = await admin
+    .from("intake_links")
+    .select("id, status, expires_at")
+    .eq("id", claims.linkId)
+    .maybeSingle();
+
+  if (
+    !linkRow ||
+    linkRow.status !== "active" ||
+    new Date(linkRow.expires_at) < new Date()
+  ) {
+    throw badRequest("Intake link is expired or invalid.");
+  }
+
+  const patient = await resolvePatient(admin, input.patient_id, claims.tenantId);
+
+  const transformed = transformNicheSubmission({
+    clinic,
+    payload: input,
+    patient: {
+      firstName: patient.first_name,
+      lastName: patient.last_name,
+      email: patient.email ?? "",
+      phone: patient.phone ?? "",
+      sexAtBirth: patient.sex_at_birth ?? "Not specified",
+      genderIdentity: patient.gender_identity ?? "",
+    },
+  });
+
+  const normalizedIntake = transformed.normalizedIntake;
+  const assessmentResults = scorePatterns(normalizedIntake);
+  await assertAiGenerationAllowed(claims.tenantId);
+  const generated = await generateSoapDraft({
+    intake: normalizedIntake,
+    assessmentResults,
+    clinic,
+    soapContext: transformed.soapContext,
+  });
+
+  const encounterId = await persistEncounterPipeline({
+    supabase: admin,
+    tenantId: claims.tenantId,
+    clinicId: clinic.id,
+    patientId: patient.id,
+    normalizedIntake,
+    rawInput: input,
+    assessmentResults,
+    soap: generated.soap,
+    promptVersion: generated.promptVersion,
+    model: generated.model,
+  });
+
+  await admin
+    .from("intake_links")
+    .update({ status: "completed", completed_at: new Date().toISOString() })
+    .eq("id", claims.linkId);
+
+  await admin.from("ai_generations").insert({
+    tenant_id: claims.tenantId,
+    encounter_id: encounterId,
+    prompt_version: generated.promptVersion,
+    model: generated.model,
+    used_fallback: generated.usedFallback,
+  });
+
+  return {
+    encounterId,
+    patientId: patient.id,
+    tenantId: claims.tenantId,
+    clinicId: clinic.id,
+    normalizedIntake,
+    assessmentResults,
+    soap: generated.soap,
+    promptVersion: generated.promptVersion,
+    model: generated.model,
+    usedFallback: generated.usedFallback,
+    supportsAppointments: true,
   };
 }
 
 export async function storeAppointmentRequest(
+  supabase: SupabaseClient,
+  tenantId: string,
   encounterId: string,
   input: AppointmentRequestInput,
 ) {
-  const supabase = getSupabaseAdmin();
+  const encounter = await supabase
+    .from("encounters")
+    .select("id")
+    .eq("id", encounterId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
 
-  if (!supabase) {
-    return {
-      persisted: false,
-      appointmentRequest: {
-        status: "requested",
-        requested_at: new Date().toISOString(),
-        ...input,
-      },
-    };
+  if (!encounter.data) {
+    throw notFound("Encounter not found.");
   }
 
   const insert = await supabase.from("appointment_requests").upsert(
@@ -452,9 +274,7 @@ export async function storeAppointmentRequest(
       notes: input.notes,
       status: "requested",
     },
-    {
-      onConflict: "encounter_id",
-    },
+    { onConflict: "encounter_id" },
   );
 
   if (insert.error) {
@@ -462,11 +282,8 @@ export async function storeAppointmentRequest(
   }
 
   return {
-    persisted: true,
-    appointmentRequest: {
-      status: "requested",
-      requested_at: new Date().toISOString(),
-      ...input,
-    },
+    status: "requested",
+    requested_at: new Date().toISOString(),
+    ...input,
   };
 }

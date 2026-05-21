@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { useIntakeDraftAutosave } from "@/components/intake/use-intake-draft";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import clsx from "clsx";
@@ -40,6 +41,8 @@ export function PatientIntakeForm(props: {
   const {
     register,
     handleSubmit,
+    reset,
+    control,
     formState: { errors },
   } = useForm<FormInput, unknown, NicheIntakePayload>({
     resolver: zodResolver(formSchema),
@@ -50,6 +53,41 @@ export function PatientIntakeForm(props: {
       answers: defaultAnswers,
     },
   });
+
+  const watchedAnswers = useWatch({ control, name: "answers" }) ?? defaultAnswers;
+
+  useIntakeDraftAutosave({
+    patientId: props.patientId,
+    clinicId: props.clinic.id,
+    answers: watchedAnswers as Record<string, unknown>,
+    enabled: Boolean(props.clinic.id),
+  });
+
+  useEffect(() => {
+    if (!props.clinic.id) return;
+
+    const params = new URLSearchParams({
+      patient_id: props.patientId,
+      clinic_id: props.clinic.id,
+    });
+
+    fetch(`/api/intake/drafts?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.draft?.answers_json) {
+          reset({
+            patient_id: props.patientId,
+            clinic_slug: props.clinic.slug,
+            niche: props.clinic.niche,
+            answers: {
+              ...defaultAnswers,
+              ...data.draft.answers_json,
+            },
+          });
+        }
+      })
+      .catch(() => undefined);
+  }, [props.patientId, props.clinic.id, props.clinic.slug, props.clinic.niche, reset, defaultAnswers]);
 
   const answerErrors = (errors.answers ?? {}) as Record<
     string,

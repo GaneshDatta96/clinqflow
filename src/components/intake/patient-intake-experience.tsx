@@ -42,6 +42,7 @@ type BookingState = {
 
 export function PatientIntakeExperience(props: {
   initialPatientId?: string | null;
+  intakeToken?: string | null;
   clinic: ClinicDefinition;
   mode?: "demo" | "public";
 }) {
@@ -104,11 +105,22 @@ export function PatientIntakeExperience(props: {
     });
 
     try {
-      const response = await fetch("/api/intake/submit", {
+      const isPublicSubmit = isPublicMode && props.intakeToken;
+      const endpoint = isPublicSubmit
+        ? "/api/intake/public/submit"
+        : "/api/intake/submit";
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (isPublicSubmit && props.intakeToken) {
+        headers["x-intake-token"] = props.intakeToken;
+      }
+
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(values),
       });
 
@@ -119,8 +131,12 @@ export function PatientIntakeExperience(props: {
         soap?: SoapDraft;
       };
 
-      if (!response.ok || !payload.soap) {
+      if (!response.ok) {
         throw new Error(payload.error ?? "Submission failed.");
+      }
+
+      if (!isPublicSubmit && !payload.soap) {
+        throw new Error("Submission failed.");
       }
 
       setSubmission({
@@ -130,7 +146,7 @@ export function PatientIntakeExperience(props: {
         status: "Intake complete",
         encounterId: payload.encounterId ?? null,
         bookingEnabled: payload.bookingEnabled ?? false,
-        soap: payload.soap,
+        soap: payload.soap ?? null,
       });
     } catch (error) {
       setSubmission({

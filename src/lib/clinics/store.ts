@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "@/lib/db/supabase";
+import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import {
   buildClinicDefinition,
   getAllClinics,
@@ -15,6 +15,7 @@ import {
 
 type ClinicRow = {
   id: string;
+  tenant_id: string;
   name: string;
   slug: string;
   niche: string;
@@ -28,6 +29,7 @@ type ClinicRow = {
 };
 
 type CreateDemoClinicInput = {
+  tenantId: string;
   name: string;
   slug: string;
   niche: string;
@@ -36,6 +38,7 @@ type CreateDemoClinicInput = {
   website?: string;
   description?: string;
   approach?: string;
+  createdBy?: string;
 };
 
 function getLocalConfig(niche: string) {
@@ -69,6 +72,7 @@ async function getConfigForNiche(niche: string): Promise<NicheConfig | null> {
 function buildFromRow(row: ClinicRow, config: NicheConfig): ClinicDefinition {
   return buildClinicDefinition({
     id: row.id,
+    tenantId: row.tenant_id,
     slug: row.slug,
     niche: row.niche,
     clinicName: row.name,
@@ -82,35 +86,142 @@ function buildFromRow(row: ClinicRow, config: NicheConfig): ClinicDefinition {
     website: row.website ?? undefined,
     description: row.description ?? undefined,
     approach: row.approach ?? undefined,
-    isDemo: row.is_demo ?? true,
+    isDemo: row.is_demo ?? false,
     createdAt: row.created_at ?? undefined,
     config,
   });
 }
 
-export async function getClinicForSlug(slug: string): Promise<ClinicDefinition | null> {
+export async function getClinicForSlug(
+  slug: string,
+  tenantId?: string,
+): Promise<ClinicDefinition | null> {
   const supabase = getSupabaseAdmin();
 
   if (!supabase) {
     return getClinicBySlug(slug);
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("clinics")
     .select(
-      "id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
+      "id, tenant_id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
     )
     .eq("slug", slug)
-    .maybeSingle();
+    .is("deleted_at", null);
+
+  if (tenantId) {
+    query = query.eq("tenant_id", tenantId);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error || !data) {
-    return getClinicBySlug(slug);
+    return tenantId ? null : getClinicBySlug(slug);
   }
 
   const config = await getConfigForNiche(data.niche);
 
   if (!config) {
     return getClinicBySlug(slug) ?? getClinicByNiche(data.niche);
+  }
+
+  return buildFromRow(data, config);
+}
+
+export async function listClinicsForTenant(tenantId: string) {
+  const supabase = getSupabaseAdmin();
+
+  if (!supabase) {
+    return getAllClinics();
+  }
+
+  const { data, error } = await supabase
+    .from("clinics")
+    .select(
+      "id, tenant_id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
+    )
+    .eq("tenant_id", tenantId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  const configs = new Map<string, NicheConfig>();
+  const niches = Array.from(new Set(data.map((c) => c.niche)));
+
+  await Promise.all(
+    niches.map(async (niche) => {
+      const config = await getConfigForNiche(niche);
+      if (config) configs.set(niche, config);
+    }),
+  );
+
+  return data
+    .map((row) => {
+      const config = configs.get(row.niche);
+      return config ? buildFromRow(row, config) : null;
+    })
+    .filter((c): c is ClinicDefinition => c !== null);
+}
+
+export async function createDemoClinic(
+  input: CreateDemoClinicInput,
+): Promise<ClinicDefinition> {
+  const supabase = getSupabaseAdmin();
+  const localConfig = getLocalConfig(input.niche);
+
+  if (!localConfig) {
+    throw new Error("Unknown niche config for demo clinic.");
+  }
+
+  if (!supabase) {
+    return buildClinicDefinition({
+      tenantId: input.tenantId,
+      slug: input.slug,
+      niche: input.niche,
+      clinicName: input.name,
+      headline: input.description ?? input.approach,
+      location: input.location,
+      country: input.country,
+      website: input.website,
+      description: input.description,
+      approach: input.approach,
+      isDemo: true,
+      config: localConfig,
+    });
+  }
+
+  const { data, error } = await supabase
+    .from("clinics")
+    .insert({
+      tenant_id: input.tenantId,
+      name: input.name,
+      slug: input.slug,
+      niche: input.niche,
+      location: input.location ?? null,
+      country: input.country?.trim() || "United States",
+      website: input.website ?? null,
+      description: input.description ?? null,
+      approach: input.approach ?? null,
+      is_demo: true,
+      created_by: input.createdBy ?? null,
+    })
+    .select(
+      "id, tenant_id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
+    )
+    .single();
+
+  if (error || !data) {
+    throw error ?? new Error("Unable to create demo clinic.");
+  }
+
+  const config = await getConfigForNiche(data.niche);
+
+  if (!config) {
+    throw new Error("Demo clinic created, but no niche config could be resolved.");
   }
 
   return buildFromRow(data, config);
@@ -126,9 +237,10 @@ export async function getDemoClinics(): Promise<ClinicDefinition[]> {
   const { data, error } = await supabase
     .from("clinics")
     .select(
-      "id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
+      "id, tenant_id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
     )
     .eq("is_demo", true)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(24);
 
@@ -156,63 +268,6 @@ export async function getDemoClinics(): Promise<ClinicDefinition[]> {
     .filter((clinic): clinic is ClinicDefinition => clinic !== null);
 
   return clinics.length > 0 ? clinics : getAllClinics();
-}
-
-export async function createDemoClinic(
-  input: CreateDemoClinicInput,
-): Promise<ClinicDefinition> {
-  const supabase = getSupabaseAdmin();
-
-  if (!supabase) {
-    const localConfig = getLocalConfig(input.niche);
-    if (!localConfig) {
-      throw new Error("Unknown niche config for demo clinic.");
-    }
-
-    return buildClinicDefinition({
-      slug: input.slug,
-      niche: input.niche,
-      clinicName: input.name,
-      headline: input.description ?? input.approach,
-      location: input.location,
-      country: input.country,
-      website: input.website,
-      description: input.description,
-      approach: input.approach,
-      isDemo: true,
-      config: localConfig,
-    });
-  }
-
-  const { data, error } = await supabase
-    .from("clinics")
-    .insert({
-      name: input.name,
-      slug: input.slug,
-      niche: input.niche,
-      location: input.location ?? null,
-      country: input.country?.trim() || "United States",
-      website: input.website ?? null,
-      description: input.description ?? null,
-      approach: input.approach ?? null,
-      is_demo: true,
-    })
-    .select(
-      "id, name, slug, niche, location, country, website, description, approach, is_demo, created_at",
-    )
-    .single();
-
-  if (error || !data) {
-    throw error ?? new Error("Unable to create demo clinic.");
-  }
-
-  const config = await getConfigForNiche(data.niche);
-
-  if (!config) {
-    throw new Error("Demo clinic created, but no niche config could be resolved.");
-  }
-
-  return buildFromRow(data, config);
 }
 
 export function getDemoNicheOptions(): Array<{

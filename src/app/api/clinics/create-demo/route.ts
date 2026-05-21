@@ -1,20 +1,11 @@
-import { getSupabaseAdmin } from "@/lib/db/supabase";
-import { createDemoClinic } from "@/lib/clinics/store";
-import {
-  createRequestLog,
-  logError,
-  logInfo,
-  logWarn,
-} from "@/lib/logging/logger";
 import { z } from "zod";
+import { createApiHandler, jsonCreated } from "@/lib/api/handler";
+import { createDemoClinic } from "@/lib/clinics/store";
+import { requirePermission } from "@/lib/tenancy/context";
 
-const createDemoSchema = z.object({
-  name: z.string().trim().min(2),
-  slug: z
-    .string()
-    .trim()
-    .min(2)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+const schema = z.object({
+  name: z.string().trim().min(1),
+  slug: z.string().trim().min(1),
   niche: z.string().trim().min(1),
   location: z.string().trim().optional(),
   country: z.string().trim().optional(),
@@ -23,81 +14,26 @@ const createDemoSchema = z.object({
   approach: z.string().trim().optional(),
 });
 
-export async function POST(request: Request) {
-  const startedAt = Date.now();
-  const requestLog = createRequestLog(request, "/api/clinics/create-demo");
+export const POST = createApiHandler({
+  route: "/api/clinics/create-demo",
+  step: "create_demo_clinic",
+  schema,
+  handler: async ({ body }) => {
+    const { context } = await requirePermission("clinic:create");
 
-  logInfo({
-    ...requestLog,
-    message: "route.start",
-    step: "clinic_demo_create",
-    status: "started",
-  });
-
-  try {
-    const body = await request.json();
-    const input = createDemoSchema.parse(body);
-    const clinic = await createDemoClinic(input);
-    const persisted = Boolean(getSupabaseAdmin()) && Boolean(clinic.id);
-
-    if (!persisted) {
-      logWarn({
-        ...requestLog,
-        message: "supabase.unavailable",
-        step: "clinic_demo_create",
-        status: "degraded",
-        latency_ms: Date.now() - startedAt,
-        metadata: {
-          clinic_slug: clinic.slug,
-          niche: clinic.niche,
-          persisted: false,
-        },
-      });
-    }
-
-    logInfo({
-      ...requestLog,
-      message: "route.complete",
-      step: "clinic_demo_create",
-      status: "ok",
-      latency_ms: Date.now() - startedAt,
-      metadata: {
-        clinic_id: clinic.id ?? null,
-        clinic_slug: clinic.slug,
-        niche: clinic.niche,
-        persisted,
-      },
+    const clinic = await createDemoClinic({
+      tenantId: context.tenantId,
+      name: body.name,
+      slug: body.slug,
+      niche: body.niche,
+      location: body.location,
+      country: body.country,
+      website: body.website,
+      description: body.description,
+      approach: body.approach,
+      createdBy: context.userId,
     });
 
-    return Response.json(
-      {
-        clinic: {
-          id: clinic.id,
-          slug: clinic.slug,
-          clinicName: clinic.clinicName,
-          niche: clinic.niche,
-          label: clinic.config.label,
-        },
-        validated: true,
-        persisted,
-      },
-      { status: 201 },
-    );
-  } catch (error) {
-    logError({
-      ...requestLog,
-      message: "route.failed",
-      step: "clinic_demo_create",
-      status: "error",
-      latency_ms: Date.now() - startedAt,
-      error,
-    });
-
-    return Response.json(
-      {
-        error: "Unable to create demo clinic.",
-      },
-      { status: 400 },
-    );
-  }
-}
+    return jsonCreated({ clinic });
+  },
+});

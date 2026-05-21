@@ -24,9 +24,9 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "Intake V1",
+  title: "Cliniqflow",
   description:
-    "AI-assisted clinical intake, structured assessment, and SOAP drafting for outpatient wellness clinics.",
+    "Multi-tenant clinical intake and AI-assisted SOAP platform for outpatient wellness clinics.",
 };
 
 export default function RootLayout({

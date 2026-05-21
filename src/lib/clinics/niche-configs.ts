@@ -89,6 +89,7 @@ type LocalClinicPreset = (typeof clinicCatalog)[number];
 
 export type ClinicDefinition = {
   id?: string;
+  tenantId?: string;
   slug: string;
   niche: string;
   clinicName: string;
@@ -136,6 +137,7 @@ export function getClinicHeadline(args: {
 
 export function buildClinicDefinition(args: {
   id?: string;
+  tenantId?: string;
   slug: string;
   niche: string;
   clinicName: string;
@@ -151,6 +153,7 @@ export function buildClinicDefinition(args: {
 }): ClinicDefinition {
   return {
     id: args.id,
+    tenantId: args.tenantId,
     slug: args.slug,
     niche: args.niche,
     clinicName: args.clinicName,

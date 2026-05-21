@@ -1,96 +1,43 @@
+import { z } from "zod";
 import { scorePatterns } from "@/lib/assessment/score-patterns";
-import { getSupabaseAdmin } from "@/lib/db/supabase";
-import { createRequestLog, logError, logInfo, logWarn } from "@/lib/logging/logger";
+import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import { notFound } from "@/lib/api/errors";
+import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
 import { normalizedIntakeSchema } from "@/lib/schemas/intake";
+import { requirePermission } from "@/lib/tenancy/context";
 
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const startedAt = Date.now();
-  const { id } = await context.params;
-  const requestLog = createRequestLog(request, "/api/encounters/[id]/assess");
+const bodySchema = z.object({
+  normalized_intake: normalizedIntakeSchema,
+});
 
-  logInfo({
-    ...requestLog,
-    message: "route.start",
-    step: "assessment",
-    status: "started",
-    encounter_id: id,
-  });
+export const POST = createApiHandler({
+  route: "/api/encounters/[id]/assess",
+  step: "assessment",
+  schema: bodySchema,
+  handler: async ({ body, request }) => {
+    const id = request.url.split("/encounters/")[1]?.split("/")[0];
+    if (!id) throw notFound();
 
-  try {
-    const body = await request.json();
-    const normalizedIntake = normalizedIntakeSchema.parse(body.normalized_intake);
-    const assessmentResults = scorePatterns(normalizedIntake);
-    const supabase = getSupabaseAdmin();
+    const { supabase, context } = await requirePermission("encounter:write");
+    const encounter = await getEncounterForTenant(supabase, context.tenantId, id);
 
-    if (supabase) {
-      const deleteExisting = await supabase
-        .from("assessment_results")
-        .delete()
-        .eq("encounter_id", id);
+    if (!encounter) throw notFound();
 
-      if (deleteExisting.error) {
-        throw deleteExisting.error;
-      }
+    const assessmentResults = scorePatterns(body.normalized_intake);
 
-      const insertResults = await supabase.from("assessment_results").insert(
-        assessmentResults.map((item) => ({
-          encounter_id: id,
-          pattern_key: item.pattern_key,
-          confidence: item.confidence,
-          evidence: item.evidence,
-          data_gaps: item.data_gaps,
-          risk_level: item.risk_level,
-          rank: item.rank,
-        })),
-      );
-
-      if (insertResults.error) {
-        throw insertResults.error;
-      }
-    } else {
-      logWarn({
-        ...requestLog,
-        message: "supabase.unavailable",
-        step: "assessment",
-        status: "degraded",
+    await supabase.from("assessment_results").delete().eq("encounter_id", id);
+    await supabase.from("assessment_results").insert(
+      assessmentResults.map((item) => ({
         encounter_id: id,
-      });
-    }
-
-    logInfo({
-      ...requestLog,
-      message: "route.complete",
-      step: "assessment",
-      status: "ok",
-      encounter_id: id,
-      latency_ms: Date.now() - startedAt,
-      metadata: {
-        pattern_count: assessmentResults.length,
-      },
-    });
-
-    return Response.json({
-      assessmentResults,
-    });
-  } catch (error) {
-    logError({
-      ...requestLog,
-      message: "route.failed",
-      step: "assessment",
-      status: "error",
-      encounter_id: id,
-      latency_ms: Date.now() - startedAt,
-      error,
-    });
-
-    return Response.json(
-      {
-        error: "Unable to score assessment patterns.",
-      },
-      { status: 400 },
+        pattern_key: item.pattern_key,
+        confidence: item.confidence,
+        evidence: item.evidence,
+        data_gaps: item.data_gaps,
+        risk_level: item.risk_level,
+        rank: item.rank,
+      })),
     );
-  }
-}
+
+    return jsonOk({ assessmentResults });
+  },
+});

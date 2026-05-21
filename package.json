@@ -1,5 +1,5 @@
 {
-  "name": "intake-v1",
+  "name": "cliniqflow",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,19 +11,23 @@
     "typecheck": "tsc --noEmit",
     "supabase:init": "npx supabase init",
     "supabase:push": "npx supabase db push",
-    "vercel:pull": "npx vercel pull"
+    "vercel:pull": "npx vercel pull",
+    "seed:niche-configs": "node --env-file-if-exists=.env.local scripts/seed-niche-configs.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.103.0",
     "clsx": "^2.1.1",
     "express": "^5.2.1",
     "framer-motion": "^12.38.0",
+    "jose": "^6.2.3",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.72.1",
+    "stripe": "^22.1.1",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"
   },

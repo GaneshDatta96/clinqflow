@@ -6,9 +6,9 @@ import { ArrowUpRight, LayoutDashboard, Stethoscope, Users } from "lucide-react"
 import clsx from "clsx";
 
 const appNavigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Patients", href: "/patients", icon: Users },
-  { name: "New Intake", href: "/create-demo", icon: Stethoscope },
+  { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
+  { name: "Patients", href: "/app/patients", icon: Users },
+  { name: "Settings", href: "/app/settings", icon: Stethoscope },
 ];
 
 const marketingNavigation = [
@@ -29,7 +29,7 @@ export function GlobalHeader() {
     <header className="fixed left-0 top-0 z-[100] w-full border-b border-[color:var(--line)]/50 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 xl:px-10">
         <Link href="/" className="display-font text-[1.7rem] font-bold tracking-[-0.04em] text-[color:var(--accent)]">
-          ModernHealth
+          Cliniqflow
         </Link>
 
         {isHome ? (

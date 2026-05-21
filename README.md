@@ -1,97 +1,69 @@
-# Intake V1
+# Cliniqflow
 
-Focused V1 for outpatient clinics:
-
-- structured patient intake
-- deterministic pattern scoring
-- AI-assisted SOAP drafting for `S + partial O + A`
-- manually reviewed `P`
+Multi-tenant SaaS for outpatient wellness clinics: pre-visit intake, rule-based assessment, and AI-assisted SOAP drafting with clinician review.
 
 ## Stack
 
-- Next.js 16 App Router
-- Supabase Postgres
-- OpenRouter for structured SOAP drafting
-- Route handlers for the V1 workflow API
+- Next.js 16 App Router · React 19 · Tailwind 4
+- Supabase Auth + Postgres + RLS
+- OpenRouter (structured SOAP JSON)
+- Stripe webhooks (billing foundation)
 
-## Local Setup
-
-1. Install dependencies:
+## Quick start
 
 ```bash
 npm install
-```
-
-2. Copy env vars:
-
-```bash
 cp .env.example .env.local
-```
-
-3. Fill in:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENROUTER_API_KEY`
-- `OPENROUTER_MODEL`
-
-4. Start the app:
-
-```bash
+# Fill Supabase + OpenRouter keys
 npm run dev
 ```
 
-## Main Routes
-
-- `/` landing page
-- `/intake` public patient intake link
-- `/questionnaire` alias for the patient intake link
-- `/dashboard` practitioner dashboard for submitted encounters
-- `/api/intake/submit`
-- `/api/encounters/:id/appointment-request`
-- `/api/encounters/:id/assess`
-- `/api/encounters/:id/generate-soap`
-- `/api/health`
-
-## Supabase
-
-Migration files live in [supabase/migrations/20260415070000_init.sql](./supabase/migrations/20260415070000_init.sql).
-
-Typical flow after authenticating the Supabase CLI:
+Apply database:
 
 ```bash
-npm run supabase:init
-npx supabase login
-npx supabase projects create intake-v1
-npx supabase link --project-ref <your-project-ref>
 npm run supabase:push
 ```
 
-## Logging
+## Routes
 
-Structured request logging is mandatory in this project.
+| Route | Access |
+|-------|--------|
+| `/` | Marketing |
+| `/login`, `/signup`, `/onboarding` | Auth lifecycle |
+| `/app/dashboard`, `/app/patients`, `/app/settings`, `/app/billing` | Authenticated workspace |
+| `/c/[slug]?patientId=&token=` | Public signed intake |
+| `/api/intake/public/submit` | Token + patient intake submit |
+| `/api/intake/submit` | Authenticated staff submit |
 
-- API routes log start, completion, degraded mode, and error states
-- logs are emitted as structured JSON
-- raw PHI and full prompts should not be logged
+See [docs/SAAS_ARCHITECTURE.md](./docs/SAAS_ARCHITECTURE.md) for tenancy, RLS, and security model.
 
-## Deployment
+## Required environment
 
-After creating the Supabase project and setting env vars:
+Copy `.env.example` → `.env.local`. Minimum for SaaS:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `INTAKE_TOKEN_SECRET` (32+ chars in production)
+- `OPENROUTER_API_KEY` (optional; falls back to templates)
+
+## Roles
+
+`owner` · `admin` · `practitioner` · `staff` · `viewer` — enforced via RLS and `src/lib/tenancy/permissions.ts`.
+
+## Platform admin (god account)
+
+Add your email to `PLATFORM_ADMIN_EMAILS` in `.env.local` (comma-separated for multiple). After login you get:
+
+- **`/app/admin`** — list all customers, click **Act as this org**
+- Full access to that tenant’s dashboard, patients, and data (RLS bypass + audit log)
+
+Run `npm run supabase:push` to apply `20260521120000_platform_admins.sql`.
+
+## Orchestrator (lead → demo clinic)
 
 ```bash
-npx vercel login
-npx vercel link
-npx vercel env add NEXT_PUBLIC_SUPABASE_URL
-npx vercel env add SUPABASE_URL
-npx vercel env add SUPABASE_SERVICE_ROLE_KEY
-npx vercel env add OPENROUTER_API_KEY
-npx vercel env add OPENROUTER_MODEL
-npx vercel --prod
+npm run orchestrator:start
 ```
 
-## Notes
-
-- If Supabase env vars are missing, the app still runs in local workflow mode with demo dashboard fallback data.
-- If `OPENROUTER_API_KEY` is missing, SOAP generation falls back to a deterministic template.
+Requires `SUPABASE_*` and SQLite `leads.db`. Demo clinics now require `tenant_id` in Supabase.

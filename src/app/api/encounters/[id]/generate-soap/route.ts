@@ -1,105 +1,66 @@
+import { z } from "zod";
 import { generateSoapDraft } from "@/lib/ai/generate-soap";
-import { getSupabaseAdmin } from "@/lib/db/supabase";
-import { createRequestLog, logError, logInfo, logWarn } from "@/lib/logging/logger";
+import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import { notFound } from "@/lib/api/errors";
+import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
 import { normalizedIntakeSchema } from "@/lib/schemas/intake";
 import { assessmentResultSchema } from "@/lib/schemas/soap";
+import { assertAiGenerationAllowed } from "@/lib/billing/entitlements";
+import { requirePermission } from "@/lib/tenancy/context";
 
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const startedAt = Date.now();
-  const { id } = await context.params;
-  const requestLog = createRequestLog(request, "/api/encounters/[id]/generate-soap");
+const bodySchema = z.object({
+  normalized_intake: normalizedIntakeSchema,
+  assessment_results: z.array(assessmentResultSchema),
+});
 
-  logInfo({
-    ...requestLog,
-    message: "route.start",
-    step: "soap_generation",
-    status: "started",
-    encounter_id: id,
-  });
+export const POST = createApiHandler({
+  route: "/api/encounters/[id]/generate-soap",
+  step: "soap_generation",
+  schema: bodySchema,
+  handler: async ({ body, request }) => {
+    const id = request.url.split("/encounters/")[1]?.split("/")[0];
+    if (!id) throw notFound();
 
-  try {
-    const body = await request.json();
-    const normalizedIntake = normalizedIntakeSchema.parse(body.normalized_intake);
-    const assessmentResults = assessmentResultSchema
-      .array()
-      .parse(body.assessment_results);
+    const { supabase, context } = await requirePermission("encounter:write");
+    const encounter = await getEncounterForTenant(supabase, context.tenantId, id);
+
+    if (!encounter) throw notFound();
+
+    await assertAiGenerationAllowed(context.tenantId);
+
     const generated = await generateSoapDraft({
-      intake: normalizedIntake,
-      assessmentResults,
+      intake: body.normalized_intake,
+      assessmentResults: body.assessment_results,
     });
-    const supabase = getSupabaseAdmin();
 
-    if (supabase) {
-      const upsert = await supabase.from("soap_notes").upsert(
-        {
-          encounter_id: id,
-          subjective: generated.soap.subjective,
-          objective: generated.soap.objective,
-          assessment: generated.soap.assessment,
-          plan: generated.soap.plan_draft,
-          soap_json: generated.soap,
-          prompt_version: generated.promptVersion,
-          model: generated.model,
-          review_status: "draft",
-        },
-        {
-          onConflict: "encounter_id",
-        },
-      );
-
-      if (upsert.error) {
-        throw upsert.error;
-      }
-    } else {
-      logWarn({
-        ...requestLog,
-        message: "supabase.unavailable",
-        step: "soap_generation",
-        status: "degraded",
+    await supabase.from("soap_notes").upsert(
+      {
         encounter_id: id,
-      });
-    }
-
-    logInfo({
-      ...requestLog,
-      message: "route.complete",
-      step: "soap_generation",
-      status: "ok",
-      encounter_id: id,
-      latency_ms: Date.now() - startedAt,
-      model: generated.model,
-      prompt_version: generated.promptVersion,
-      token_usage: "tokenUsage" in generated ? generated.tokenUsage : null,
-      metadata: {
-        used_fallback: generated.usedFallback,
+        subjective: generated.soap.subjective,
+        objective: generated.soap.objective,
+        assessment: generated.soap.assessment,
+        plan: generated.soap.plan_draft,
+        soap_json: generated.soap,
+        prompt_version: generated.promptVersion,
+        model: generated.model,
+        review_status: "draft",
       },
+      { onConflict: "encounter_id" },
+    );
+
+    await supabase.from("ai_generations").insert({
+      tenant_id: context.tenantId,
+      encounter_id: id,
+      prompt_version: generated.promptVersion,
+      model: generated.model,
+      used_fallback: generated.usedFallback,
+      created_by: context.userId,
     });
 
-    return Response.json({
+    return jsonOk({
       soap: generated.soap,
       model: generated.model,
-      promptVersion: generated.promptVersion,
       usedFallback: generated.usedFallback,
     });
-  } catch (error) {
-    logError({
-      ...requestLog,
-      message: "route.failed",
-      step: "soap_generation",
-      status: "error",
-      encounter_id: id,
-      latency_ms: Date.now() - startedAt,
-      error,
-    });
-
-    return Response.json(
-      {
-        error: "Unable to generate SOAP draft.",
-      },
-      { status: 400 },
-    );
-  }
-}
+  },
+});

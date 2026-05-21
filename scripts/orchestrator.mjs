@@ -232,6 +232,51 @@ async function getConfigForNiche(niche) {
   return localConfig;
 }
 
+async function getOrCreateDemoTenantId(supabase) {
+  const envTenantId = process.env.ORCHESTRATOR_DEMO_TENANT_ID?.trim();
+  if (envTenantId) {
+    return envTenantId;
+  }
+
+  const { data: existing } = await supabase
+    .from("tenants")
+    .select("id")
+    .eq("slug", "platform-demos")
+    .maybeSingle();
+
+  if (existing?.id) {
+    return existing.id;
+  }
+
+  const { data: created, error } = await supabase
+    .from("tenants")
+    .insert({
+      name: "Platform Demos",
+      slug: "platform-demos",
+      plan_key: "enterprise",
+      subscription_status: "active",
+    })
+    .select("id")
+    .single();
+
+  if (error || !created) {
+    throw error ?? new Error("Unable to create platform demo tenant.");
+  }
+
+  await supabase.from("subscriptions").upsert(
+    {
+      tenant_id: created.id,
+      plan_key: "enterprise",
+      status: "active",
+      seat_limit: 100,
+      ai_monthly_limit: 50000,
+    },
+    { onConflict: "tenant_id" },
+  );
+
+  return created.id;
+}
+
 async function createDemoClinic(input) {
   const nicheConfig = await getConfigForNiche(input.niche);
 
@@ -248,14 +293,17 @@ async function createDemoClinic(input) {
       clinicName: input.name,
       niche: input.niche,
       label: nicheConfig.label,
-      route: `/${input.slug}`,
+      route: `/c/${input.slug}`,
       persisted: false,
     };
   }
 
+  const tenantId = await getOrCreateDemoTenantId(supabase);
+
   const { data, error } = await supabase
     .from("clinics")
     .insert({
+      tenant_id: tenantId,
       name: input.name,
       slug: input.slug,
       niche: input.niche,
@@ -279,7 +327,7 @@ async function createDemoClinic(input) {
     clinicName: data.name,
     niche: data.niche,
     label: nicheConfig.label,
-    route: `/${data.slug}`,
+    route: `/c/${data.slug}`,
     persisted: true,
   };
 }

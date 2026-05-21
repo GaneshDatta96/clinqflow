@@ -1,103 +1,63 @@
-import { revalidatePath } from "next/cache";
 import { getClinicByNiche } from "@/lib/clinics/niche-configs";
 import { getClinicForSlug } from "@/lib/clinics/store";
-import { processIntakeSubmission } from "@/lib/intake/workflow";
-import { createRequestLog, logError, logInfo, logWarn } from "@/lib/logging/logger";
+import {
+  createApiHandler,
+  jsonOk,
+  revalidateDashboard,
+} from "@/lib/api/handler";
+import { processAuthenticatedIntakeSubmission } from "@/lib/intake/workflow";
+import { logInfo } from "@/lib/logging/logger";
+import { requirePermission } from "@/lib/tenancy/context";
 import {
   buildNicheIntakeSubmissionSchema,
   nicheIntakeBaseSchema,
 } from "@/lib/schemas/niche-intake";
 
-export async function POST(request: Request) {
-  const startedAt = Date.now();
-  const requestLog = createRequestLog(request, "/api/intake/submit");
-
-  logInfo({
-    ...requestLog,
-    message: "route.start",
-    step: "intake_pipeline",
-    status: "started",
-  });
-
-  try {
+export const POST = createApiHandler({
+  route: "/api/intake/submit",
+  step: "intake_pipeline",
+  handler: async ({ request, requestLog, startedAt }) => {
     const body = await request.json();
     const baseInput = nicheIntakeBaseSchema.parse(body);
-    const clinic =
-      (await getClinicForSlug(baseInput.clinic_slug)) ?? getClinicByNiche(baseInput.niche);
+    const { supabase, context } = await requirePermission("encounter:write");
 
-    if (!clinic) {
+    const clinic =
+      (await getClinicForSlug(baseInput.clinic_slug, context.tenantId)) ??
+      getClinicByNiche(baseInput.niche);
+
+    if (!clinic?.id) {
       throw new Error("Unknown clinic configuration.");
     }
 
     const input = buildNicheIntakeSubmissionSchema(clinic.config).parse(body);
-    const processed = await processIntakeSubmission(input);
+    const processed = await processAuthenticatedIntakeSubmission(input, {
+      supabase,
+      tenantId: context.tenantId,
+      userId: context.userId,
+    });
 
-    if (!processed.persisted) {
-      logWarn({
-        ...requestLog,
-        message: "intake.persistence.degraded",
-        step: "intake_pipeline",
-        status: "degraded",
-        metadata: {
-          reason:
-            "Submission completed with local workflow mode or without durable intake persistence.",
-          clinic_slug: clinic.slug,
-          niche: clinic.niche,
-        },
-      });
-    }
-
-    revalidatePath("/dashboard");
+    revalidateDashboard();
 
     logInfo({
       ...requestLog,
       message: "route.complete",
       step: "intake_pipeline",
       status: "ok",
-      encounter_id: processed.encounterId ?? undefined,
+      encounter_id: processed.encounterId,
       latency_ms: Date.now() - startedAt,
-      model: processed.model,
-      prompt_version: processed.promptVersion,
-      token_usage: processed.tokenUsage ?? null,
       metadata: {
-        clinic_slug: clinic.slug,
-        niche: clinic.niche,
-        persisted: processed.persisted,
-        supports_appointments: processed.supportsAppointments,
-        symptom_count: processed.normalizedIntake.symptoms.length,
+        tenant_id: context.tenantId,
+        clinic_id: processed.clinicId,
         pattern_count: processed.assessmentResults.length,
         used_fallback: processed.usedFallback,
       },
     });
 
-    return Response.json({
+    return jsonOk({
       encounterId: processed.encounterId,
-      normalizedIntake: processed.normalizedIntake,
       assessmentResults: processed.assessmentResults,
       soap: processed.soap,
-      clinic: {
-        slug: clinic.slug,
-        niche: clinic.niche,
-        label: clinic.config.label,
-      },
-      persisted: processed.persisted,
       bookingEnabled: processed.supportsAppointments,
     });
-  } catch (error) {
-    logError({
-      ...requestLog,
-      message: "route.failed",
-      step: "intake_pipeline",
-      status: "error",
-      latency_ms: Date.now() - startedAt,
-      error,
-    });
-
-    return Response.json(
-      {
-        error: "Unable to submit intake.",
-      },
-      { status: 400 },
-    );
-  }
-}
+  },
+});

@@ -1,8 +1,8 @@
-import { requirePlatformAdminContext } from "@/lib/tenancy/context";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminAuditPage() {
-  await requirePlatformAdminContext();
   const admin = getSupabaseAdmin();
 
   const { data: logs } = admin

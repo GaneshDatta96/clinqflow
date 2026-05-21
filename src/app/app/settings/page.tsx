@@ -3,6 +3,8 @@ import { hasPermission } from "@/lib/tenancy/permissions";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
 import { TeamInvitesPanel } from "@/components/settings/team-invites-panel";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const { context } = await requireTenantContext();
   const entitlements = await getEntitlementsSummary(context.tenantId);

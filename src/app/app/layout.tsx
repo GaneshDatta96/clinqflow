@@ -15,6 +15,9 @@ import {
 import { hasPermission } from "@/lib/tenancy/permissions";
 import { getActingTenantIdFromCookies } from "@/lib/tenancy/acting-tenant";
 import type { TenantContext } from "@/lib/tenancy/types";
+import { isAuthConfigured } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
 
 const nav = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,6 +31,17 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  if (!isAuthConfigured()) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] flex-col px-4 py-20 pt-28">
+        <p className="text-center text-[color:var(--muted)]">
+          Configure Supabase environment variables to use the application workspace.
+        </p>
+        {children}
+      </div>
+    );
+  }
+
   let context: TenantContext;
   let platformAdminOnly = false;
 

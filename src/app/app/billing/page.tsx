@@ -4,6 +4,8 @@ import { hasPermission } from "@/lib/tenancy/permissions";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
 import { BillingActions } from "@/components/settings/billing-actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function BillingPage() {
   const { context } = await requireTenantContext();
 

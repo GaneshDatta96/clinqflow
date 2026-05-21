@@ -8,8 +8,13 @@ import {
   syncPlatformAdminProfile,
 } from "@/lib/tenancy/platform-admin";
 import { type TenantContext, type TenantRole } from "@/lib/tenancy/types";
+import { isAuthConfigured } from "@/lib/env";
 
 export async function requireUser() {
+  if (!isAuthConfigured()) {
+    throw unauthorized("Authentication is not configured.");
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -204,6 +209,10 @@ export async function tryGetTenantContext(): Promise<{
   supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>;
   context: TenantContext;
 } | null> {
+  if (!isAuthConfigured()) {
+    return null;
+  }
+
   try {
     return await requireTenantContext();
   } catch {

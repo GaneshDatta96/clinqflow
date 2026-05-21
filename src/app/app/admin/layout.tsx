@@ -3,12 +3,19 @@ import { redirect } from "next/navigation";
 import { Shield } from "lucide-react";
 import { requirePlatformAdminContext } from "@/lib/tenancy/context";
 import { getActingTenantIdFromCookies } from "@/lib/tenancy/acting-tenant";
+import { isAuthConfigured } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  if (!isAuthConfigured()) {
+    return <>{children}</>;
+  }
+
   try {
     await requirePlatformAdminContext();
   } catch {

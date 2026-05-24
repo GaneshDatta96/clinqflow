@@ -4,88 +4,58 @@
 
 Cliniqflow is a multi-tenant B2B SaaS for outpatient wellness clinics: pre-visit intake, deterministic pattern scoring, and AI-assisted SOAP drafting with clinician review.
 
+**Pure self-serve model:** Signup → email verification → onboarding (tenant + clinic) → invite team → create patients → secure intake links → practitioner review. No DFY demo or orchestrator flows.
+
 ## Tenancy model
 
 ```
 Tenant (organization)
   └── tenant_memberships (users + roles)
-  └── clinics (1..n locations / brands)
-        └── patients
-        └── encounters → intake_submissions, assessment_results, soap_notes
+  └── clinics (1..n)
+        └── patients → encounters → intake, assessment, SOAP
 ```
 
-- **Isolation**: Every clinical row carries `tenant_id`. Supabase RLS enforces membership.
-- **Roles**: `owner`, `admin`, `practitioner`, `staff`, `viewer` — see `src/lib/tenancy/permissions.ts`.
+- **Isolation**: `tenant_id` on clinical rows; Supabase RLS + API guards
+- **Active org**: cookie `cliniqflow_active_tenant_id` for multi-org users
+- **Roles**: `owner`, `admin`, `practitioner`, `staff`, `viewer`
 
 ## Auth
 
-- Supabase Auth (email/password) with `@supabase/ssr` cookies.
-- `src/middleware.ts` protects `/app/*` and authenticated APIs.
-- Onboarding: `POST /api/auth/onboarding` creates tenant + owner membership + default clinic.
+- Supabase Auth + `@supabase/ssr`
+- Email verification required before workspace access
+- Onboarding: `POST /api/auth/onboarding`
+- Invites: `/invite/accept` (invitable roles exclude `owner`)
 
 ## Public intake
 
-- Staff creates patient → `POST /api/intake/links` returns signed JWT URL.
-- Patient opens `/c/{clinic-slug}?patientId=…&token=…`
-- Submit via `POST /api/intake/public/submit` with `x-intake-token` header (no session).
-
-## API layers
-
-| Layer | Client | Use |
-|-------|--------|-----|
-| User session | Anon key + JWT | Dashboard, patients, authenticated intake |
-| Service role | Admin client | Public intake validation, webhooks, orchestrator |
+- Staff creates patient → `POST /api/intake/links` → JWT URL `/c/{slug}?patientId&token=`
+- Patient submits with consent → `POST /api/intake/public/submit`
 
 ## Database migrations
 
-1. `20260415070000_init.sql` — legacy clinical tables
+1. `20260415070000_init.sql`
 2. `20260415101500_add_appointment_requests.sql`
-3. `20260521000000_saas_foundation.sql` — tenants, RBAC, RLS, billing hooks
-
-**Removed**: conflicting `20260415141500_create_patients.sql`
+3. `20260521000000_saas_foundation.sql`
+4. `20260521120000_platform_admins.sql`
+5. `20260601000000_remove_demo_surface.sql`
+6. `20260602000000_production_hardening.sql`
 
 ## Billing
 
-- Stripe webhooks: `POST /api/webhooks/stripe`
-- Plans: `trial`, `starter`, `growth`, `enterprise` in `src/lib/billing/stripe.ts`
-- Usage: `usage_tracking` + `ai_generations` per tenant
+- Stripe Checkout + Customer Portal
+- Webhooks with idempotency (`stripe_webhook_events`)
+- Plans: `trial`, `starter`, `growth`, `enterprise` — see `PLAN_LIMITS` in `src/lib/billing/stripe.ts`
 
-## Platform admin (god account)
+## Compliance
 
-Set your email in `PLATFORM_ADMIN_EMAILS` (comma-separated). On login, `profiles.is_platform_admin` is set automatically.
+- `consent_records`, `baa_agreements`, audit export
+- See [HIPAA.md](./HIPAA.md), [OPERATIONS.md](./OPERATIONS.md)
 
-1. Open **`/app/admin`** — list all tenants
-2. Click **Act as this org** — sets cookie `cliniqflow_acting_tenant_id`
-3. Use **Dashboard / Patients** as that customer (full owner permissions, RLS bypass via `is_platform_admin()`)
+## Deploy
 
-All impersonation is logged to `audit_logs` (`platform_admin.impersonate`).
-
-## Recently added
-
-- Team invites (create, list, accept at `/invite/accept`)
-- Stripe Checkout + Customer Portal APIs
-- Plan enforcement (AI monthly limits, seat limits on invites)
-- Intake draft autosave (`PUT/GET /api/intake/drafts`)
-- Public intake rate limit (per tenant, hourly)
-- Dashboard search, SOAP approve, appointment display
-- Platform admin audit log (`/app/admin/audit`)
-- Intake link revoke API
-- Legacy route redirects (`/[slug]` → `/c/[slug]`, `/patients` → `/app/patients`)
-- `npm run seed:niche-configs`
-- Orchestrator assigns `tenant_id` to demo clinics
-
-## Remaining work
-
-- [ ] Transactional invite emails (Resend/SendGrid)
-- [ ] File uploads + consent records
-- [ ] HIPAA BAA / audit export
-- [ ] Automated tests + CI
-- [ ] Distributed rate limiting (Upstash) for multi-region
-
-## Deployment
+See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
 
 ```bash
 npm run supabase:push
-# Set all vars from .env.example in Vercel
-npx vercel --prod
+npm run seed:niche-configs
 ```

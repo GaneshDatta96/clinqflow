@@ -13,6 +13,7 @@ import {
   getDefaultAnswerValue,
   type NicheIntakePayload,
 } from "@/lib/schemas/niche-intake";
+import { CURRENT_CONSENT_VERSION } from "@/services/consent.service";
 
 export function PatientIntakeForm(props: {
   patientId: string;
@@ -21,6 +22,7 @@ export function PatientIntakeForm(props: {
   isSubmitting: boolean;
   submissionStatus: string;
   submissionError: string | null;
+  requireConsent?: boolean;
 }) {
   const formSchema = buildNicheIntakeSubmissionSchema(props.clinic.config);
   type FormInput = z.input<typeof formSchema>;
@@ -38,11 +40,14 @@ export function PatientIntakeForm(props: {
     ),
   );
 
+  const [consentAccepted, setConsentAccepted] = useState(false);
+
   const {
     register,
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: { errors },
   } = useForm<FormInput, unknown, NicheIntakePayload>({
     resolver: zodResolver(formSchema),
@@ -234,6 +239,30 @@ export function PatientIntakeForm(props: {
           })}
         </div>
 
+        {props.requireConsent && (
+          <label className="flex items-start gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] p-4 text-sm leading-6">
+            <input
+              type="checkbox"
+              checked={consentAccepted}
+              onChange={(e) => {
+                setConsentAccepted(e.target.checked);
+                if (e.target.checked) {
+                  setValue("consent_accepted", true);
+                  setValue("consent_version", CURRENT_CONSENT_VERSION);
+                } else {
+                  setValue("consent_accepted", undefined);
+                  setValue("consent_version", undefined);
+                }
+              }}
+              className="mt-1"
+            />
+            <span>
+              I consent to the collection and use of my health information for
+              this intake, as described in the clinic&apos;s privacy practices.
+            </span>
+          </label>
+        )}
+
         <div className="flex flex-col gap-4 border-t border-[color:var(--line)] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1 text-sm text-[color:var(--muted)]">
             <p className="font-semibold text-[color:var(--foreground)]">
@@ -246,7 +275,7 @@ export function PatientIntakeForm(props: {
 
           <button
             type="submit"
-            disabled={props.isSubmitting}
+            disabled={props.isSubmitting || (props.requireConsent && !consentAccepted)}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
           >
             {props.isSubmitting ? (

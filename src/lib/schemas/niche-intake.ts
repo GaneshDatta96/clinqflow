@@ -12,6 +12,8 @@ export const nicheIntakeBaseSchema = z.object({
   clinic_slug: z.string().trim().min(1),
   niche: z.string().trim().min(1),
   answers: z.record(z.string(), baseAnswerSchema),
+  consent_accepted: z.literal(true).optional(),
+  consent_version: z.string().optional(),
 });
 
 export type NicheAnswerValue = z.infer<typeof baseAnswerSchema>;

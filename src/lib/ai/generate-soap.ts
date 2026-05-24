@@ -9,6 +9,11 @@ import {
   type NicheSoapContext,
 } from "@/lib/intake/niche-intake";
 import { type NormalizedIntake } from "@/lib/schemas/intake";
+import {
+  PROMPT_INJECTION_GUARD,
+  wrapUntrustedIntakePayload,
+} from "@/lib/ai/prompt-sandbox";
+import { canUseOpenRouterInProduction } from "@/lib/env";
 
 const PROMPT_VERSION = "soap_v2_niche_config";
 
@@ -27,6 +32,7 @@ Rules:
 - The Objective section must be limited to facts explicitly present in the intake or assessment inputs.
 - If no exam, labs, or vitals are provided, say so clearly.
 - The Plan section must stay brief, clearly provisional, and easy for the clinician to edit manually.
+- ${PROMPT_INJECTION_GUARD}
 
 Return JSON with:
 {
@@ -290,11 +296,13 @@ export async function generateSoapDraft(args: {
   clinic?: ClinicDefinition;
   soapContext?: NicheSoapContext;
 }) {
-  const { intake, assessmentResults, clinic, soapContext } = args;
+  const { minimizeIntakeForAi } = await import("@/lib/ai/phi");
+  const intake = minimizeIntakeForAi(args.intake);
+  const { assessmentResults, clinic, soapContext } = args;
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
 
-  if (!apiKey) {
+  if (!apiKey || !canUseOpenRouterInProduction()) {
     return {
       promptVersion: PROMPT_VERSION,
       model: "fallback/local-template",
@@ -309,7 +317,9 @@ export async function generateSoapDraft(args: {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "X-Title": "Intake V1",
+        "X-Title": "Cliniqflow",
+        "HTTP-Referer": process.env.APP_URL ?? "https://cliniqflow.com",
+        "X-OpenRouter-Data-Policy": "deny",
       },
       body: JSON.stringify({
         model,
@@ -320,15 +330,13 @@ export async function generateSoapDraft(args: {
           },
           {
             role: "user",
-            content: `INTAKE_JSON:\n${JSON.stringify(
-              intake,
-              null,
-              2,
-            )}\n\nASSESSMENT_RESULTS:\n${JSON.stringify(
-              assessmentResults,
-              null,
-              2,
-            )}\n\nCLINIC_CONFIG:\n${JSON.stringify(
+            content: `${wrapUntrustedIntakePayload(intake)}
+
+ASSESSMENT_RESULTS:
+${JSON.stringify(assessmentResults, null, 2)}
+
+CLINIC_CONFIG:
+${JSON.stringify(
               clinic
                 ? {
                     slug: clinic.slug,
@@ -339,11 +347,13 @@ export async function generateSoapDraft(args: {
                 : null,
               null,
               2,
-            )}\n\nSOAP_CONTEXT:\n${JSON.stringify(
-              soapContext ?? null,
-              null,
-              2,
-            )}\n\nTASK:\nWrite Subjective, Objective, Assessment, and a minimal editable plan draft. Use the clinic SOAP config as the section coverage guide. Keep Plan obviously provisional for clinician editing.`,
+            )}
+
+SOAP_CONTEXT:
+${JSON.stringify(soapContext ?? null, null, 2)}
+
+TASK:
+Write Subjective, Objective, Assessment, and a minimal editable plan draft. Use the clinic SOAP config as the section coverage guide. Keep Plan obviously provisional for clinician editing.`,
           },
         ],
         response_format: {

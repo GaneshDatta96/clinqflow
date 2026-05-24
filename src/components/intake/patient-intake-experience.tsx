@@ -19,8 +19,7 @@ import {
 } from "@/lib/schemas/intake";
 import { type NicheIntakePayload } from "@/lib/schemas/niche-intake";
 import { type SoapDraft } from "@/lib/schemas/soap";
-import { ClinicDemoLanding } from "./clinic-demo-landing";
-import { PatientCreationForm } from "./patient-creation-form";
+import Link from "next/link";
 import { type PatientDetails } from "./patient-creation-form";
 
 type SubmissionState = {
@@ -44,10 +43,12 @@ export function PatientIntakeExperience(props: {
   initialPatientId?: string | null;
   intakeToken?: string | null;
   clinic: ClinicDefinition;
-  mode?: "demo" | "public";
+  mode?: "public";
 }) {
   const [patient, setPatient] = useState<PatientDetails | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [intakeToken, setIntakeToken] = useState<string | null>(props.intakeToken ?? null);
+  const [tokenInput, setTokenInput] = useState("");
   const [origin, setOrigin] = useState("");
   const [submission, setSubmission] = useState<SubmissionState>({
     isSubmitted: false,
@@ -74,6 +75,24 @@ export function PatientIntakeExperience(props: {
 
   useEffect(() => {
     setOrigin(window.location.origin);
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const hashParams = new URLSearchParams(hash);
+    const hashToken =
+      hashParams.get("intakeToken") ?? hashParams.get("token");
+
+    if (hashToken) {
+      setIntakeToken(decodeURIComponent(hashToken));
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+    }
   }, []);
 
   async function handleCopyLink() {
@@ -105,7 +124,7 @@ export function PatientIntakeExperience(props: {
     });
 
     try {
-      const isPublicSubmit = isPublicMode && props.intakeToken;
+      const isPublicSubmit = isPublicMode && (intakeToken || tokenInput.trim());
       const endpoint = isPublicSubmit
         ? "/api/intake/public/submit"
         : "/api/intake/submit";
@@ -114,8 +133,9 @@ export function PatientIntakeExperience(props: {
         "Content-Type": "application/json",
       };
 
-      if (isPublicSubmit && props.intakeToken) {
-        headers["x-intake-token"] = props.intakeToken;
+      const activeToken = intakeToken ?? tokenInput.trim();
+      if (isPublicSubmit && activeToken) {
+        headers["x-intake-token"] = activeToken;
       }
 
       const response = await fetch(endpoint, {
@@ -163,29 +183,41 @@ export function PatientIntakeExperience(props: {
   }
 
   if (!activePatientId) {
-    if (isPublicMode) {
-      return (
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
-          <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
-            <div className="space-y-3">
-              <p className="section-label">Patient Intake</p>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Start your intake form.
-              </h1>
-              <p className="max-w-3xl leading-7 text-[color:var(--muted)]">
-                Enter your details to begin the {props.clinic.config.label.toLowerCase()}{" "}
-                intake. Once created, you can continue straight through the
-                questionnaire on this page.
-              </p>
+    const needsSecureLink = isPublicMode && !props.initialPatientId;
+
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
+        <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
+          <div className="space-y-3">
+            <p className="section-label">Patient Intake</p>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              {needsSecureLink ? "Use your clinic intake link" : "Patient record required"}
+            </h1>
+            <p className="max-w-3xl leading-7 text-[color:var(--muted)]">
+              {needsSecureLink
+                ? `Intake for ${props.clinic.clinicName} requires a patient-specific link from your care team. The link includes your patient ID; your clinic will send the access token separately.`
+                : "Sign in to your clinic workspace to create a patient and generate a secure intake link from the Patients page."}
+            </p>
+          </div>
+          {!needsSecureLink && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/login"
+                className="inline-flex rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/signup"
+                className="inline-flex rounded-full border border-[color:var(--line)] px-5 py-3 text-sm font-semibold"
+              >
+                Start free trial
+              </Link>
             </div>
-          </section>
-
-          <PatientCreationForm clinic={props.clinic} setPatient={setPatient} />
-        </div>
-      );
-    }
-
-    return <ClinicDemoLanding clinic={props.clinic} setPatient={setPatient} />;
+          )}
+        </section>
+      </div>
+    );
   }
 
   if (submission.isSubmitted) {
@@ -361,6 +393,27 @@ export function PatientIntakeExperience(props: {
         </section>
       ) : null}
 
+      {isPublicMode && !intakeToken ? (
+        <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
+          <label className="block text-sm font-medium" htmlFor="intake-access-token">
+            Access token
+          </label>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Paste the secure token your clinic sent separately. It is not stored in the
+            link URL.
+          </p>
+          <input
+            id="intake-access-token"
+            type="password"
+            autoComplete="off"
+            value={tokenInput}
+            onChange={(event) => setTokenInput(event.target.value)}
+            className="mt-3 w-full rounded-2xl border border-[color:var(--line)] bg-white px-4 py-3 text-sm"
+            placeholder="Paste intake token"
+          />
+        </section>
+      ) : null}
+
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <PatientIntakeForm
           patientId={activePatientId}
@@ -369,6 +422,7 @@ export function PatientIntakeExperience(props: {
           isSubmitting={submission.pending}
           submissionStatus={submission.status}
           submissionError={submission.error}
+          requireConsent={isPublicMode}
         />
       </section>
     </div>

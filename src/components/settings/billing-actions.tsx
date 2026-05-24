@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { CreditCard, LoaderCircle } from "lucide-react";
 
@@ -76,6 +77,13 @@ export function BillingActions({ currentPlan }: { currentPlan: string }) {
         </button>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
+      <p className="text-xs text-[color:var(--muted)]">
+        Subscription changes are subject to our{" "}
+        <Link href="/cancellation" className="font-semibold text-[color:var(--accent)]">
+          Cancellation Policy
+        </Link>
+        .
+      </p>
     </div>
   );
 }

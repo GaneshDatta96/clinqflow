@@ -44,17 +44,28 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           },
         });
         if (signUpError) throw signUpError;
-        setMessage("Account created. Verify your email or continue to onboarding.");
-        router.push("/onboarding");
+        setMessage(
+          "Account created. Check your email to verify your address, then continue to onboarding.",
+        );
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
       if (signInError) throw signInError;
-      router.push("/app/dashboard");
+
+      if (!signInData.user?.email_confirmed_at) {
+        setMessage("Please verify your email before signing in.");
+        await supabase.auth.signOut();
+        return;
+      }
+
+      const roleRes = await fetch("/api/auth/session-role");
+      const roleData = await roleRes.json();
+      router.push(roleData.path ?? "/app/dashboard");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed.");
@@ -98,6 +109,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             minLength={8}
           />
         </label>
+      )}
+      {mode === "login" && (
+        <p className="rounded-xl bg-[color:var(--surface-strong)] px-4 py-3 text-xs text-[color:var(--muted-strong)]">
+          Clinic roles: owner/admin, practitioner, staff, viewer. Cliniqflow internal
+          roles: customer support (<code>PLATFORM_SUPPORT_EMAILS</code>) and God mode (
+          <code>PLATFORM_ADMIN_EMAILS</code>).
+        </p>
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {message && <p className="text-sm text-green-700">{message}</p>}

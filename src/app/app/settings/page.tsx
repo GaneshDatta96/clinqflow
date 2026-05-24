@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { requireTenantContext } from "@/lib/tenancy/context";
 import { hasPermission } from "@/lib/tenancy/permissions";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
 import { TeamInvitesPanel } from "@/components/settings/team-invites-panel";
+import { ROLE_LABELS } from "@/lib/tenancy/role-routing";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +25,13 @@ export default async function SettingsPage() {
         </div>
         <div>
           <dt className="text-sm text-[color:var(--muted)]">Your role</dt>
-          <dd className="font-semibold capitalize">{context.role}</dd>
+          <dd className="font-semibold">
+            {context.isPlatformAdmin
+              ? ROLE_LABELS.god
+              : context.isPlatformSupport
+                ? ROLE_LABELS.platform_support
+                : ROLE_LABELS[context.role]}
+          </dd>
         </div>
         <div>
           <dt className="text-sm text-[color:var(--muted)]">Plan</dt>
@@ -37,6 +45,20 @@ export default async function SettingsPage() {
         </div>
       </dl>
       {hasPermission(context.role, "members:invite") && <TeamInvitesPanel />}
+      {(hasPermission(context.role, "tenant:manage") || context.isPlatformAdmin) && (
+        <div className="rounded-2xl border border-[color:var(--line)] bg-white/80 p-6">
+          <h2 className="font-semibold">Compliance</h2>
+          <p className="mt-2 text-sm text-[color:var(--muted)]">
+            Export audit logs and review privacy controls.
+          </p>
+          <Link
+            href="/app/settings/compliance"
+            className="mt-4 inline-flex text-sm font-semibold text-[color:var(--accent)]"
+          >
+            Open compliance settings →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

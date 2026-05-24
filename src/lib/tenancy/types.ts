@@ -3,6 +3,7 @@ export const TENANT_ROLES = [
   "admin",
   "practitioner",
   "staff",
+  "support",
   "viewer",
 ] as const;
 
@@ -18,6 +19,8 @@ export type TenantContext = {
   subscriptionStatus: string;
   /** True when logged in as platform admin (god account). */
   isPlatformAdmin?: boolean;
+  /** True when logged in as Cliniqflow customer support staff. */
+  isPlatformSupport?: boolean;
 };
 
 export type ClinicContext = TenantContext & {

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getDemoNicheOptions } from "@/lib/clinics/store";
+import { getNicheOptions } from "@/lib/clinics/store";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const niches = getDemoNicheOptions();
+  const niches = getNicheOptions();
   const [organizationName, setOrganizationName] = useState("");
   const [niche, setNiche] = useState(niches[0]?.niche ?? "general_practice");
   const [error, setError] = useState<string | null>(null);

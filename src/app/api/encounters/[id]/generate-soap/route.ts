@@ -1,23 +1,20 @@
-import { z } from "zod";
 import { generateSoapDraft } from "@/lib/ai/generate-soap";
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
-import { notFound } from "@/lib/api/errors";
+import { badRequest, notFound } from "@/lib/api/errors";
 import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
-import { normalizedIntakeSchema } from "@/lib/schemas/intake";
-import { assessmentResultSchema } from "@/lib/schemas/soap";
+import {
+  getEncounterAssessmentResults,
+  getEncounterIntakeSubmission,
+} from "@/lib/db/repositories/intake";
 import { assertAiGenerationAllowed } from "@/lib/billing/entitlements";
-import { requirePermission } from "@/lib/tenancy/context";
-
-const bodySchema = z.object({
-  normalized_intake: normalizedIntakeSchema,
-  assessment_results: z.array(assessmentResultSchema),
-});
+import { logPhiAccessIfPlatformStaff, requirePermission } from "@/lib/tenancy/context";
+import { trackUsage } from "@/services/usage.service";
 
 export const POST = createApiHandler({
   route: "/api/encounters/[id]/generate-soap",
   step: "soap_generation",
-  schema: bodySchema,
-  handler: async ({ body, request }) => {
+  rateLimit: "ai_generate",
+  handler: async ({ request }) => {
     const id = request.url.split("/encounters/")[1]?.split("/")[0];
     if (!id) throw notFound();
 
@@ -26,11 +23,34 @@ export const POST = createApiHandler({
 
     if (!encounter) throw notFound();
 
+    const intake = await getEncounterIntakeSubmission(supabase, context.tenantId, id);
+    if (!intake) {
+      throw badRequest("No intake submission found for this encounter.");
+    }
+
+    const assessmentResults = await getEncounterAssessmentResults(
+      supabase,
+      context.tenantId,
+      id,
+    );
+
+    if (assessmentResults.length === 0) {
+      throw badRequest("Run assessment before generating SOAP.");
+    }
+
+    await logPhiAccessIfPlatformStaff({
+      supabase,
+      context,
+      action: "phi.encounter.soap_generate",
+      resourceType: "encounter",
+      resourceId: id,
+    });
+
     await assertAiGenerationAllowed(context.tenantId);
 
     const generated = await generateSoapDraft({
-      intake: body.normalized_intake,
-      assessmentResults: body.assessment_results,
+      intake,
+      assessmentResults,
     });
 
     await supabase.from("soap_notes").upsert(
@@ -55,6 +75,12 @@ export const POST = createApiHandler({
       model: generated.model,
       used_fallback: generated.usedFallback,
       created_by: context.userId,
+    });
+
+    await trackUsage({
+      supabase,
+      tenantId: context.tenantId,
+      metricKey: "ai_soap_generation",
     });
 
     return jsonOk({

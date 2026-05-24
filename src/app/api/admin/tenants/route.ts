@@ -1,11 +1,11 @@
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
-import { requirePlatformAdmin } from "@/lib/tenancy/platform-admin";
+import { requirePlatformStaff } from "@/lib/tenancy/platform-admin";
 
 export const GET = createApiHandler({
   route: "/api/admin/tenants",
   step: "admin_list_tenants",
   handler: async () => {
-    const { supabase } = await requirePlatformAdmin();
+    const { supabase } = await requirePlatformStaff();
 
     const { data, error } = await supabase
       .from("tenants")

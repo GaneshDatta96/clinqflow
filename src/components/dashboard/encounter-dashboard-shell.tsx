@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { ChevronRight, FileText, HeartPulse, Stethoscope, User } from "lucide-react";
 import { type EncounterDashboardCase } from "@/lib/dashboard/encounter-view";
 import { SoapApproveButton } from "@/components/dashboard/soap-approve-button";
@@ -65,9 +66,18 @@ export function EncounterDashboardShell({
       <main className="min-w-0 rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-6 lg:p-8">
         <header className="mb-6">
           <p className="section-label">Selected encounter</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            {active.patient.first_name} {active.patient.last_name}
-          </h1>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {active.patient.first_name} {active.patient.last_name}
+            </h1>
+            <Link
+              href={`/app/encounters/${active.id}`}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--accent)]"
+            >
+              Open full detail
+              <ExternalLink className="h-4 w-4" />
+            </Link>
+          </div>
           <p className="mt-2 text-[color:var(--muted)]">{active.chief_complaint}</p>
         </header>
 

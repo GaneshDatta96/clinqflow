@@ -149,6 +149,7 @@ export async function processAuthenticatedIntakeSubmission(
 export async function processPublicIntakeSubmission(
   input: NicheIntakePayload,
   intakeToken: string,
+  meta?: { ipAddress?: string | null; userAgent?: string | null },
 ): Promise<ProcessedEncounter> {
   const claims = await verifyIntakeJwt(intakeToken);
   const admin = getSupabaseAdmin();
@@ -232,6 +233,21 @@ export async function processPublicIntakeSubmission(
     prompt_version: generated.promptVersion,
     model: generated.model,
     used_fallback: generated.usedFallback,
+  });
+
+  await admin.from("usage_tracking").insert({
+    tenant_id: claims.tenantId,
+    metric_key: "ai_soap_generation",
+    quantity: 1,
+  });
+
+  const { recordConsent } = await import("@/services/consent.service");
+  await recordConsent({
+    tenantId: claims.tenantId,
+    patientId: patient.id,
+    encounterId,
+    ipAddress: meta?.ipAddress,
+    userAgent: meta?.userAgent,
   });
 
   return {

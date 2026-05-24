@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { AppProviders } from "@/components/providers/app-providers";
 import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
+import { BRAND } from "@/lib/brand/site";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
@@ -17,16 +19,9 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Cliniqflow",
-  description:
-    "Multi-tenant clinical intake and AI-assisted SOAP platform for outpatient wellness clinics.",
+  title: BRAND.nameDisplay,
+  description: BRAND.positioning,
 };
 
 export default function RootLayout({
@@ -35,14 +30,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} ${newsreader.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-gray-50 text-[15.5px] text-[color:var(--foreground)]">
-        <GlobalHeader />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <GlobalFooter />
+    <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col text-[15px] text-[color:var(--foreground)]">
+        <AppProviders>
+          <GlobalHeader />
+          <main className="flex flex-1 flex-col">{children}</main>
+          <GlobalFooter />
+        </AppProviders>
       </body>
     </html>
   );

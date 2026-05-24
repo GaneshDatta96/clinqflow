@@ -1,17 +1,37 @@
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
+import { requireGodModeContext } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAuditPage() {
-  const admin = getSupabaseAdmin();
+type AuditLogRow = {
+  id: string;
+  tenant_id: string | null;
+  actor_id: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: string | null;
+  metadata: unknown;
+  created_at: string;
+};
 
-  const { data: logs } = admin
-    ? await admin
-        .from("audit_logs")
-        .select("id, tenant_id, actor_id, action, resource_type, resource_id, metadata, created_at")
-        .order("created_at", { ascending: false })
-        .limit(100)
-    : { data: [] };
+export default async function AdminAuditPage() {
+  await requireGodModeContext();
+  const admin = getSupabaseAdmin();
+  let logs: AuditLogRow[] = [];
+
+  if (admin) {
+    const { data, error } = await admin
+      .from("audit_logs")
+      .select(
+        "id, tenant_id, actor_id, action, resource_type, resource_id, metadata, created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (!error && data) {
+      logs = data;
+    }
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-12">
@@ -30,7 +50,7 @@ export default async function AdminAuditPage() {
             </tr>
           </thead>
           <tbody>
-            {(logs ?? []).map((log) => (
+            {logs.map((log) => (
               <tr key={log.id} className="border-b border-[color:var(--line)]/50">
                 <td className="px-3 py-2 whitespace-nowrap">
                   {new Date(log.created_at).toLocaleString()}

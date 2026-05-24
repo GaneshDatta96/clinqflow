@@ -2,6 +2,12 @@ import { revalidatePath } from "next/cache";
 import { ZodError, type ZodSchema } from "zod";
 import { ApiError } from "@/lib/api/errors";
 import { createRequestLog, logError, logInfo } from "@/lib/logging/logger";
+import {
+  assertRateLimit,
+  rateLimitIdentifier,
+  type RateLimitBucket,
+} from "@/lib/api/upstash-rate-limit";
+import { requireUser } from "@/lib/tenancy/context";
 
 type HandlerContext<TBody> = {
   request: Request;
@@ -15,6 +21,7 @@ type RouteHandlerOptions<TBody> = {
   step: string;
   schema?: ZodSchema<TBody>;
   requireAuth?: boolean;
+  rateLimit?: RateLimitBucket | false;
   handler: (ctx: HandlerContext<TBody>) => Promise<Response>;
 };
 
@@ -33,6 +40,15 @@ export function createApiHandler<TBody = unknown>(
     });
 
     try {
+      if (options.rateLimit !== false) {
+        const bucket = options.rateLimit ?? "api_default";
+        await assertRateLimit(bucket, rateLimitIdentifier(request, options.route));
+      }
+
+      if (options.requireAuth) {
+        await requireUser();
+      }
+
       let body = undefined as TBody;
 
       if (options.schema && request.method !== "GET") {

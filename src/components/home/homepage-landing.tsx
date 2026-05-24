@@ -3,25 +3,26 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Activity,
   ArrowUpRight,
   BadgeCheck,
-  CalendarClock,
+  Brain,
+  Building2,
+  ClipboardList,
   FileText,
-  HeartPulse,
+  Layers,
   Link2,
-  Orbit,
   ShieldCheck,
   Sparkles,
+  Stethoscope,
+  Users,
 } from "lucide-react";
+import { nicheConfigs } from "@/lib/clinics/niche-configs";
+import { BRAND } from "@/lib/brand/site";
 
 const revealContainer = {
   hidden: {},
   show: {
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
-    },
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
   },
 };
 
@@ -30,494 +31,692 @@ const revealItem = {
   show: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.68,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
+    transition: { duration: 0.68, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
 const trustSignals = [
-  { label: "St. Jude Care", icon: Activity },
-  { label: "HeartPeak Clinic", icon: HeartPulse },
-  { label: "MindState Group", icon: Orbit },
-  { label: "Nova Imaging", icon: BadgeCheck },
-  { label: "JointFlex Ortho", icon: ShieldCheck },
+  { label: "Structured workflows", icon: Layers },
+  { label: "Quietly intelligent documentation", icon: Sparkles },
+  { label: "Practitioner review first", icon: ShieldCheck },
+];
+
+const problems = [
+  {
+    title: "Unstructured patient intake",
+    description:
+      "Patients submit fragmented information across forms, emails, and phone calls — making it difficult to prepare effectively before appointments.",
+  },
+  {
+    title: "Administrative overload",
+    description:
+      "Staff spend valuable time collecting intake details, organizing responses, and preparing documentation instead of focusing on patient experience.",
+  },
+  {
+    title: "Inconsistent clinical documentation",
+    description:
+      "Turning intake answers into structured SOAP notes is repetitive and time-consuming for practitioners.",
+  },
+  {
+    title: "Lack of workflow standardization",
+    description:
+      "Different practitioners and clinic types require different intake logic, workflows, and documentation styles.",
+  },
+];
+
+const howItWorks = [
+  {
+    title: "Create a patient intake flow",
+    description:
+      "Clinic staff generate a secure intake link customized for their clinic type and workflow.",
+    detail:
+      "Supported clinic types include functional medicine, chiropractic, aesthetics, integrative wellness, and general outpatient practices.",
+  },
+  {
+    title: "Patients complete structured intake",
+    description:
+      "Patients complete a guided questionnaire before their visit — especially helpful for sensitive symptoms they may prefer to share in writing first.",
+    detail:
+      "Responses are organized into chief complaints, symptoms, lifestyle factors, goals, relevant history, and risk indicators.",
+  },
+  {
+    title: "AI-assisted SOAP draft generation",
+    description:
+      "The platform analyzes intake responses using configurable scoring logic and generates a practitioner-review-first SOAP draft.",
+    detail:
+      "Practitioners review, edit, and finalize documentation before use.",
+  },
 ];
 
 const features = [
   {
-    title: "Custom clinic logic",
+    title: "Configurable intake workflows",
     description:
-      "The intake mirrors how your consultations actually run instead of forcing a generic template onto your process.",
-    icon: Orbit,
+      "Create intake experiences tailored to your clinic specialty and operational process.",
+    bullets: [
+      "Dynamic questionnaires",
+      "Multi-step workflows",
+      "Specialty-specific logic",
+      "Flexible intake structures",
+    ],
+    icon: ClipboardList,
     tint: "bg-[color:var(--accent)]/10 text-[color:var(--accent)]",
-    offsetClass: "",
   },
   {
-    title: "Pre-visit completion",
+    title: "AI-assisted SOAP drafting",
     description:
-      "Patients complete intake before the appointment so your first minutes stay clinical, not administrative.",
-    icon: CalendarClock,
-    tint: "bg-[rgba(159,63,53,0.08)] text-[color:var(--danger)]",
-    offsetClass: "md:translate-y-8",
-  },
-  {
-    title: "Review-first output",
-    description:
-      "Practitioners begin with a readable summary and structured context instead of raw field-by-field answers.",
+      "Generate structured SOAP drafts from intake responses with conservative clinical language and practitioner oversight.",
+    bullets: [
+      "Subjective summaries",
+      "Structured assessments",
+      "Review-first workflows",
+      "Manual practitioner approval",
+    ],
     icon: FileText,
+    tint: "bg-[color:var(--accent-soft)]/20 text-[color:var(--primary)]",
+  },
+  {
+    title: "Rule-based clinical pattern scoring",
+    description:
+      "Deterministic scoring systems help organize patient-reported symptoms into clinically relevant patterns.",
+    bullets: [
+      "Pattern scoring",
+      "Evidence summaries",
+      "Confidence indicators",
+      "Risk-level tagging",
+    ],
+    icon: Brain,
     tint: "bg-[rgba(80,98,97,0.08)] text-[color:var(--muted-strong)]",
-    offsetClass: "",
+  },
+  {
+    title: "Multi-clinic configuration support",
+    description:
+      "Support different workflows and intake structures across clinics and specialties.",
+    bullets: [
+      "Clinic-specific configurations",
+      "Custom templates",
+      "Specialty customization",
+      "Workflow flexibility",
+    ],
+    icon: Building2,
+    tint: "bg-[color:var(--accent)]/10 text-[color:var(--accent)]",
+  },
+  {
+    title: "Practitioner dashboard",
+    description:
+      "Review patient intakes, assessments, and SOAP drafts from a centralized dashboard.",
+    bullets: [
+      "Encounter management",
+      "Intake review",
+      "SOAP editing",
+      "Workflow tracking",
+    ],
+    icon: Stethoscope,
+    tint: "bg-[color:var(--primary)]/8 text-[color:var(--primary)]",
   },
 ];
 
-const workflow = [
+const idealFor = [
+  "Functional medicine clinics",
+  "Chiropractic practices",
+  "Integrative wellness clinics",
+  "Aesthetic clinics",
+  "Preventive care providers",
+  "Concierge health practices",
+];
+
+const pricingPlans = [
   {
-    title: "Create Patient",
-    description: "Quick profile creation from the practitioner dashboard.",
+    name: "Starter",
+    price: "$399",
+    period: "/month",
+    description: "For smaller practices beginning to digitize intake workflows.",
+    features: [
+      "Intake workflows",
+      "Patient links",
+      "Basic SOAP drafting",
+      "1 clinic workspace",
+    ],
+    cta: "Start trial",
+    href: "/signup",
+    highlighted: false,
   },
   {
-    title: "Send Intake Link",
-    description: "A private route shared by email, text, or booking workflow.",
+    name: "Growth",
+    price: "$449",
+    period: "/month",
+    description: "For growing clinics needing operational efficiency.",
+    features: [
+      "Multi-user access",
+      "Advanced workflows",
+      "AI-assisted SOAP drafting",
+      "Pattern scoring",
+    ],
+    cta: "Start trial",
+    href: "/signup",
+    highlighted: true,
   },
   {
-    title: "Collect Answers",
-    description: "Structured intake logic guides the patient through the right prompts.",
-  },
-  {
-    title: "Review Output",
-    description: "Open a practitioner-ready summary before the consultation begins.",
+    name: "Scale",
+    price: "Custom",
+    period: " pricing",
+    description: "For larger clinics and multi-location practices.",
+    features: [
+      "Multi-location support",
+      "Advanced customization",
+      "Dedicated onboarding",
+      "Priority support",
+    ],
+    cta: "Talk to sales",
+    href: BRAND.demoUrl,
+    highlighted: false,
+    external: true,
   },
 ];
 
-const practitionerBullets = [
-  "SOAP-ready summary blocks for easier note transfer",
-  "Reason-for-visit framing instead of disconnected question fields",
+const faqs = [
+  {
+    question: "Is CliniqFlow an EHR?",
+    answer:
+      "No. CliniqFlow is designed as an intake and documentation workflow platform, not a full electronic health record system.",
+  },
+  {
+    question: "Does the AI diagnose patients?",
+    answer:
+      "No. The platform assists with intake organization and SOAP drafting only. Practitioners remain fully responsible for clinical decisions.",
+  },
+  {
+    question: "Can workflows be customized?",
+    answer:
+      "Yes. Intake forms and SOAP structures can be configured for different clinic types and specialties.",
+  },
+  {
+    question: "Is practitioner review required?",
+    answer:
+      "Yes. All AI-generated documentation should be reviewed and approved by a licensed practitioner.",
+  },
+  {
+    question: "Does CliniqFlow support multiple clinics?",
+    answer:
+      "Yes. The platform architecture supports multi-clinic and multi-tenant workflows.",
+  },
 ];
 
 export function HomepageLanding() {
-  const marqueeItems = [...trustSignals, ...trustSignals];
+  const niches = Object.entries(nicheConfigs).map(([niche, config]) => ({
+    niche,
+    label: config.label,
+  }));
 
   return (
-    <div className="overflow-x-hidden pt-24">
-      <motion.section
-        initial="hidden"
-        animate="show"
-        variants={revealContainer}
-        className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-16 lg:grid-cols-12 lg:items-center xl:px-10"
-      >
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={revealContainer}
+      className="overflow-x-hidden pt-24"
+    >
+      {/* Hero */}
+      <section className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-16 lg:grid-cols-12 lg:items-center xl:px-10">
         <motion.div variants={revealItem} className="relative z-10 space-y-6 lg:col-span-7">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/20 bg-[color:var(--accent)]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[color:var(--accent)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-4 py-2 text-[11px] font-medium uppercase tracking-[0.2em] text-[color:var(--muted-strong)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--accent)]" />
-            Intake Redefined
+            {BRAND.tagline}
           </div>
 
-          <h1 className="display-font max-w-5xl text-[clamp(3.8rem,7vw,6.5rem)] leading-[0.98] font-[700] tracking-[-0.045em] text-[color:var(--foreground)]">
-            Patient intake that <span className="text-[color:var(--accent)] italic">arrives structured</span> before you start.
+          <p className="text-sm font-semibold text-[color:var(--primary)]">
+            {BRAND.bigIdea}
+          </p>
+
+          <h1 className="display-font max-w-5xl text-[clamp(2.4rem,4.8vw,3.75rem)] font-semibold leading-[1.06] tracking-[-0.03em] text-[color:var(--foreground)]">
+            {BRAND.hero.headline}
           </h1>
 
           <p className="max-w-2xl text-lg leading-8 text-[color:var(--muted-strong)]">
-            Create the patient once. Send a private intake link. Review a calm,
-            clinician-friendly summary instead of chasing forms and rebuilding
-            context in the room.
+            {BRAND.hero.subheadline}
           </p>
 
-          <div className="flex flex-wrap gap-4 pt-2">
-            <Link
-              href="/intake"
-              className="ambient-shadow inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent)] px-8 py-4 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[color:var(--accent)]/90"
+          <p className="max-w-2xl text-base leading-8 text-[color:var(--foreground)]">
+            {BRAND.hero.emotional}
+          </p>
+
+          <p className="max-w-2xl text-sm leading-7 text-[color:var(--muted)]">
+            {BRAND.hero.functional}
+          </p>
+
+          <motion.div variants={revealItem} className="flex flex-wrap gap-3 pt-2">
+            <a
+              href={BRAND.demoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="ambient-shadow inline-flex items-center justify-center gap-2 rounded-2xl bg-[color:var(--accent)] px-8 py-4 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[color:var(--accent)]/90"
             >
-              View Patient Experience
-            </Link>
-            <Link
-              href="/dashboard"
+              Book demo
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+            <a
+              href="#how-it-works"
               className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-8 py-4 text-sm font-semibold text-[color:var(--foreground)] transition hover:bg-white"
             >
-              Open Practitioner View
-            </Link>
-          </div>
+              See how it works
+            </a>
+          </motion.div>
         </motion.div>
 
         <motion.div variants={revealItem} className="relative lg:col-span-5">
-          <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[color:var(--accent)]/10 blur-[100px]" />
-          <div className="absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-[rgba(139,75,41,0.1)] blur-[80px]" />
-
-          <div className="floating-soft relative z-10 rounded-[1.75rem] border border-white/40 bg-white/72 p-5 shadow-[0_30px_90px_rgba(27,44,52,0.16)] backdrop-blur-xl">
+          <motion.div className="relative z-10 rounded-2xl border border-[color:var(--line)] bg-white p-5 shadow-[0_24px_64px_rgba(30,58,95,0.1)]">
             <div className="grid gap-4 rounded-[1.25rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-4">
               <div className="flex items-center justify-between border-b border-[color:var(--line)] pb-3">
-                <div className="flex gap-2">
-                  <span className="h-3 w-3 rounded-full bg-[rgba(159,63,53,0.18)]" />
-                  <span className="h-3 w-3 rounded-full bg-[color:var(--accent)]/20" />
-                  <span className="h-3 w-3 rounded-full bg-[rgba(139,75,41,0.18)]" />
-                </div>
                 <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
-                  Intake Preview
+                  Workflow preview
                 </span>
+                <BadgeCheck className="h-4 w-4 text-[color:var(--accent)]" />
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="rounded-2xl border border-[color:var(--line)] bg-white p-4">
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-                    Patient Route
+                    Secure intake link
                   </p>
-                  <div className="mt-4 flex items-center gap-3">
+                  <motion.div className="mt-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--accent)]/10 text-[color:var(--accent)]">
                       <Link2 className="h-4 w-4" />
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[color:var(--foreground)]">
-                        Private intake link
-                      </p>
-                      <p className="text-xs text-[color:var(--muted-strong)]">
-                        Generated for each patient record
-                      </p>
-                    </div>
-                  </div>
+                    <p className="text-sm font-semibold text-[color:var(--foreground)]">
+                      Pre-visit questionnaire
+                    </p>
+                  </motion.div>
                 </div>
 
                 <div className="rounded-2xl border border-[color:var(--line)] bg-white p-4">
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-                    Structured Summary
+                    Structured summary
                   </p>
                   <div className="mt-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[rgba(139,75,41,0.1)] text-[rgba(139,75,41,1)]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--accent-soft)]/25 text-[color:var(--primary)]">
                       <FileText className="h-4 w-4" />
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[color:var(--foreground)]">
-                        Review-ready output
-                      </p>
-                      <p className="text-xs text-[color:var(--muted-strong)]">
-                        Clearer handoff before the consult
-                      </p>
-                    </div>
+                    <p className="text-sm font-semibold text-[color:var(--foreground)]">
+                      SOAP draft for review
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-2xl border border-[color:var(--accent)]/20 bg-[color:var(--accent)]/8 p-5">
                 <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--accent)]">
-                  Smart Summary
+                  Practitioner review first
                 </span>
-                <p className="display-font mt-3 text-xl italic leading-relaxed text-[color:var(--foreground)]">
-                  Patient presents with <span className="rounded bg-[color:var(--accent)]/10 px-1.5">persistent lower back pain</span> after a lifting incident three days ago, with no neurological red flags reported.
+                <p className="mt-3 text-base leading-relaxed text-[color:var(--muted-strong)]">
+                  AI-assisted draft — edit, approve, and finalize before clinical use.
                 </p>
               </div>
-
-              <div className="flex justify-end">
-                <div className="rounded-xl bg-[color:var(--accent)] px-4 py-2 text-xs font-semibold text-white">
-                  Export to EHR
-                </div>
-              </div>
             </div>
-          </div>
-
-          <div className="ambient-shadow absolute -bottom-8 -right-3 z-20 flex items-center gap-3 rounded-2xl border border-white/40 bg-white/72 p-3 backdrop-blur-xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--accent)] text-white">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div className="pr-3">
-              <p className="text-xs font-semibold text-[color:var(--foreground)]">
-                Live Sync
-              </p>
-              <p className="text-[11px] text-[color:var(--muted-strong)]">
-                Structured data ready
-              </p>
-            </div>
-          </div>
+          </motion.div>
         </motion.div>
-      </motion.section>
+      </section>
 
-      <section className="overflow-hidden bg-white/72 py-10 backdrop-blur-sm">
-        <div className="mx-auto mb-5 max-w-7xl px-6 text-center xl:px-10">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--muted)]/75">
-            Trusted by forward-thinking clinical groups
-          </p>
-        </div>
-        <div className="flex overflow-hidden whitespace-nowrap">
-          <div className="logo-scroll flex min-w-max items-center gap-10 py-2">
-            {marqueeItems.map((item, index) => (
-              <div key={`${item.label}-${index}`} className="flex items-center gap-3 px-2 opacity-55 transition hover:opacity-100">
-                <item.icon className="h-5 w-5 text-[color:var(--accent)]" />
-                <span className="display-font text-xl font-bold text-[color:var(--foreground)]">
-                  {item.label}
-                </span>
-                <span className="h-6 w-px bg-[color:var(--line)]" />
+      {/* Trust / niches */}
+      <section className="border-y border-[color:var(--line)]/60 bg-white/72 py-12 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-6 xl:px-10">
+          <div className="mb-8 flex flex-wrap justify-center gap-6">
+            {trustSignals.map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted-strong)]"
+              >
+                <item.icon className="h-4 w-4 text-[color:var(--accent)]" />
+                {item.label}
               </div>
+            ))}
+          </div>
+          <p className="mb-4 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--muted)]">
+            Built for western & alternative medicine specialties
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {niches.map((niche) => (
+              <span
+                key={niche.niche}
+                className="rounded-full border border-[color:var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]"
+              >
+                {niche.label}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      <motion.section
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.24 }}
-        variants={revealContainer}
-        className="relative py-24"
-      >
-        <div className="mx-auto max-w-7xl px-6 xl:px-10">
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-[color:var(--foreground)] px-6 py-10 shadow-[0_40px_110px_rgba(20,33,37,0.2)] sm:px-8 lg:px-12">
-            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[color:var(--accent)]/14 to-transparent" />
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-              <motion.div variants={revealItem} className="relative z-10 space-y-6">
-                <h2 className="display-font text-[clamp(2.7rem,4vw,4rem)] leading-[1.04] font-[650] text-white">
-                  Experience the <span className="text-[color:var(--accent)] italic">practitioner review</span>.
-                </h2>
-                <p className="max-w-xl text-lg leading-8 text-white/72">
-                  Stop hunting for details. The interface puts the most important
-                  part of the workflow front and center: clinical reasoning with
-                  cleaner context and faster review.
-                </p>
-                <div className="space-y-3 pt-2">
-                  {practitionerBullets.map((bullet) => (
-                    <div
-                      key={bullet}
-                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-4"
-                    >
-                      <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--accent)]" />
-                      <p className="text-sm leading-6 text-white/78">{bullet}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              <motion.div variants={revealItem} className="relative lg:-mr-24">
-                <div className="relative z-10 rounded-[1.75rem] bg-white p-4 shadow-2xl transition duration-500 lg:rotate-[-2deg] hover:rotate-0">
-                  <div className="border-b border-[color:var(--line)] px-2 pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-2">
-                        <span className="h-3 w-3 rounded-full bg-[rgba(159,63,53,0.18)]" />
-                        <span className="h-3 w-3 rounded-full bg-[color:var(--accent)]/18" />
-                        <span className="h-3 w-3 rounded-full bg-[rgba(139,75,41,0.18)]" />
-                      </div>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
-                        Practitioner Dashboard
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 p-4">
-                    <div className="h-9 w-1/3 rounded-xl bg-[color:var(--surface)]" />
-                    <div className="grid grid-cols-2 gap-3">
-                      {[0, 1].map((item) => (
-                        <div
-                          key={item}
-                          className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-3"
-                        >
-                          <div className="h-2 w-1/2 rounded bg-[color:var(--line-strong)]" />
-                          <div className="mt-3 h-2 w-full rounded bg-[color:var(--line)]" />
-                          <div className="mt-2 h-2 w-4/5 rounded bg-[color:var(--line)]" />
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="relative overflow-hidden rounded-2xl border border-[color:var(--accent)]/20 bg-[color:var(--accent)]/10 p-5">
-                      <div className="absolute right-4 top-4">
-                        <BadgeCheck className="h-4 w-4 text-[color:var(--accent)]" />
-                      </div>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--accent)]">
-                        Smart Summary
-                      </span>
-                      <p className="display-font mt-3 text-xl italic leading-relaxed text-[color:var(--foreground)]">
-                        Patient presents with <span className="rounded bg-[color:var(--accent)]/12 px-1.5">persistent lower back pain</span> after a lifting incident three days ago. No neurological deficits noted.
-                      </p>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <div className="rounded-xl bg-[color:var(--accent)] px-4 py-2 text-[11px] font-semibold text-white">
-                        Export to EHR
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[rgba(139,75,41,0.2)] blur-3xl" />
-              </motion.div>
+      {/* Positioning pillars */}
+      <section className="mx-auto max-w-7xl px-6 py-16 xl:px-10">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {BRAND.pillars.map((pillar) => (
+            <div
+              key={pillar.title}
+              className="rounded-2xl border border-[color:var(--line)] bg-white p-6"
+            >
+              <h3 className="text-sm font-semibold text-[color:var(--primary)]">
+                {pillar.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-[color:var(--muted-strong)]">
+                {pillar.description}
+              </p>
             </div>
-          </div>
+          ))}
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        id="features"
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.22 }}
-        variants={revealContainer}
-        className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24 xl:px-10"
-      >
-        <div className="mb-16 flex flex-col items-center text-center">
+      {/* Problem */}
+      <section id="solutions" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24 xl:px-10">
+        <div className="mx-auto max-w-3xl text-center">
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]">
-            Efficiency First
+            The challenge
           </span>
-          <h2 className="display-font mt-4 text-[clamp(2.5rem,4vw,4rem)] leading-[1.06] font-[650] text-[color:var(--foreground)]">
-            Built for modern clinical rigor
+          <h2 className="display-font mt-4 text-[clamp(2.2rem,4vw,3.5rem)] leading-[1.08] font-[650] text-[color:var(--foreground)]">
+            Intake and documentation shouldn&apos;t consume the entire appointment
           </h2>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {features.map((feature) => (
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
+          {problems.map((problem) => (
             <motion.div
-              key={feature.title}
+              key={problem.title}
               variants={revealItem}
-              className={`ambient-shadow-hover rounded-[2rem] border border-[color:var(--line)] bg-white/76 p-8 ${feature.offsetClass}`}
+              className="ambient-shadow rounded-[1.75rem] border border-[color:var(--line)] bg-white/76 p-8"
             >
-              <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${feature.tint}`}>
-                <feature.icon className="h-8 w-8" />
-              </div>
-              <h3 className="display-font mt-6 text-3xl font-[620] leading-tight text-[color:var(--foreground)]">
-                {feature.title}
+              <h3 className="text-lg font-semibold text-[color:var(--foreground)]">
+                {problem.title}
               </h3>
-              <p className="mt-4 leading-8 text-[color:var(--muted-strong)]">
-                {feature.description}
+              <p className="mt-3 leading-7 text-[color:var(--muted-strong)]">
+                {problem.description}
               </p>
             </motion.div>
           ))}
         </div>
-      </motion.section>
 
-      <section id="outcomes" className="relative scroll-mt-28 py-24">
-        <div className="absolute left-0 top-0 w-full rotate-180 overflow-hidden leading-[0]">
-          <svg
-            className="relative block h-[80px] w-[calc(100%+1.3px)] fill-white/70"
-            preserveAspectRatio="none"
-            viewBox="0 0 1200 120"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" />
-          </svg>
-        </div>
-
-        <div className="bg-white/70 pb-20 pt-24">
-          <div className="mx-auto max-w-7xl px-6 xl:px-10">
-            <div className="mb-16 text-center">
-              <h2 className="display-font text-[clamp(2.4rem,4vw,3.8rem)] leading-[1.08] font-[650] text-[color:var(--foreground)]">
-                Measured outcomes for clinical teams
-              </h2>
-              <p className="mt-3 text-[color:var(--muted-strong)]">
-                Better data leads to better medicine.
-              </p>
-            </div>
-
-            <div className="grid items-end gap-6 md:grid-cols-3">
-              <div className="glass-card ambient-shadow rounded-[2rem] border border-white/60 p-8 transition hover:-translate-y-2">
-                <div className="display-font text-[56px] font-bold tracking-[-0.06em] text-[color:var(--accent)]">
-                  45%
-                </div>
-                <h4 className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-[color:var(--foreground)]">
-                  Less admin overhead
-                </h4>
-                <p className="mt-4 text-sm leading-7 text-[color:var(--muted-strong)]">
-                  Reduce time spent on data entry and context-switching by
-                  nearly half per patient.
-                </p>
-              </div>
-
-              <div className="ambient-shadow rounded-[2rem] bg-[color:var(--accent)] p-8 text-white transition hover:-translate-y-2 md:mb-12">
-                <div className="display-font text-[56px] font-bold tracking-[-0.06em] text-white">
-                  High
-                </div>
-                <h4 className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-white">
-                  Higher-quality intake
-                </h4>
-                <p className="mt-4 text-sm leading-7 text-white/82">
-                  Structured logic captures nuanced clinical details that
-                  standard forms miss.
-                </p>
-              </div>
-
-              <div className="glass-card ambient-shadow rounded-[2rem] border border-white/60 p-8 transition hover:-translate-y-2">
-                <div className="display-font text-[56px] font-bold tracking-[-0.06em] text-[rgba(139,75,41,1)]">
-                  Clear
-                </div>
-                <h4 className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-[color:var(--foreground)]">
-                  Better consult starts
-                </h4>
-                <p className="mt-4 text-sm leading-7 text-[color:var(--muted-strong)]">
-                  Walk into every room fully informed, allowing you to focus on
-                  the patient immediately.
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto mt-12 max-w-3xl rounded-[1.75rem] border border-[color:var(--accent)]/20 bg-[color:var(--accent)]/8 p-8 text-center">
+          <p className="leading-8 text-[color:var(--muted-strong)]">
+            CliniqFlow was designed to streamline intake, improve documentation workflows,
+            and help clinics operate more efficiently.
+          </p>
+          <p className="mt-4 leading-8 text-[color:var(--muted-strong)]">
+            On average, clinics can save approximately{" "}
+            <strong className="text-[color:var(--foreground)]">5.2 minutes</strong> of
+            physician discovery time per patient encounter by collecting structured intake
+            information before the consultation begins.
+          </p>
+          <p className="mt-4 text-sm leading-7 text-[color:var(--muted)]">
+            The platform also helps reduce administrative fatigue by allowing practitioners
+            to begin appointments with organized patient context instead of fragmented
+            intake conversations.
+          </p>
         </div>
       </section>
 
-      <motion.section
-        id="workflow"
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.24 }}
-        variants={revealContainer}
-        className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24 xl:px-10"
+      {/* How it works */}
+      <section
+        id="how-it-works"
+        className="scroll-mt-28 bg-[color:var(--primary)] py-24 text-white"
       >
-        <h2 className="display-font mb-20 text-center text-[clamp(2.4rem,4vw,3.8rem)] leading-[1.08] font-[650] text-[color:var(--foreground)]">
-          The Operational Workflow
-        </h2>
+        <div className="mx-auto max-w-7xl px-6 xl:px-10">
+          <div className="mb-16 text-center">
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]">
+              How it works
+            </span>
+            <h2 className="display-font mt-4 text-[clamp(2.2rem,4vw,3.5rem)] font-[650]">
+              How CliniqFlow works
+            </h2>
+          </div>
 
-        <div className="relative">
-          <div className="absolute left-[10%] right-[10%] top-10 hidden h-0.5 bg-gradient-to-r from-[color:var(--accent)]/20 via-[color:var(--accent)]/40 to-[color:var(--accent)]/20 md:block" />
-          <div className="grid gap-8 md:grid-cols-4">
-            {workflow.map((step, index) => (
+          <div className="grid gap-8 lg:grid-cols-3">
+            {howItWorks.map((step, index) => (
               <motion.div
                 key={step.title}
                 variants={revealItem}
-                className={`group flex flex-col items-center text-center ${index % 2 === 1 ? "md:mt-12" : ""}`}
+                className="rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-8"
               >
-                <div className="ambient-shadow flex h-20 w-20 items-center justify-center rounded-full border-2 border-[color:var(--accent)]/20 bg-white text-2xl font-bold text-[color:var(--accent)] transition-all duration-300 group-hover:scale-110 group-hover:bg-[color:var(--accent)] group-hover:text-white">
-                  0{index + 1}
-                </div>
-                <h5 className="mt-4 text-sm font-bold uppercase tracking-[0.16em] text-[color:var(--foreground)]">
-                  {step.title}
-                </h5>
-                <p className="mt-2 max-w-[220px] text-sm leading-7 text-[color:var(--muted-strong)]">
-                  {step.description}
-                </p>
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--accent)]">
+                  Step 0{index + 1}
+                </span>
+                <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
+                <p className="mt-3 leading-7 text-white/78">{step.description}</p>
+                <p className="mt-4 text-sm leading-7 text-white/60">{step.detail}</p>
               </motion.div>
             ))}
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        id="contact"
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.24 }}
-        variants={revealContainer}
-        className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-24 xl:px-10"
+      {/* Features */}
+      <section
+        id="features"
+        className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24 xl:px-10"
       >
+        <motion.div variants={revealItem} className="mb-16 text-center">
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]">
+            Core features
+          </span>
+          <h2 className="display-font mt-4 text-[clamp(2.2rem,4vw,3.5rem)] font-[650] text-[color:var(--foreground)]">
+            Built for modern clinical workflows
+          </h2>
+        </motion.div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <motion.div
+              key={feature.title}
+              variants={revealItem}
+              className="ambient-shadow rounded-[1.75rem] border border-[color:var(--line)] bg-white/76 p-8 lg:last:col-span-1"
+            >
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tint}`}
+              >
+                <feature.icon className="h-7 w-7" />
+              </div>
+              <h3 className="mt-6 text-xl font-semibold text-[color:var(--foreground)]">
+                {feature.title}
+              </h3>
+              <p className="mt-3 leading-7 text-[color:var(--muted-strong)]">
+                {feature.description}
+              </p>
+              <ul className="mt-4 space-y-2">
+                {feature.bullets.map((bullet) => (
+                  <li
+                    key={bullet}
+                    className="flex items-start gap-2 text-sm text-[color:var(--muted-strong)]"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--accent)]" />
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Who it's for + compliance */}
+      <section className="bg-white/70 py-24">
+        <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-2 xl:px-10">
+          <motion.div variants={revealItem}>
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]">
+              Who it&apos;s for
+            </span>
+            <h2 className="display-font mt-4 text-[clamp(2rem,3.5vw,2.8rem)] font-[650] text-[color:var(--foreground)]">
+              Built for modern outpatient practices
+            </h2>
+            <ul className="mt-8 space-y-3">
+              {idealFor.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-3 text-[color:var(--muted-strong)]"
+                >
+                  <Users className="h-4 w-4 shrink-0 text-[color:var(--accent)]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          <motion.div
+            variants={revealItem}
+            className="rounded-[1.75rem] border border-[color:var(--line)] bg-white p-8"
+          >
+            <div className="flex items-center gap-2 text-[color:var(--accent)]">
+              <ShieldCheck className="h-5 w-5" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.24em]">
+                Practitioner review required
+              </span>
+            </div>
+            <h3 className="mt-4 text-xl font-semibold text-[color:var(--foreground)]">
+              Documentation-assist, not autonomous clinical AI
+            </h3>
+            <p className="mt-4 leading-7 text-[color:var(--muted-strong)]">
+              CliniqFlow is designed as a documentation-assist and workflow platform.
+              The system does not diagnose patients, prescribe treatment, replace
+              practitioner judgment, or operate as an autonomous clinical system.
+            </p>
+            <p className="mt-4 text-sm font-semibold text-[color:var(--foreground)]">
+              All outputs require practitioner review and approval.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24 xl:px-10">
+        <div className="mb-14 text-center">
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]">
+            Pricing
+          </span>
+          <h2 className="display-font mt-4 text-[clamp(2.2rem,4vw,3.5rem)] font-[650] text-[color:var(--foreground)]">
+            Simple clinic pricing
+          </h2>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {pricingPlans.map((plan) => (
+            <motion.div
+              key={plan.name}
+              variants={revealItem}
+              className={`rounded-[1.75rem] border p-8 ${
+                plan.highlighted
+                  ? "border-[color:var(--accent)] bg-[color:var(--accent)] text-white shadow-[0_30px_80px_rgba(14,124,123,0.2)]"
+                  : "border-[color:var(--line)] bg-white/76"
+              }`}
+            >
+              <h3 className="text-lg font-semibold">{plan.name}</h3>
+              <p className="mt-4">
+                <span className="display-font text-4xl font-bold">{plan.price}</span>
+                <span className={plan.highlighted ? "text-white/80" : "text-[color:var(--muted)]"}>
+                  {plan.period}
+                </span>
+              </p>
+              <p
+                className={`mt-3 text-sm leading-6 ${plan.highlighted ? "text-white/82" : "text-[color:var(--muted-strong)]"}`}
+              >
+                {plan.description}
+              </p>
+              <ul className="mt-6 space-y-2">
+                {plan.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className={`flex items-center gap-2 text-sm ${plan.highlighted ? "text-white/90" : "text-[color:var(--muted-strong)]"}`}
+                  >
+                    <BadgeCheck className="h-4 w-4 shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              {plan.external ? (
+                <a
+                  href={plan.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition ${
+                    plan.highlighted
+                      ? "bg-white text-[color:var(--accent)]"
+                      : "bg-[color:var(--foreground)] text-white"
+                  }`}
+                >
+                  {plan.cta}
+                </a>
+              ) : (
+                <Link
+                  href={plan.href}
+                  className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition ${
+                    plan.highlighted
+                      ? "bg-white text-[color:var(--accent)]"
+                      : "bg-[color:var(--accent)] text-white"
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl scroll-mt-28 px-6 pb-24 xl:px-10">
+        <div className="mb-12 text-center">
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]">
+            FAQ
+          </span>
+          <h2 className="display-font mt-4 text-[clamp(2rem,3.5vw,2.8rem)] font-[650] text-[color:var(--foreground)]">
+            Frequently asked questions
+          </h2>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq) => (
+            <details
+              key={faq.question}
+              className="group rounded-2xl border border-[color:var(--line)] bg-white/76 p-6"
+            >
+              <summary className="cursor-pointer list-none font-semibold text-[color:var(--foreground)] marker:content-none">
+                {faq.question}
+              </summary>
+              <p className="mt-4 leading-7 text-[color:var(--muted-strong)]">{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section id="contact" className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-24 xl:px-10">
         <motion.div
           variants={revealItem}
-          className="relative overflow-hidden rounded-[3rem] bg-[color:var(--accent)] px-8 py-14 shadow-[0_40px_110px_rgba(14,124,123,0.22)] sm:px-10 lg:px-14"
+          className="relative overflow-hidden rounded-[2.5rem] bg-[color:var(--accent)] px-8 py-14 sm:px-10 lg:px-14"
         >
-          <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-[rgba(139,75,41,0.24)] blur-[100px]" />
-          <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/14 blur-[80px]" />
-
           <div className="relative z-10 mx-auto max-w-3xl text-center">
-            <h2 className="display-font text-[clamp(2.6rem,4.5vw,4.4rem)] leading-[1.04] font-[680] text-white">
-              If this matches how your clinic wants intake to feel, let&apos;s talk.
+            <h2 className="display-font text-[clamp(2rem,4vw,3.2rem)] font-semibold leading-[1.06] text-white">
+              {BRAND.bigIdea}
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/84">
-              Modern Health is modular. We tailor the intake logic, patient
-              route, and review framing to your specialty and workflow.
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/85">
+              {BRAND.narrative}
             </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a
-              href="https://cal.com/ganesh-datta-bygktk/sales-throughput-session"
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <a
+                href={BRAND.demoUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-[color:var(--accent)] transition hover:scale-[1.03]"
               >
-                Request custom version
+                Book a demo
                 <ArrowUpRight className="h-4 w-4" />
+              </a>
+              <a
+                href={BRAND.demoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-2xl border border-white/30 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/10"
+              >
+                Talk to sales
               </a>
             </div>
           </div>
         </motion.div>
-      </motion.section>
-    </div>
+      </section>
+    </motion.div>
   );
 }

@@ -99,7 +99,6 @@ export type ClinicDefinition = {
   website?: string;
   description?: string;
   approach?: string;
-  isDemo?: boolean;
   createdAt?: string;
   config: NicheConfig;
 };
@@ -147,7 +146,6 @@ export function buildClinicDefinition(args: {
   website?: string;
   description?: string;
   approach?: string;
-  isDemo?: boolean;
   createdAt?: string;
   config: NicheConfig;
 }): ClinicDefinition {
@@ -169,7 +167,6 @@ export function buildClinicDefinition(args: {
     website: args.website,
     description: args.description,
     approach: args.approach,
-    isDemo: args.isDemo,
     createdAt: args.createdAt,
     config: args.config,
   };
@@ -181,7 +178,6 @@ function buildLocalClinicDefinition(clinic: LocalClinicPreset): ClinicDefinition
     niche: clinic.niche,
     clinicName: clinic.clinicName,
     headline: clinic.headline,
-    isDemo: true,
     config: nicheConfigs[clinic.niche],
   });
 }

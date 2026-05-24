@@ -66,25 +66,18 @@ export function AuroraBackgroundDemo() {
             <ArrowRight className="size-4" />
           </AuroraButton>
           <Link
-            href="/create-demo"
+            href="/signup"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92"
           >
             <ClipboardPlus className="size-4" />
-            Create Demo Route
+            Start free trial
           </Link>
           <Link
-            href="/dashboard"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white"
           >
             <LayoutDashboard className="size-4" />
-            View Practitioner Dashboard
-          </Link>
-          <Link
-            href="/intake"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white/55 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white/80"
-          >
-            View Patient Experience
-            <ArrowRight className="size-4" />
+            Sign in to workspace
           </Link>
         </div>
 

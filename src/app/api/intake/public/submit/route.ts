@@ -11,6 +11,7 @@ import {
 export const POST = createApiHandler({
   route: "/api/intake/public/submit",
   step: "public_intake_pipeline",
+  rateLimit: "public_intake",
   handler: async ({ request, startedAt, requestLog }) => {
     const intakeToken = request.headers.get("x-intake-token");
 
@@ -29,7 +30,19 @@ export const POST = createApiHandler({
     }
 
     const input = buildNicheIntakeSubmissionSchema(clinic.config).parse(body);
-    const processed = await processPublicIntakeSubmission(input, intakeToken);
+
+    if (!input.consent_accepted) {
+      throw badRequest("Consent is required before submitting intake.");
+    }
+
+    const processed = await processPublicIntakeSubmission(
+      input,
+      intakeToken,
+      {
+        ipAddress: request.headers.get("x-forwarded-for"),
+        userAgent: request.headers.get("user-agent"),
+      },
+    );
 
     return jsonOk({
       encounterId: processed.encounterId,

@@ -4,7 +4,7 @@ import { createApiHandler, jsonOk } from "@/lib/api/handler";
 import { badRequest } from "@/lib/api/errors";
 import {
   ACTING_TENANT_COOKIE,
-  requirePlatformAdmin,
+  requirePlatformStaff,
 } from "@/lib/tenancy/platform-admin";
 
 const setSchema = z.object({
@@ -16,7 +16,7 @@ export const POST = createApiHandler({
   step: "admin_set_acting_tenant",
   schema: setSchema,
   handler: async ({ body }) => {
-    const { supabase, user } = await requirePlatformAdmin();
+    const { supabase, user } = await requirePlatformStaff();
 
     const { data: tenant, error } = await supabase
       .from("tenants")
@@ -35,13 +35,13 @@ export const POST = createApiHandler({
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 4,
     });
 
     await supabase.from("audit_logs").insert({
       tenant_id: tenant.id,
       actor_id: user.id,
-      action: "platform_admin.impersonate",
+      action: "platform_staff.impersonate",
       resource_type: "tenant",
       resource_id: tenant.id,
       metadata: { tenant_slug: tenant.slug },
@@ -60,7 +60,7 @@ export const DELETE = createApiHandler({
   route: "/api/admin/acting-tenant",
   step: "admin_clear_acting_tenant",
   handler: async () => {
-    await requirePlatformAdmin();
+    await requirePlatformStaff();
 
     const cookieStore = await cookies();
     cookieStore.delete(ACTING_TENANT_COOKIE);

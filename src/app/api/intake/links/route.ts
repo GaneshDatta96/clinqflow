@@ -29,6 +29,22 @@ export const POST = createApiHandler({
       throw badRequest("Intake links require database configuration.");
     }
 
+    const { data: patient, error: patientError } = await admin
+      .from("patients")
+      .select("id, tenant_id, clinic_id")
+      .eq("id", body.patient_id)
+      .eq("tenant_id", context.tenantId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (patientError || !patient) {
+      throw badRequest("Patient not found in your organization.");
+    }
+
+    if (patient.clinic_id && patient.clinic_id !== body.clinic_id) {
+      throw badRequest("Patient does not belong to this clinic.");
+    }
+
     const rawToken = generateRawIntakeToken();
     const expiresAt = getIntakeLinkExpiry();
 
@@ -63,13 +79,15 @@ export const POST = createApiHandler({
       .single();
 
     const slug = clinic.data?.slug ?? "intake";
-    const url = `${env.appUrl}/c/${slug}?patientId=${body.patient_id}&token=${encodeURIComponent(jwt)}`;
+    const url = `${env.appUrl}/c/${slug}?patientId=${body.patient_id}`;
 
     return jsonCreated({
       linkId: link.id,
       expiresAt: expiresAt.toISOString(),
       url,
-      token: jwt,
+      intakeToken: jwt,
+      deliveryNote:
+        "Share the URL and intakeToken separately. Patients must submit the token in the x-intake-token header (or paste it on the intake page).",
     });
   },
 });

@@ -2,13 +2,18 @@ import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/db/supabase-server";
 import { forbidden, unauthorized } from "@/lib/api/errors";
 import { hasPermission, type Permission } from "@/lib/tenancy/permissions";
+import { getActiveTenantIdFromCookies } from "@/lib/tenancy/active-tenant";
 import {
   ACTING_TENANT_COOKIE,
   fetchIsPlatformAdmin,
-  syncPlatformAdminProfile,
+  fetchIsPlatformStaff,
+  fetchIsPlatformSupport,
+  syncPlatformRoleProfiles,
 } from "@/lib/tenancy/platform-admin";
 import { type TenantContext, type TenantRole } from "@/lib/tenancy/types";
 import { isAuthConfigured } from "@/lib/env";
+import { resolveDbClientForContext } from "@/lib/security/platform-staff";
+import { writeAuditLog } from "@/services/audit.service";
 
 export async function requireUser() {
   if (!isAuthConfigured()) {
@@ -30,7 +35,14 @@ export async function requireUser() {
     throw unauthorized();
   }
 
-  await syncPlatformAdminProfile(user);
+  if (
+    process.env.NODE_ENV === "production" &&
+    !user.email_confirmed_at
+  ) {
+    throw unauthorized("Email address must be verified.");
+  }
+
+  await syncPlatformRoleProfiles(user);
 
   return { supabase, user };
 }
@@ -40,6 +52,11 @@ async function resolveActingTenantId(explicitTenantId?: string) {
 
   const cookieStore = await cookies();
   return cookieStore.get(ACTING_TENANT_COOKIE)?.value ?? null;
+}
+
+async function resolveActiveTenantId(explicitTenantId?: string) {
+  if (explicitTenantId) return explicitTenantId;
+  return (await getActiveTenantIdFromCookies()) ?? undefined;
 }
 
 async function loadTenantById(
@@ -58,6 +75,29 @@ async function loadTenantById(
   }
 
   return data;
+}
+
+export async function logPhiAccessIfPlatformStaff(args: {
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>;
+  context: TenantContext;
+  action: string;
+  resourceType: string;
+  resourceId?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  if (!args.context.isPlatformAdmin && !args.context.isPlatformSupport) {
+    return;
+  }
+
+  await writeAuditLog({
+    supabase: args.supabase,
+    tenantId: args.context.tenantId,
+    actorId: args.context.userId,
+    action: args.action,
+    resourceType: args.resourceType,
+    resourceId: args.resourceId,
+    metadata: args.metadata,
+  });
 }
 
 export async function getTenantMembership(
@@ -111,6 +151,7 @@ function buildTenantContext(args: {
   userId: string;
   role: TenantRole;
   isPlatformAdmin?: boolean;
+  isPlatformSupport?: boolean;
 }): TenantContext {
   return {
     tenantId: args.tenant.id,
@@ -121,6 +162,7 @@ function buildTenantContext(args: {
     planKey: args.tenant.plan_key,
     subscriptionStatus: args.tenant.subscription_status,
     isPlatformAdmin: args.isPlatformAdmin ?? false,
+    isPlatformSupport: args.isPlatformSupport ?? false,
   };
 }
 
@@ -134,33 +176,43 @@ export async function requireTenantContext(tenantId?: string): Promise<{
     user.id,
     user.email,
   );
+  const isPlatformStaff = isPlatformAdmin
+    ? true
+    : await fetchIsPlatformStaff(supabase, user.id, user.email);
+  const isPlatformSupport =
+    !isPlatformAdmin &&
+    (await fetchIsPlatformSupport(supabase, user.id, user.email));
   const actingTenantId = await resolveActingTenantId(tenantId);
 
-  if (isPlatformAdmin && actingTenantId) {
+  if (isPlatformStaff && actingTenantId) {
     const tenant = await loadTenantById(supabase, actingTenantId);
 
     if (!tenant) {
       throw forbidden("Selected organization not found.");
     }
 
+    const context = buildTenantContext({
+      tenant,
+      userId: user.id,
+      role: "owner",
+      isPlatformAdmin,
+      isPlatformSupport,
+    });
+
     return {
-      supabase,
-      context: buildTenantContext({
-        tenant,
-        userId: user.id,
-        role: "owner",
-        isPlatformAdmin: true,
-      }),
+      supabase: resolveDbClientForContext(supabase, context),
+      context,
     };
   }
 
-  if (isPlatformAdmin && !actingTenantId) {
+  if (isPlatformStaff && !actingTenantId) {
     throw forbidden(
-      "Platform admin: select an organization in Platform Admin before using the workspace.",
+      "Select an organization in the support console before using the workspace.",
     );
   }
 
-  const membership = await getTenantMembership(supabase, user.id, tenantId);
+  const activeTenantId = await resolveActiveTenantId(tenantId);
+  const membership = await getTenantMembership(supabase, user.id, activeTenantId);
 
   if (!membership) {
     throw forbidden("You are not a member of this organization.");
@@ -176,7 +228,7 @@ export async function requireTenantContext(tenantId?: string): Promise<{
   };
 }
 
-/** Tenant context for platform admins without requiring an acting tenant (admin console only). */
+/** Tenant context for platform staff without requiring an acting tenant (support console). */
 export async function requirePlatformAdminContext() {
   const { supabase, user } = await requireUser();
   const isPlatformAdmin = await fetchIsPlatformAdmin(
@@ -184,9 +236,12 @@ export async function requirePlatformAdminContext() {
     user.id,
     user.email,
   );
+  const isPlatformSupport =
+    !isPlatformAdmin &&
+    (await fetchIsPlatformSupport(supabase, user.id, user.email));
 
-  if (!isPlatformAdmin) {
-    throw forbidden("Platform admin access required.");
+  if (!isPlatformAdmin && !isPlatformSupport) {
+    throw forbidden("Platform staff access required.");
   }
 
   return {
@@ -195,14 +250,63 @@ export async function requirePlatformAdminContext() {
     context: {
       tenantId: "",
       tenantSlug: "",
-      tenantName: "Platform Admin",
+      tenantName: isPlatformAdmin ? "Platform Admin" : "Customer Support",
       userId: user.id,
       role: "owner" as TenantRole,
       planKey: "platform",
       subscriptionStatus: "active",
-      isPlatformAdmin: true,
+      isPlatformAdmin,
+      isPlatformSupport,
     } satisfies TenantContext,
   };
+}
+
+/** God mode only — analytics, audit export, and other restricted operations. */
+export async function requireGodModeContext() {
+  const { supabase, user, context } = await requirePlatformAdminContext();
+
+  if (!context.isPlatformAdmin) {
+    throw forbidden("Platform admin (God mode) access required.");
+  }
+
+  return { supabase, user, context };
+}
+
+export async function listUserTenants(userId: string) {
+  const { supabase } = await requireUser();
+
+  const { data, error } = await supabase
+    .from("tenant_memberships")
+    .select(
+      `
+      role,
+      tenant_id,
+      tenants (
+        id,
+        name,
+        slug
+      )
+    `,
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data
+    .map((row) => {
+      const tenant = Array.isArray(row.tenants) ? row.tenants[0] : row.tenants;
+      if (!tenant) return null;
+      return {
+        tenantId: tenant.id as string,
+        tenantName: tenant.name as string,
+        tenantSlug: tenant.slug as string,
+        role: row.role as TenantRole,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
 }
 
 export async function tryGetTenantContext(): Promise<{
@@ -226,7 +330,7 @@ export async function requirePermission(
 ) {
   const { supabase, context } = await requireTenantContext(tenantId);
 
-  if (context.isPlatformAdmin || hasPermission(context.role, permission)) {
+  if (context.isPlatformAdmin || context.isPlatformSupport || hasPermission(context.role, permission)) {
     return { supabase, context };
   }
 
@@ -242,7 +346,7 @@ export async function requireClinicAccess(clinicId: string) {
     .eq("id", clinicId)
     .is("deleted_at", null);
 
-  if (!context.isPlatformAdmin) {
+  if (!context.isPlatformAdmin && !context.isPlatformSupport) {
     query = query.eq("tenant_id", context.tenantId);
   }
 
@@ -252,7 +356,7 @@ export async function requireClinicAccess(clinicId: string) {
     throw forbidden("Clinic not found in your organization.");
   }
 
-  if (context.isPlatformAdmin && clinic.tenant_id !== context.tenantId) {
+  if ((context.isPlatformAdmin || context.isPlatformSupport) && clinic.tenant_id !== context.tenantId) {
     throw forbidden("Clinic does not belong to the selected organization.");
   }
 

@@ -88,7 +88,10 @@ export async function listEncountersForTenant(
     .range(offset, offset + limit - 1);
 
   if (options?.search?.trim()) {
-    query = query.ilike("chief_complaint", `%${options.search.trim()}%`);
+    const term = options.search.trim().replace(/[%_,]/g, "");
+    query = query.or(
+      `chief_complaint.ilike.%${term}%,patients.first_name.ilike.%${term}%,patients.last_name.ilike.%${term}%`,
+    );
   }
 
   const { data, error } = await query;
@@ -163,6 +166,100 @@ export async function getEncounterForTenant(
   }
 
   return data;
+}
+
+export async function getEncounterDetailForTenant(
+  supabase: SupabaseClient,
+  tenantId: string,
+  encounterId: string,
+) {
+  const { data, error } = await supabase
+    .from("encounters")
+    .select(
+      `
+      id,
+      patient_id,
+      status,
+      chief_complaint,
+      submitted_at,
+      created_at,
+      patients!inner (
+        first_name,
+        last_name,
+        email,
+        tenant_id
+      ),
+      soap_notes (
+        subjective,
+        objective,
+        assessment,
+        plan,
+        review_status
+      ),
+      assessment_results (
+        pattern_key,
+        confidence,
+        risk_level,
+        rank,
+        evidence
+      ),
+      appointment_requests (
+        preferred_day,
+        preferred_time,
+        notes,
+        status
+      )
+    `,
+    )
+    .eq("id", encounterId)
+    .eq("tenant_id", tenantId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const patient = Array.isArray(data.patients) ? data.patients[0] : data.patients;
+  const soap = Array.isArray(data.soap_notes) ? data.soap_notes[0] : data.soap_notes;
+  const assessments = Array.isArray(data.assessment_results)
+    ? data.assessment_results
+    : [];
+  const appointment = Array.isArray(data.appointment_requests)
+    ? data.appointment_requests[0]
+    : data.appointment_requests;
+
+  return {
+    id: data.id,
+    patient_id: data.patient_id,
+    status: data.status,
+    chief_complaint: data.chief_complaint,
+    submitted_at: data.submitted_at,
+    created_at: data.created_at,
+    patient: {
+      first_name: patient?.first_name ?? "",
+      last_name: patient?.last_name ?? "",
+      email: patient?.email ?? null,
+    },
+    soap_notes: soap
+      ? {
+          subjective: soap.subjective,
+          objective: soap.objective,
+          assessment: soap.assessment,
+          plan: soap.plan,
+          review_status: soap.review_status,
+        }
+      : null,
+    assessment_results: assessments.sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)),
+    appointment_request: appointment
+      ? {
+          preferred_day: appointment.preferred_day,
+          preferred_time: appointment.preferred_time,
+          notes: appointment.notes ?? "",
+          status: appointment.status,
+        }
+      : null,
+  } satisfies EncounterListItem;
 }
 
 export async function persistEncounterPipeline(args: {

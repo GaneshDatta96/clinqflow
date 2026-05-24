@@ -1,20 +1,14 @@
-import { z } from "zod";
 import { scorePatterns } from "@/lib/assessment/score-patterns";
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
-import { notFound } from "@/lib/api/errors";
+import { badRequest, notFound } from "@/lib/api/errors";
 import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
-import { normalizedIntakeSchema } from "@/lib/schemas/intake";
-import { requirePermission } from "@/lib/tenancy/context";
-
-const bodySchema = z.object({
-  normalized_intake: normalizedIntakeSchema,
-});
+import { getEncounterIntakeSubmission } from "@/lib/db/repositories/intake";
+import { logPhiAccessIfPlatformStaff, requirePermission } from "@/lib/tenancy/context";
 
 export const POST = createApiHandler({
   route: "/api/encounters/[id]/assess",
   step: "assessment",
-  schema: bodySchema,
-  handler: async ({ body, request }) => {
+  handler: async ({ request }) => {
     const id = request.url.split("/encounters/")[1]?.split("/")[0];
     if (!id) throw notFound();
 
@@ -23,7 +17,20 @@ export const POST = createApiHandler({
 
     if (!encounter) throw notFound();
 
-    const assessmentResults = scorePatterns(body.normalized_intake);
+    const intake = await getEncounterIntakeSubmission(supabase, context.tenantId, id);
+    if (!intake) {
+      throw badRequest("No intake submission found for this encounter.");
+    }
+
+    await logPhiAccessIfPlatformStaff({
+      supabase,
+      context,
+      action: "phi.encounter.assess",
+      resourceType: "encounter",
+      resourceId: id,
+    });
+
+    const assessmentResults = scorePatterns(intake);
 
     await supabase.from("assessment_results").delete().eq("encounter_id", id);
     await supabase.from("assessment_results").insert(

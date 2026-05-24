@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Building2, ExternalLink, LoaderCircle } from "lucide-react";
+import { useSessionRole } from "@/lib/query/hooks";
 
 type TenantRow = {
   id: string;
@@ -14,6 +15,8 @@ type TenantRow = {
 };
 
 export default function PlatformAdminPage() {
+  const { data: sessionRole } = useSessionRole();
+  const isGodMode = sessionRole?.isPlatformAdmin ?? false;
   const [tenants, setTenants] = useState<TenantRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -85,12 +88,22 @@ export default function PlatformAdminPage() {
           Open workspace
           <ExternalLink className="h-4 w-4" />
         </Link>
-        <Link
-          href="/app/admin/audit"
-          className="rounded-full border border-[color:var(--line)] px-4 py-2 text-sm font-semibold"
-        >
-          Audit log
-        </Link>
+        {isGodMode && (
+          <>
+            <Link
+              href="/app/admin/audit"
+              className="rounded-full border border-[color:var(--line)] px-4 py-2 text-sm font-semibold"
+            >
+              Audit log
+            </Link>
+            <Link
+              href="/app/admin/analytics"
+              className="rounded-full border border-[color:var(--line)] px-4 py-2 text-sm font-semibold"
+            >
+              Analytics
+            </Link>
+          </>
+        )}
       </div>
 
       {message && (

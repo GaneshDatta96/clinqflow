@@ -1,13 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-function isPlatformAdminEmail(email: string | undefined) {
+function isPlatformStaffEmail(email: string | undefined) {
   if (!email) return false;
-  const allowed = (process.env.PLATFORM_ADMIN_EMAILS ?? "")
+  const normalized = email.trim().toLowerCase();
+  const adminEmails = (process.env.PLATFORM_ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
-  return allowed.includes(email.trim().toLowerCase());
+  const supportEmails = (process.env.PLATFORM_SUPPORT_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return adminEmails.includes(normalized) || supportEmails.includes(normalized);
 }
 
 const PUBLIC_PATHS = [
@@ -20,8 +25,13 @@ const PUBLIC_PATHS = [
   "/invite",
   "/api/health",
   "/api/webhooks",
+  "/api/cron",
   "/intake",
   "/questionnaire",
+  "/privacy",
+  "/terms",
+  "/terms-of-use",
+  "/cancellation",
 ];
 
 const AUTH_PATHS = ["/login", "/signup", "/forgot-password"];
@@ -30,12 +40,9 @@ function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return true;
   }
-  // Public clinic intake: /c/[slug] or legacy /[slug] with token
-  if (pathname.startsWith("/c/") || pathname.startsWith("/api/intake/public")) return true;
-  if (/^\/[^/]+$/.test(pathname) && !pathname.startsWith("/app")) {
+  if (pathname.startsWith("/c/") || pathname.startsWith("/api/intake/public")) {
     return true;
   }
-  if (pathname.startsWith("/api/intake/public")) return true;
   return false;
 }
 
@@ -58,6 +65,12 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (pathname.startsWith("/api/") && !isPublicPath(pathname)) {
+      return NextResponse.json(
+        { error: "Service unavailable", code: "auth_not_configured" },
+        { status: 503 },
+      );
+    }
     if (isAppPath(pathname) && !pathname.startsWith("/app/onboarding")) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
@@ -90,13 +103,13 @@ export async function middleware(request: NextRequest) {
 
   if (user && AUTH_PATHS.includes(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = isPlatformAdminEmail(user.email)
+    url.pathname = isPlatformStaffEmail(user.email)
       ? "/app/admin"
       : "/app/dashboard";
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname === "/onboarding" && isPlatformAdminEmail(user.email)) {
+  if (user && pathname === "/onboarding" && isPlatformStaffEmail(user.email)) {
     const url = request.nextUrl.clone();
     url.pathname = "/app/admin";
     return NextResponse.redirect(url);

@@ -12,6 +12,18 @@ const serverSchema = z.object({
   INTAKE_TOKEN_SECRET: z.string().min(32).optional(),
   APP_URL: z.string().url().optional(),
   PLATFORM_ADMIN_EMAILS: z.string().optional(),
+  PLATFORM_SUPPORT_EMAILS: z.string().optional(),
+  EMAIL_PROVIDER: z.enum(["resend", "sendgrid"]).optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  SENDGRID_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().email().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  CRON_SECRET: z.string().min(16).optional(),
+  SENTRY_DSN: z.string().url().optional(),
+  AI_PHI_MODE: z.enum(["restricted", "full"]).optional(),
+  AI_BAA_VENDOR: z.string().min(1).optional(),
+  AUDIT_RETENTION_DAYS: z.string().optional(),
 });
 
 function getSupabaseUrl() {
@@ -30,15 +42,33 @@ export const env = {
   openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? null,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? null,
-  intakeTokenSecret:
-    process.env.INTAKE_TOKEN_SECRET ??
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 32) ??
-    "dev-only-change-me-in-production-32chars",
+  get intakeTokenSecret() {
+    return resolveIntakeTokenSecret();
+  },
   appUrl: process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   platformAdminEmails: (process.env.PLATFORM_ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
+  platformSupportEmails: (process.env.PLATFORM_SUPPORT_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+  emailProvider: (process.env.EMAIL_PROVIDER ?? "resend") as "resend" | "sendgrid",
+  resendApiKey: process.env.RESEND_API_KEY ?? null,
+  sendgridApiKey: process.env.SENDGRID_API_KEY ?? null,
+  emailFrom: process.env.EMAIL_FROM ?? "Cliniqflow <onboarding@resend.dev>",
+  cronSecret: process.env.CRON_SECRET ?? null,
+  sentryDsn: process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN ?? null,
+  aiPhiMode: (process.env.AI_PHI_MODE ?? "restricted") as "restricted" | "full",
+  aiBaaVendor: process.env.AI_BAA_VENDOR ?? null,
+  auditRetentionDays: Number.parseInt(process.env.AUDIT_RETENTION_DAYS ?? "2190", 10),
+  get emailEnabled() {
+    if (this.emailProvider === "sendgrid") {
+      return Boolean(this.sendgridApiKey);
+    }
+    return Boolean(this.resendApiKey);
+  },
 };
 
 export function validateServerEnv() {
@@ -53,6 +83,8 @@ export function validateServerEnv() {
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     INTAKE_TOKEN_SECRET: process.env.INTAKE_TOKEN_SECRET,
     APP_URL: process.env.APP_URL,
+    AI_PHI_MODE: process.env.AI_PHI_MODE,
+    AI_BAA_VENDOR: process.env.AI_BAA_VENDOR,
   });
 }
 
@@ -62,4 +94,80 @@ export function isSupabaseConfigured() {
 
 export function isAuthConfigured() {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
+}
+
+export function isUpstashConfigured() {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
+  );
+}
+
+export function isAiPhiRestricted() {
+  return env.aiPhiMode !== "full";
+}
+
+/** Production OpenRouter calls require a documented BAA vendor. */
+export function isAiVendorBaaConfigured() {
+  return Boolean(env.aiBaaVendor);
+}
+
+export function canUseOpenRouterInProduction() {
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+
+  return isAiPhiRestricted() && isAiVendorBaaConfigured();
+}
+
+function resolveIntakeTokenSecret() {
+  const secret = process.env.INTAKE_TOKEN_SECRET;
+
+  if (secret && secret.length >= 32) {
+    return secret;
+  }
+
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE === "phase-production-build") {
+    return "build-time-placeholder-secret-32chars-min";
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "INTAKE_TOKEN_SECRET must be set to at least 32 characters in production.",
+    );
+  }
+
+  return (
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 32) ??
+    "dev-only-change-me-in-production-32chars"
+  );
+}
+
+export function assertProductionEnv() {
+  if (process.env.NODE_ENV !== "production") return;
+
+  const required = [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "INTAKE_TOKEN_SECRET",
+    "UPSTASH_REDIS_REST_URL",
+    "UPSTASH_REDIS_REST_TOKEN",
+    "CRON_SECRET",
+  ] as const;
+
+  for (const key of required) {
+    if (!process.env[key]) {
+      throw new Error(`Missing required environment variable: ${key}`);
+    }
+  }
+
+  if ((process.env.CRON_SECRET?.length ?? 0) < 32) {
+    throw new Error("CRON_SECRET must be at least 32 characters in production.");
+  }
+
+  if (process.env.AI_PHI_MODE === "full" && !process.env.AI_BAA_VENDOR) {
+    throw new Error(
+      "AI_PHI_MODE=full requires AI_BAA_VENDOR in production (OpenRouter has no BAA).",
+    );
+  }
 }

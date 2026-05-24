@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { HomepageLanding } from "@/components/home/homepage-landing";
+import { BRAND } from "@/lib/brand/site";
 
 export const metadata: Metadata = {
-  title: "Custom Patient Intake Workflow Demo",
-  description:
-    "Create a patient, generate a unique patient link, collect intake responses, and review structured SOAP-ready data in a custom clinic workflow demo.",
+  title: `${BRAND.nameDisplay} — ${BRAND.tagline}`,
+  description: BRAND.positioning,
 };
 
 export default function Home() {

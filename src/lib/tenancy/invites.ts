@@ -61,6 +61,27 @@ export async function createTenantInvite(args: {
     metadata: { email, role: args.role },
   });
 
+  const { sendInviteEmail } = await import("@/lib/email/send-invite");
+  let inviterEmail: string | undefined;
+  const { data: inviterProfile } = await admin
+    .from("profiles")
+    .select("email")
+    .eq("id", args.invitedBy)
+    .maybeSingle();
+  inviterEmail = inviterProfile?.email ?? undefined;
+
+  try {
+    await sendInviteEmail({
+      tenantId: args.tenantId,
+      email,
+      role: args.role,
+      acceptUrl,
+      inviterEmail,
+    });
+  } catch (emailError) {
+    console.error("[invite] email failed", emailError);
+  }
+
   return { invite: data, acceptUrl, rawToken };
 }
 

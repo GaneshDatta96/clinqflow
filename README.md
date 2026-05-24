@@ -12,4 +12,3 @@ Multi-tenant SaaS for outpatient wellness clinics: pre-visit intake, rule-based 
 ## Deploy on Vercel
 
 Use **Framework Preset: Next.js** and leave **Output Directory** empty (do not use `dist` or `build`). See [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md) for full settings and environment variables.
-

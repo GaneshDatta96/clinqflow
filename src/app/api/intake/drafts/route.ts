@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
-import { badRequest } from "@/lib/api/errors";
+import { badRequest, forbidden } from "@/lib/api/errors";
+import { assertPatientInTenantClinic } from "@/lib/db/repositories/intake";
 import { requirePermission } from "@/lib/tenancy/context";
 
 const saveSchema = z.object({
@@ -23,6 +24,17 @@ export const GET = createApiHandler({
       throw badRequest("patient_id and clinic_id are required.");
     }
 
+    const allowed = await assertPatientInTenantClinic({
+      supabase,
+      tenantId: context.tenantId,
+      patientId,
+      clinicId,
+    });
+
+    if (!allowed) {
+      throw forbidden("Patient not found in this clinic.");
+    }
+
     const { data } = await supabase
       .from("intake_drafts")
       .select("step_index, answers_json, updated_at")
@@ -41,6 +53,17 @@ export const PUT = createApiHandler({
   schema: saveSchema,
   handler: async ({ body }) => {
     const { supabase, context } = await requirePermission("encounter:write");
+
+    const allowed = await assertPatientInTenantClinic({
+      supabase,
+      tenantId: context.tenantId,
+      patientId: body.patient_id,
+      clinicId: body.clinic_id,
+    });
+
+    if (!allowed) {
+      throw forbidden("Patient not found in this clinic.");
+    }
 
     const { data, error } = await supabase
       .from("intake_drafts")

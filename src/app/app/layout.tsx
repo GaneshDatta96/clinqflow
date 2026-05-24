@@ -4,27 +4,31 @@ import {
   LayoutDashboard,
   Settings,
   Users,
-  Building2,
   CreditCard,
   Shield,
 } from "lucide-react";
 import {
+  listUserTenants,
   requirePlatformAdminContext,
   tryGetTenantContext,
 } from "@/lib/tenancy/context";
+import { getActiveTenantIdFromCookies } from "@/lib/tenancy/active-tenant";
+import { TenantSwitcher } from "@/components/settings/tenant-switcher";
 import { hasPermission } from "@/lib/tenancy/permissions";
 import { getActingTenantIdFromCookies } from "@/lib/tenancy/acting-tenant";
+import { getWorkspaceNav } from "@/lib/tenancy/role-routing";
 import type { TenantContext } from "@/lib/tenancy/types";
 import { isAuthConfigured } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
-const nav = [
-  { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/patients", label: "Patients", icon: Users },
-  { href: "/app/settings", label: "Settings", icon: Settings },
-  { href: "/app/billing", label: "Billing", icon: CreditCard, permission: "tenant:billing" as const },
-];
+const NAV_ICONS: Record<string, typeof LayoutDashboard> = {
+  "/app/dashboard": LayoutDashboard,
+  "/app/patients": Users,
+  "/app/settings": Settings,
+  "/app/billing": CreditCard,
+  "/app/admin": Shield,
+};
 
 export default async function AppLayout({
   children,
@@ -43,7 +47,7 @@ export default async function AppLayout({
   }
 
   let context: TenantContext;
-  let platformAdminOnly = false;
+  let platformStaffOnly = false;
 
   const tenantResult = await tryGetTenantContext();
 
@@ -51,31 +55,47 @@ export default async function AppLayout({
     context = tenantResult.context;
   } else {
     try {
-      const adminResult = await requirePlatformAdminContext();
-      context = adminResult.context;
-      platformAdminOnly = true;
+      const staffResult = await requirePlatformAdminContext();
+      context = staffResult.context;
+      platformStaffOnly = true;
     } catch {
       redirect("/login");
     }
   }
 
   const actingTenantId = await getActingTenantIdFromCookies();
+  const activeTenantId =
+    (await getActiveTenantIdFromCookies()) ?? context.tenantId;
+  const tenantOptions =
+    !platformStaffOnly && context.userId
+      ? await listUserTenants(context.userId)
+      : [];
+
+  const navItems = getWorkspaceNav({
+    role: context.role,
+    isPlatformAdmin: context.isPlatformAdmin ?? false,
+    isPlatformSupport: context.isPlatformSupport ?? false,
+    platformStaffOnly,
+    actingTenantId,
+  });
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col pt-20">
-      {context.isPlatformAdmin && (
+      {(context.isPlatformAdmin || context.isPlatformSupport) && (
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950 lg:px-8">
           <span className="inline-flex items-center gap-2 font-semibold">
             <Shield className="h-4 w-4" />
-            Platform Admin
+            {context.isPlatformAdmin
+              ? "God mode · Platform Admin"
+              : "Cliniqflow Customer Support"}
           </span>
           {actingTenantId ? (
             <>
-              {" · "}Supporting tenant{" "}
+              {" · "}Supporting clinic{" "}
               <code className="rounded bg-amber-100 px-1 text-xs">{actingTenantId}</code>
             </>
           ) : (
-            <> · Select an organization to use the workspace</>
+            <> · Select a clinic organization in the support console</>
           )}
           {" · "}
           <Link href="/app/admin" className="font-semibold underline">
@@ -87,41 +107,50 @@ export default async function AppLayout({
       <div className="flex flex-1">
         <aside className="hidden w-64 shrink-0 border-r border-[color:var(--line)] bg-white/80 p-4 lg:block">
           <p className="section-label">Workspace</p>
-          <p className="mt-1 text-sm font-semibold">
-            {platformAdminOnly && !actingTenantId
-              ? "No org selected"
-              : context.tenantName}
-          </p>
-          <nav className="mt-6 space-y-1">
-            {context.isPlatformAdmin && (
-              <Link
-                href="/app/admin"
-                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-amber-900 bg-amber-50"
-              >
-                <Shield className="h-4 w-4" />
-                Platform Admin
-              </Link>
+          <div className="mt-2 space-y-2">
+            <p className="text-sm font-semibold">
+              {platformStaffOnly && !actingTenantId
+                ? "No org selected"
+                : context.tenantName}
+            </p>
+            {tenantOptions.length > 1 && (
+              <TenantSwitcher
+                tenants={tenantOptions.map((t) => ({
+                  tenantId: t.tenantId,
+                  tenantName: t.tenantName,
+                  role: t.role,
+                }))}
+                activeTenantId={activeTenantId}
+              />
             )}
-            {(!platformAdminOnly || actingTenantId) &&
-              nav.map((item) => {
-                if (
-                  item.permission &&
-                  !context.isPlatformAdmin &&
-                  !hasPermission(context.role, item.permission)
-                ) {
-                  return null;
-                }
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-[color:var(--muted-strong)] transition hover:bg-[color:var(--surface-strong)]"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+          </div>
+          <nav className="mt-6 space-y-1">
+            {navItems.map((item) => {
+              if (
+                item.permission &&
+                !context.isPlatformAdmin &&
+                !context.isPlatformSupport &&
+                !hasPermission(context.role, item.permission)
+              ) {
+                return null;
+              }
+              const Icon = NAV_ICONS[item.href] ?? LayoutDashboard;
+              const isAdmin = item.href === "/app/admin";
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition hover:bg-[color:var(--surface-strong)] ${
+                    isAdmin
+                      ? "bg-amber-50 text-amber-900"
+                      : "text-[color:var(--muted-strong)]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </aside>
         <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</div>

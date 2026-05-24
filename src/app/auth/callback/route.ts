@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/app/dashboard";
+  const { sanitizeAuthRedirect } = await import("@/lib/auth/safe-redirect");
+  const next = sanitizeAuthRedirect(searchParams.get("next"));
 
   if (code) {
     const cookieStore = await cookies();
@@ -34,14 +35,9 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        const { syncPlatformAdminProfile, isEmailConfiguredAsPlatformAdmin } =
-          await import("@/lib/tenancy/platform-admin");
-
-        await syncPlatformAdminProfile(user);
-
-        if (isEmailConfiguredAsPlatformAdmin(user.email)) {
-          return NextResponse.redirect(`${origin}/app/admin`);
-        }
+        const { resolveAuthRedirect } = await import("@/lib/auth/post-login");
+        const path = await resolveAuthRedirect(supabase, user);
+        return NextResponse.redirect(`${origin}${path}`);
       }
 
       return NextResponse.redirect(`${origin}${next}`);

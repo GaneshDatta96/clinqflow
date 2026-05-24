@@ -5,6 +5,7 @@ const ROLE_RANK: Record<TenantRole, number> = {
   admin: 80,
   practitioner: 60,
   staff: 40,
+  support: 35,
   viewer: 10,
 };
 

@@ -11,7 +11,22 @@ export default function SignupPage() {
       <div className="mt-8">
         <AuthForm mode="signup" />
       </div>
-      <p className="mt-6 text-center text-sm text-[color:var(--muted)]">
+      <p className="mt-6 text-center text-xs leading-6 text-[color:var(--muted)]">
+        By creating an account, you agree to our{" "}
+        <Link href="/terms" className="font-semibold text-[color:var(--accent)]">
+          Terms of Service
+        </Link>
+        ,{" "}
+        <Link href="/terms-of-use" className="font-semibold text-[color:var(--accent)]">
+          Terms of Use
+        </Link>
+        , and{" "}
+        <Link href="/privacy" className="font-semibold text-[color:var(--accent)]">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+      <p className="mt-4 text-center text-sm text-[color:var(--muted)]">
         Already have an account?{" "}
         <Link href="/login" className="font-semibold text-[color:var(--accent)]">
           Sign in

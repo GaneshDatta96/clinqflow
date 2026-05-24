@@ -1,20 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #111827;
+  --background: #faf9f7;
+  --foreground: #0f172a;
+  --charcoal: #1e293b;
   --primary: #1e3a5f;
-  --surface: rgba(255, 255, 255, 0.78);
-  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface: #ffffff;
+  --surface-muted: #f4f3f0;
   --surface-raised: #ffffff;
   --muted: #64748b;
   --muted-strong: #475569;
-  --line: rgba(30, 58, 95, 0.1);
-  --line-strong: rgba(30, 58, 95, 0.16);
+  --line: rgba(15, 23, 42, 0.08);
+  --line-strong: rgba(15, 23, 42, 0.14);
   --accent: #3ba99c;
   --accent-soft: #7dd3fc;
   --danger: #b45309;
-  --shadow: 0 20px 60px rgba(30, 58, 95, 0.08);
+  --shadow: 0 1px 0 rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+  --gradient-start: #7c3aed;
+  --gradient-mid: #ec4899;
+  --gradient-end: #f97316;
 }
 
 @theme inline {
@@ -22,7 +26,7 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-accent: var(--accent);
-  --font-display: var(--font-inter);
+  --font-display: var(--font-source-serif);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-ibm-plex-mono);
 }
@@ -37,36 +41,13 @@ html {
 
 body {
   min-height: 100vh;
-  background: transparent;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(15px, 0.3vw + 14px, 16px);
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.65;
   letter-spacing: -0.011em;
-  position: relative;
-  isolation: isolate;
   text-rendering: optimizeLegibility;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.55;
-  background:
-    radial-gradient(circle at 10% 12%, rgba(59, 169, 156, 0.07), transparent 0 28%),
-    radial-gradient(circle at 88% 8%, rgba(125, 211, 252, 0.08), transparent 0 22%),
-    radial-gradient(circle at 72% 88%, rgba(30, 58, 95, 0.04), transparent 0 30%);
 }
 
 a {
@@ -93,32 +74,89 @@ summary::-webkit-details-marker {
 }
 
 ::selection {
-  background: rgba(59, 169, 156, 0.18);
+  background: rgba(30, 58, 95, 0.12);
+}
+
+.display-font {
+  font-family: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+
+.section-label {
+  color: var(--muted);
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.surface-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  padding: 0.875rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.btn-primary:hover {
+  background: #163049;
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.15);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-raised);
+  padding: 0.875rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary);
+  background: var(--surface-muted);
+}
+
+.gradient-accent-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gradient-start) 20%,
+    var(--gradient-mid) 50%,
+    var(--gradient-end) 80%,
+    transparent
+  );
+  opacity: 0.45;
 }
 
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
 }
 
-.section-label {
-  color: var(--muted);
-  font-family: var(--font-ibm-plex-mono), monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.card-grid {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.display-font {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  letter-spacing: -0.025em;
+.glass-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
 }
 
 .legal-prose h2 {
@@ -158,26 +196,9 @@ summary::-webkit-details-marker {
   font-weight: 600;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.ambient-shadow {
-  box-shadow: 0 18px 48px -12px rgba(30, 58, 95, 0.12);
-}
-
-.ambient-shadow-hover {
-  transition:
-    transform 220ms ease,
-    box-shadow 220ms ease,
-    border-color 220ms ease;
-}
-
-.ambient-shadow-hover:hover {
-  box-shadow: 0 24px 56px -12px rgba(30, 58, 95, 0.16);
-  transform: translateY(-2px);
+.card-grid {
+  display: grid;
+  gap: 1.25rem;
 }
 
 @media (min-width: 960px) {

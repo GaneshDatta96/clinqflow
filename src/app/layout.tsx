@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { sourceSerif } from "@/lib/fonts/display";
 import { AppProviders } from "@/components/providers/app-providers";
 import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
@@ -30,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} ${sourceSerif.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col text-[15px] text-[color:var(--foreground)]">
         <AppProviders>
           <GlobalHeader />

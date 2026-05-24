@@ -1,12 +1,12 @@
 export const BRAND = {
   name: "CliniqFlow",
   nameDisplay: "Cliniqflow",
-  tagline: "Structured intake. Smarter documentation.",
+  tagline: "Clinical intake & documentation workflows",
   bigIdea: "Give practitioners their energy back.",
   positioning:
-    "AI-assisted intake and documentation workflows for modern outpatient clinics.",
+    "A calm operating layer for structured intake, organized patient context, and practitioner-review-first documentation.",
   narrative:
-    "Healthcare professionals spend enormous amounts of mental energy collecting fragmented patient information before they can begin meaningful care. CliniqFlow helps clinics structure intake, organize patient context, and streamline documentation workflows — allowing practitioners to spend less energy on repetitive discovery and more attention on patients.",
+    "Healthcare professionals spend enormous mental energy collecting fragmented patient information before they can begin meaningful care. CliniqFlow structures intake, organizes context, and streamlines documentation — so practitioners arrive at each visit with clarity instead of chaos.",
   demoUrl: "https://cal.com/ganesh-datta-bygktk/sales-throughput-session",
   colors: {
     primary: "#1E3A5F",
@@ -38,12 +38,12 @@ export const BRAND = {
     },
   ],
   hero: {
-    headline: "AI-Powered Patient Intake & SOAP Documentation",
+    headline: "Clinic workflows, finally calm and organized.",
     subheadline:
-      "Structured intake workflows that help clinics reduce repetitive discovery, improve patient communication, and streamline documentation.",
+      "Structured pre-visit intake, organized patient context, and practitioner-review-first documentation — built for outpatient practices that need operational depth, not another AI wrapper.",
     emotional:
-      "Designed to reduce practitioner fatigue and improve pre-visit preparedness.",
+      "Reduce cognitive load before the appointment even starts.",
     functional:
-      "Collect structured intake responses and generate practitioner-review-first SOAP drafts.",
+      "Intake links, structured summaries, and SOAP drafts in one workflow your team can trust.",
   },
 } as const;

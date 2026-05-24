@@ -97,9 +97,22 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: Awaited<
+    ReturnType<typeof supabase.auth.getUser>
+  >["data"]["user"] = null;
+
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    if (pathname.startsWith("/api/") && !isPublicPath(pathname)) {
+      return NextResponse.json(
+        { error: "Service unavailable", code: "auth_unavailable" },
+        { status: 503 },
+      );
+    }
+    return response;
+  }
 
   if (user && AUTH_PATHS.includes(pathname)) {
     const url = request.nextUrl.clone();

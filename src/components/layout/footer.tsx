@@ -13,10 +13,10 @@ const footerLinks = [
 
 export function GlobalFooter() {
   return (
-    <footer className="w-full border-t border-[color:var(--line)]/60 bg-white/80 px-6 py-16 xl:px-10">
-      <div className="mx-auto flex max-w-7xl flex-col gap-10">
+    <footer className="w-full border-t border-[color:var(--line)] bg-[color:var(--surface-muted)]/40 px-6 py-14 lg:px-10">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-10">
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-          <div className="flex flex-col items-center gap-3 md:items-start">
+          <div className="flex flex-col items-start gap-3">
             <BrandLogo />
             <p className="max-w-sm text-sm font-medium leading-6 text-[color:var(--foreground)]">
               {BRAND.tagline}
@@ -26,8 +26,8 @@ export function GlobalFooter() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-5 md:items-end">
-            <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-col items-start gap-5 md:items-end">
+            <div className="flex flex-wrap gap-3">
               {footerLinks.map((link) =>
                 link.external ? (
                   <a
@@ -53,7 +53,7 @@ export function GlobalFooter() {
                 href={BRAND.demoUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                className="btn-primary !px-4 !py-2.5 !text-sm"
               >
                 Book demo
                 <ArrowUpRight className="h-4 w-4" />

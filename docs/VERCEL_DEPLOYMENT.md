@@ -47,6 +47,10 @@ If you still see prerender errors, check the log for:
 - `window` / `localStorage` in Server Components
 - Missing env vars causing thrown errors in `generateMetadata` or static pages
 
+## Cron jobs (Hobby plan)
+
+Vercel **Hobby** only allows cron schedules that run **once per day**. Do not use `*/5 * * * *` in `vercel.json` — deploys will fail with `deploy_failed`. This repo uses daily schedules (`0 3 * * *`, `0 4 * * *`). Upgrade to **Pro** if you need sub-daily crons.
+
 ## After deploy
 
 - Homepage: `/`

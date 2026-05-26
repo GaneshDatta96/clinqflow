@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf9f7;
-  --foreground: #0f172a;
-  --charcoal: #1e293b;
-  --primary: #1e3a5f;
+  --background: #fafaf7;
+  --foreground: #0b1020;
+  --charcoal: #1f2937;
+  --primary: #0b1020;
   --surface: #ffffff;
-  --surface-muted: #f4f3f0;
+  --surface-muted: #f3f1eb;
   --surface-raised: #ffffff;
-  --muted: #64748b;
-  --muted-strong: #475569;
-  --line: rgba(15, 23, 42, 0.08);
-  --line-strong: rgba(15, 23, 42, 0.14);
-  --accent: #3ba99c;
-  --accent-soft: #7dd3fc;
+  --muted: #6b7280;
+  --muted-strong: #374151;
+  --line: rgba(11, 16, 32, 0.08);
+  --line-strong: rgba(11, 16, 32, 0.14);
+  --accent: #7c3aed;
+  --accent-soft: #e5e7eb;
   --danger: #b45309;
-  --shadow: 0 1px 0 rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+  --shadow: 0 1px 0 rgba(11, 16, 32, 0.03), 0 18px 48px rgba(11, 16, 32, 0.08);
   --gradient-start: #7c3aed;
   --gradient-mid: #ec4899;
   --gradient-end: #f97316;
@@ -73,8 +73,12 @@ summary::-webkit-details-marker {
   display: none;
 }
 
+nextjs-portal {
+  display: none !important;
+}
+
 ::selection {
-  background: rgba(30, 58, 95, 0.12);
+  background: rgba(124, 58, 237, 0.12);
 }
 
 .display-font {
@@ -102,37 +106,40 @@ summary::-webkit-details-marker {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(11, 16, 32, 0.08);
   background: var(--primary);
   padding: 0.875rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: white;
-  transition: background 180ms ease, box-shadow 180ms ease;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .btn-primary:hover {
-  background: #163049;
-  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.15);
+  background: #151d31;
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.14), 0 14px 28px rgba(11, 16, 32, 0.12);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--line-strong);
   background: var(--surface-raised);
   padding: 0.875rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
-  transition: border-color 180ms ease, background 180ms ease;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
 .btn-secondary:hover {
-  border-color: var(--primary);
-  background: var(--surface-muted);
+  border-color: rgba(124, 58, 237, 0.2);
+  background: rgba(124, 58, 237, 0.03);
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.06);
 }
 
 .gradient-accent-line {

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { ArrowUpRight, LayoutDashboard, Settings, Users } from "lucide-react";
 import clsx from "clsx";
 import { BrandLogo } from "@/components/brand/logo";
-import { BRAND } from "@/lib/brand/site";
 
 const appNavigation = [
   { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -14,10 +13,10 @@ const appNavigation = [
 ];
 
 const marketingNavigation = [
-  { name: "Platform", href: "#features" },
-  { name: "Workflow", href: "#how-it-works" },
-  { name: "Solutions", href: "#solutions" },
-  { name: "Pricing", href: "#pricing" },
+  { name: "Product", href: "#product" },
+  { name: "Workflow", href: "#workflow" },
+  { name: "Why it helps", href: "#why-cliniqflow" },
+  { name: "FAQ", href: "#faq" },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -28,9 +27,13 @@ export function GlobalHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
+  if (pathname.startsWith("/proof")) {
+    return null;
+  }
+
   return (
     <header className="fixed left-0 top-0 z-[100] w-full border-b border-[color:var(--line)] bg-[color:var(--background)]/92 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3 lg:px-10">
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-6 py-3 lg:px-10">
         <BrandLogo />
 
         {isHome ? (
@@ -47,15 +50,13 @@ export function GlobalHeader() {
               ))}
             </nav>
 
-            <a
-              href={BRAND.demoUrl}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              href="/#product"
               className="btn-primary !px-4 !py-2.5 !text-sm"
             >
-              Book demo
+              View product demo
               <ArrowUpRight className="h-4 w-4" />
-            </a>
+            </Link>
           </>
         ) : (
           <nav className="flex flex-wrap items-center justify-end gap-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-1">

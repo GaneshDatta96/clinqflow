@@ -1,163 +1,59 @@
-"use client";
-
+import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  ArrowUpRight,
-  BadgeCheck,
-  Building2,
-  ClipboardList,
-  FileText,
-  Layers,
-  ShieldCheck,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import { nicheConfigs } from "@/lib/clinics/niche-configs";
 import { BRAND } from "@/lib/brand/site";
 import { GradientRule, PetalAccent } from "@/components/home/petal-accent";
-import {
-  EncounterRowPreview,
-  HeroWorkflowPreview,
-  IntakeLinkPreview,
-  SoapDraftPreview,
-  WorkflowMetricsStrip,
-} from "@/components/home/workflow-previews";
+import { proofCases, proofEncounter } from "@/lib/marketing/proof-data";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
-
-const problems = [
-  {
-    title: "Unstructured patient intake",
-    description:
-      "Fragmented forms, emails, and phone notes make it hard to prepare before appointments.",
-  },
-  {
-    title: "Administrative overload",
-    description:
-      "Staff chase details instead of focusing on patient experience and clinic operations.",
-  },
-  {
-    title: "Repetitive documentation",
-    description:
-      "Turning intake answers into structured SOAP notes consumes practitioner time every visit.",
-  },
-  {
-    title: "Inconsistent workflows",
-    description:
-      "Every specialty needs different intake logic — but most tools force one generic template.",
-  },
+const heroPoints = [
+  "Save ~5.2 minutes of physician discovery time",
+  "Reduce repetitive intake conversations",
+  "Help patients communicate more openly",
+  "Practitioner-review-first AI drafting",
 ];
 
-const howItWorks = [
+const workflowMoments = [
   {
     step: "01",
-    title: "Configure intake for your clinic",
+    title: "Structured patient context arrives before the room conversation starts.",
     description:
-      "Generate secure intake links with specialty-specific questionnaires and workflow rules.",
-    preview: "intake" as const,
+      "Signed intake links and specialty-specific questionnaires move repetitive discovery out of the appointment and into a calmer pre-visit workflow.",
   },
   {
     step: "02",
-    title: "Patients complete structured intake",
+    title: "Operational signals become visible instead of buried in messages and memory.",
     description:
-      "Guided pre-visit questionnaires organize complaints, history, lifestyle, and goals before the visit.",
-    preview: "encounters" as const,
+      "Teams can see who has completed intake, which encounters are ready for review, and where the practitioner needs to step in next.",
   },
   {
     step: "03",
-    title: "Review organized context & SOAP drafts",
+    title: "Documentation begins with structure, then stays under practitioner control.",
     description:
-      "Practitioners receive structured summaries and review-first documentation drafts — never auto-finalized.",
-    preview: "soap" as const,
+      "SOAP drafts, evidence, and data gaps are prepared in the workflow, but approval remains firmly with the clinician.",
   },
 ];
 
-const features = [
+const calmOutcomes = [
   {
-    title: "Configurable intake workflows",
-    description: "Dynamic questionnaires and multi-step flows tailored to your specialty.",
-    icon: ClipboardList,
+    title: "Practitioner energy",
+    description:
+      "Less repeated history gathering means more attention can stay with the patient instead of the intake choreography.",
   },
   {
-    title: "Practitioner dashboard",
-    description: "Encounter queue, intake review, and workflow tracking in one operational view.",
-    icon: Stethoscope,
+    title: "Patient communication",
+    description:
+      "Patients often share more openly when the first pass happens in a structured, lower-pressure format before the visit.",
   },
   {
-    title: "SOAP drafting with review gates",
-    description: "Structured drafts from intake data — edit, approve, and finalize before clinical use.",
-    icon: FileText,
+    title: "Workflow organization",
+    description:
+      "Status changes, review steps, and documentation progress live in one operating layer instead of scattered across inboxes, memory, and side notes.",
   },
   {
-    title: "Pattern scoring & evidence summaries",
-    description: "Deterministic scoring organizes patient-reported symptoms into reviewable patterns.",
-    icon: Layers,
-  },
-  {
-    title: "Multi-clinic configuration",
-    description: "Different templates and workflows across locations, specialties, and tenant workspaces.",
-    icon: Building2,
-  },
-];
-
-const idealFor = [
-  "Functional medicine clinics",
-  "Chiropractic practices",
-  "Integrative wellness clinics",
-  "Aesthetic clinics",
-  "Preventive care providers",
-  "Concierge health practices",
-];
-
-const pricingPlans = [
-  {
-    name: "Starter",
-    price: "$399",
-    period: "/month",
-    description: "For smaller practices digitizing intake workflows.",
-    features: ["Intake workflows", "Patient links", "Basic SOAP drafting", "1 clinic workspace"],
-    cta: "Start trial",
-    href: "/signup",
-    highlighted: false,
-  },
-  {
-    name: "Growth",
-    price: "$449",
-    period: "/month",
-    description: "For growing clinics needing operational efficiency.",
-    features: [
-      "Multi-user access",
-      "Advanced workflows",
-      "SOAP drafting",
-      "Pattern scoring",
-    ],
-    cta: "Start trial",
-    href: "/signup",
-    highlighted: true,
-  },
-  {
-    name: "Scale",
-    price: "Custom",
-    period: " pricing",
-    description: "For multi-location practices and advanced customization.",
-    features: [
-      "Multi-location support",
-      "Advanced customization",
-      "Dedicated onboarding",
-      "Priority support",
-    ],
-    cta: "Talk to sales",
-    href: BRAND.demoUrl,
-    highlighted: false,
-    external: true,
+    title: "Operational calmness",
+    description:
+      "The system is designed to reduce cognitive overload, not add another glowing dashboard for staff to babysit.",
   },
 ];
 
@@ -165,26 +61,48 @@ const faqs = [
   {
     question: "Is CliniqFlow an EHR?",
     answer:
-      "No. CliniqFlow is an intake and documentation workflow platform — not a full electronic health record.",
+      "No. CliniqFlow is an intake, documentation, and practitioner-support workflow layer. It is designed to organize the work before and around the visit, not replace a full EHR.",
   },
   {
-    question: "Does the system diagnose patients?",
+    question: "Does it diagnose patients or finalize notes automatically?",
     answer:
-      "No. It organizes intake and assists with documentation. Licensed practitioners remain fully responsible for clinical decisions.",
+      "No. CliniqFlow structures intake, surfaces patterns, and prepares draft documentation. Licensed practitioners remain responsible for diagnosis, interpretation, and final approval.",
   },
   {
-    question: "Can workflows be customized?",
-    answer: "Yes. Intake forms and SOAP structures can be configured per clinic type and specialty.",
+    question: "Can intake be tailored by clinic or specialty?",
+    answer:
+      "Yes. Intake flows are driven by specialty-specific configurations so clinics can collect structured context that fits their workflow instead of forcing a generic questionnaire.",
   },
   {
-    question: "Is practitioner review required?",
-    answer: "Yes. All generated documentation requires practitioner review and approval before clinical use.",
-  },
-  {
-    question: "Does CliniqFlow support multiple clinics?",
-    answer: "Yes. The platform supports multi-clinic and multi-tenant workflows.",
+    question: "What happens after a clinic signs up?",
+    answer:
+      "Teams create their workspace, complete onboarding, and begin sending signed intake links. From there, the dashboard, encounter review, and documentation workflow become the operating surface for pre-visit preparation.",
   },
 ];
+
+const encounterStatus: Record<
+  string,
+  {
+    label: string;
+    className: string;
+  }
+> = {
+  link_sent: {
+    label: "Link sent",
+    className:
+      "border-[color:rgba(249,115,22,0.18)] bg-[color:rgba(249,115,22,0.08)] text-[color:#9A3412]",
+  },
+  intake_submitted: {
+    label: "Intake submitted",
+    className:
+      "border-[color:rgba(124,58,237,0.16)] bg-[color:rgba(124,58,237,0.08)] text-[color:#5B21B6]",
+  },
+  ready_for_review: {
+    label: "Ready for review",
+    className:
+      "border-[color:rgba(11,16,32,0.12)] bg-[color:rgba(11,16,32,0.05)] text-[color:var(--foreground)]",
+  },
+};
 
 function SectionIntro({
   label,
@@ -200,330 +118,402 @@ function SectionIntro({
   return (
     <div className={`max-w-2xl ${className}`}>
       <span className="section-label">{label}</span>
-      <h2 className="display-font mt-4 text-[clamp(2rem,3.2vw,3rem)] leading-[1.08] text-[color:var(--foreground)]">
+      <h2 className="mt-4 max-w-3xl text-[clamp(2rem,8vw,3.6rem)] font-semibold leading-[0.96] tracking-[-0.045em] text-[color:var(--foreground)]">
         {title}
       </h2>
       {description ? (
-        <p className="mt-4 text-base leading-relaxed text-[color:var(--muted-strong)]">{description}</p>
+        <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-[color:var(--muted-strong)] sm:text-base">
+          {description}
+        </p>
       ) : null}
     </div>
   );
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const badge = encounterStatus[status] ?? {
+    label: status,
+    className:
+      "border-[color:var(--line)] bg-[color:var(--surface-muted)] text-[color:var(--muted-strong)]",
+  };
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[-0.01em] ${badge.className}`}>
+      {badge.label}
+    </span>
+  );
+}
+
 export function HomepageLanding() {
-  const niches = Object.entries(nicheConfigs).map(([niche, config]) => ({
-    niche,
-    label: config.label,
-  }));
+  const niches = Object.values(nicheConfigs)
+    .map((config) => config.label)
+    .slice(0, 6);
+
+  const readyForReviewCount = proofCases.filter((item) => item.status === "ready_for_review").length;
+  const completedIntakeCount = proofCases.filter((item) => item.status !== "link_sent").length;
 
   return (
     <div className="overflow-x-hidden pt-[4.5rem]">
-      {/* Hero — asymmetric, product-first */}
-      <section className="mx-auto max-w-[1200px] px-6 pb-20 pt-12 lg:px-10 lg:pt-16">
-        <div className="grid items-start gap-12 lg:grid-cols-12 lg:gap-10">
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
-            className="lg:col-span-5 lg:pt-6"
-          >
+      <section className="mx-auto max-w-[1280px] px-5 pb-20 pt-10 sm:px-6 lg:px-10 lg:pb-24 lg:pt-20">
+        <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-5 lg:pt-8">
             <div className="mb-6 flex items-center gap-3">
-              <PetalAccent className="h-8 w-8 text-[color:var(--primary)]" />
+              <PetalAccent className="h-9 w-9 text-[color:var(--primary)]" />
               <span className="section-label">{BRAND.tagline}</span>
             </div>
 
-            <h1 className="display-font text-[clamp(2.35rem,4.5vw,3.65rem)] leading-[1.04] text-[color:var(--foreground)]">
-              {BRAND.hero.headline}
+            <h1 className="max-w-[11ch] text-[clamp(2.65rem,11vw,5.75rem)] font-semibold leading-[0.92] tracking-[-0.06em] text-[color:var(--foreground)]">
+              Reduce intake chaos before the appointment even begins.
             </h1>
 
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-[color:var(--muted-strong)]">
-              {BRAND.hero.subheadline}
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-[color:var(--muted-strong)] sm:mt-7 sm:text-lg">
+              CliniqFlow helps clinics collect structured patient intake, reduce repetitive
+              discovery conversations, and streamline practitioner documentation workflows.
             </p>
 
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-[color:var(--muted)]">
-              {BRAND.hero.emotional}
-            </p>
+            <div className="mt-7 grid gap-2.5 sm:mt-8 sm:grid-cols-2 sm:gap-3">
+              {heroPoints.map((point) => (
+                <div
+                  key={point}
+                  className="flex items-start gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-4 py-3.5 text-sm leading-6 text-[color:var(--muted-strong)] sm:py-4"
+                >
+                  <BadgeCheck className="mt-1 h-4 w-4 shrink-0 text-[color:var(--accent)]" />
+                  <span>{point}</span>
+                </div>
+              ))}
+            </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href={BRAND.demoUrl} target="_blank" rel="noreferrer" className="btn-primary">
-                Book demo
+            <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
+              <a href="#product" className="btn-primary">
+                View product demo
                 <ArrowUpRight className="h-4 w-4" />
               </a>
-              <a href="#how-it-works" className="btn-secondary">
-                See the workflow
+              <a href="#workflow" className="btn-secondary">
+                See workflow
               </a>
             </div>
 
-            <div className="mt-12 hidden max-w-sm border-l-2 border-[color:var(--line-strong)] pl-5 lg:block">
-              <p className="text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                {BRAND.hero.functional}
-              </p>
-            </div>
-          </motion.div>
+            <p className="mt-5 max-w-lg text-sm leading-relaxed text-[color:var(--muted)]">
+              Built for clinics that want a calmer pre-visit operating layer, not another
+              template-like AI landing page translated into software.
+            </p>
+          </div>
 
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
-            transition={{ delay: 0.08 }}
-            className="lg:col-span-7"
-          >
-            <HeroWorkflowPreview />
-          </motion.div>
+          <div className="lg:col-span-7">
+            <div className="surface-panel overflow-hidden rounded-[2rem] border-[color:var(--line-strong)]">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[color:var(--line)] px-5 py-4 lg:px-6">
+                <div>
+                  <p className="section-label">Operational overview</p>
+                  <h2 className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[color:var(--foreground)]">
+                    Before the first appointment, the workflow is already organized.
+                  </h2>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-muted)] px-3 py-1.5 text-xs font-medium text-[color:var(--muted-strong)]">
+                  <span className="h-2 w-2 rounded-full bg-[color:var(--accent)]" />
+                  Live operational view
+                </div>
+              </div>
+
+              <div className="grid gap-px bg-[color:var(--line)] md:grid-cols-3">
+                {[
+                  { value: "~5.2 min", label: "Physician discovery time saved" },
+                  { value: `${completedIntakeCount}/${proofCases.length}`, label: "Patients with intake completed" },
+                  { value: `${readyForReviewCount}`, label: "Encounters ready for practitioner review" },
+                ].map((item) => (
+                  <div key={item.label} className="bg-[color:var(--surface-raised)] px-5 py-4 lg:px-6">
+                    <p className="text-xl font-semibold tracking-[-0.04em] text-[color:var(--foreground)]">
+                      {item.value}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[color:var(--muted)]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid lg:grid-cols-[minmax(0,1.2fr)_320px]">
+                <div className="border-b border-[color:var(--line)] lg:border-b-0 lg:border-r">
+                  <div className="relative h-[280px] bg-[color:var(--surface-muted)] sm:h-[320px] md:h-[430px]">
+                    <Image
+                      src="/screenshots/dashboard-proof.png"
+                      alt="CliniqFlow dashboard showing queue, SOAP review, and structured patient context."
+                      fill
+                      priority
+                      className="object-contain object-left-top p-3 sm:p-4 lg:object-cover lg:p-0"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid">
+                  <div className="border-b border-[color:var(--line)] px-5 py-5 lg:px-6">
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-sm font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
+                        Intake progression
+                      </p>
+                      <p className="text-xs text-[color:var(--muted)]">Sanitized sample data</p>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {proofCases.map((item) => (
+                        <div key={item.id} className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-muted)] px-4 py-4">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="text-sm font-semibold text-[color:var(--foreground)]">
+                                {item.patient.first_name} {item.patient.last_name}
+                              </p>
+                              <p className="mt-1 text-xs leading-5 text-[color:var(--muted-strong)]">
+                                {item.chief_complaint}
+                              </p>
+                            </div>
+                            <StatusBadge status={item.status} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-px bg-[color:var(--line)] sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                    <div className="bg-[color:var(--surface-raised)] px-5 py-5 lg:px-6">
+                      <p className="text-sm font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
+                        SOAP draft workflow
+                      </p>
+                      <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[color:var(--muted)]">
+                        {proofEncounter.soap?.review_status ?? "draft"}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-[color:var(--muted-strong)]">
+                        Draft note remains editable and review-first until a practitioner approves it.
+                      </p>
+                    </div>
+
+                    <div className="bg-[color:var(--surface-raised)] px-5 py-5 lg:px-6">
+                      <p className="text-sm font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
+                        Structured insights
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        {proofEncounter.patterns.slice(0, 2).map((pattern) => (
+                          <div key={pattern.pattern_key} className="text-sm leading-6 text-[color:var(--muted-strong)]">
+                            <p className="font-medium text-[color:var(--foreground)]">
+                              {pattern.pattern_key.replaceAll("_", " ")}
+                            </p>
+                            <p>{pattern.evidence[0]}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
+      <div className="mx-auto max-w-[1280px] px-5 sm:px-6 lg:px-10">
         <GradientRule />
       </div>
 
-      {/* Operational metrics + specialties */}
-      <section className="mx-auto max-w-[1200px] px-6 py-14 lg:px-10">
-        <WorkflowMetricsStrip />
+      <section id="workflow" className="scroll-mt-28 mx-auto max-w-[1280px] px-5 py-20 sm:px-6 lg:px-10 lg:py-24">
+        <div className="grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <SectionIntro
+              label="Workflow"
+              title="A calmer start to every appointment."
+              description="CliniqFlow is designed around the hour before the visit: the patient communication, intake structure, practitioner review, and documentation setup that usually create the most friction."
+            />
 
-        <div className="mt-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-lg">
-            <p className="section-label">Specialties</p>
-            <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-              Built for western and alternative medicine practices that need structured intake — not
-              generic form builders.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 lg:max-w-xl lg:justify-end">
-            {niches.map((niche) => (
-              <span
-                key={niche.niche}
-                className="rounded-md border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-3 py-1.5 text-xs font-medium text-[color:var(--charcoal)]"
-              >
-                {niche.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Problem — left-aligned tension */}
-      <section id="solutions" className="scroll-mt-28 border-t border-[color:var(--line)] bg-[color:var(--surface-muted)]/40">
-        <div className="mx-auto grid max-w-[1200px] gap-12 px-6 py-20 lg:grid-cols-12 lg:px-10">
-          <SectionIntro
-            className="lg:col-span-5"
-            label="The challenge"
-            title="Intake and documentation shouldn't consume the entire appointment"
-            description="Most clinics lose operational clarity before the patient walks in. CliniqFlow brings structure to the pre-visit layer."
-          />
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
-            {problems.map((problem, i) => (
-              <div
-                key={problem.title}
-                className={`surface-panel rounded-lg p-6 ${i === 1 ? "sm:mt-6" : ""} ${i === 2 ? "sm:-mt-2" : ""}`}
-              >
-                <h3 className="text-base font-semibold text-[color:var(--foreground)]">
-                  {problem.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                  {problem.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-[1200px] px-6 pb-20 lg:px-10">
-          <div className="grid gap-8 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <p className="text-base leading-relaxed text-[color:var(--muted-strong)]">
-              On average, clinics save approximately{" "}
-              <strong className="font-semibold text-[color:var(--foreground)]">5.2 minutes</strong>{" "}
-              of physician discovery time per encounter when structured intake is collected before
-              the consultation.
-            </p>
-            <PetalAccent className="mx-auto h-10 w-10 text-[color:var(--primary)] opacity-40 lg:mx-0" />
-          </div>
-        </div>
-      </section>
-
-      {/* How it works — alternating workflow visuals */}
-      <section id="how-it-works" className="scroll-mt-28 mx-auto max-w-[1200px] px-6 py-24 lg:px-10">
-        <SectionIntro
-          label="How it works"
-          title="Three operational layers — from link to review"
-          description="The product is the aesthetic. Every step maps to a real screen in the practitioner workflow."
-        />
-
-        <div className="mt-16 space-y-20">
-          {howItWorks.map((step, index) => (
-            <div
-              key={step.step}
-              className={`grid items-center gap-10 lg:grid-cols-12 ${
-                index % 2 === 1 ? "lg:[direction:rtl]" : ""
-              }`}
-            >
-              <div className={`lg:col-span-5 ${index % 2 === 1 ? "lg:[direction:ltr]" : ""}`}>
-                <span className="font-mono text-xs tracking-[0.16em] text-[color:var(--muted)]">
-                  {step.step}
-                </span>
-                <h3 className="display-font mt-3 text-2xl text-[color:var(--foreground)]">
-                  {step.title}
-                </h3>
-                <p className="mt-4 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                  {step.description}
-                </p>
-              </div>
-              <div className={`lg:col-span-7 ${index % 2 === 1 ? "lg:[direction:ltr]" : ""}`}>
-                {step.preview === "intake" && <IntakeLinkPreview />}
-                {step.preview === "encounters" && <EncounterRowPreview />}
-                {step.preview === "soap" && <SoapDraftPreview />}
+            <div className="mt-7 rounded-[1.75rem] border border-[color:var(--line)] bg-[color:var(--surface-muted)] p-5 sm:mt-8 sm:p-6">
+              <p className="text-sm font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
+                Specialty-specific workflows
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {niches.map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-3 py-1.5 text-xs font-medium text-[color:var(--charcoal)]"
+                  >
+                    {label}
+                  </span>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
+
+          <div className="space-y-7 sm:space-y-8">
+            {workflowMoments.map((item) => (
+              <article
+                key={item.step}
+                className="grid gap-3 border-t border-[color:var(--line)] pt-7 md:grid-cols-[88px_minmax(0,1fr)] md:gap-8 md:pt-8"
+              >
+                <p className="section-label pt-1">{item.step}</p>
+                <div>
+                  <h3 className="max-w-3xl text-[1.45rem] font-semibold leading-[1.06] tracking-[-0.04em] text-[color:var(--foreground)] sm:text-[1.65rem]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 max-w-2xl text-[0.98rem] leading-relaxed text-[color:var(--muted-strong)] sm:mt-4 sm:text-base">
+                    {item.description}
+                  </p>
+                </div>
+              </article>
+            ))}
+
+            <article className="surface-panel rounded-[2rem] border-[color:var(--line-strong)] p-6 sm:p-7 lg:p-8">
+              <p className="section-label">Operational calmness</p>
+              <h3 className="mt-4 max-w-2xl text-[1.55rem] font-semibold leading-[1.04] tracking-[-0.045em] text-[color:var(--foreground)] sm:text-[1.8rem]">
+                The product is meant to make a practitioner feel less crowded before the day begins.
+              </h3>
+              <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-[color:var(--muted-strong)] sm:text-base">
+                Every surface is organized around workflow state, review readiness, and cleaner
+                documentation handoff. The goal is quiet operational relief, not performative AI.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
 
-      {/* Product depth — bento */}
-      <section id="features" className="scroll-mt-28 border-t border-[color:var(--line)] bg-[color:var(--surface-muted)]/30">
-        <div className="mx-auto max-w-[1200px] px-6 py-24 lg:px-10">
+      <section id="product" className="scroll-mt-28 border-y border-[color:var(--line)] bg-[color:var(--surface-muted)]">
+        <div className="mx-auto max-w-[1280px] px-5 py-20 sm:px-6 lg:px-10 lg:py-24">
           <SectionIntro
-            label="Platform"
-            title="Operational depth, not marketing fluff"
-            description="Every feature maps to a workflow your front desk and practitioners actually run."
+            label="Product demo"
+            title="The product becomes the aesthetic."
+            description="Real interface density, real workflow states, and real operational screens carry the design instead of decorative gradients or abstract AI motifs."
           />
 
-          <div className="mt-14 grid gap-4 lg:grid-cols-12">
-            <div className="surface-panel overflow-hidden rounded-lg lg:col-span-7 lg:row-span-2">
-              <div className="border-b border-[color:var(--line)] px-5 py-4">
-                <p className="section-label">Encounter queue</p>
-                <p className="mt-1 text-sm text-[color:var(--muted-strong)]">
-                  Today&apos;s patients, statuses, and next actions — at a glance.
-                </p>
-              </div>
-              <div className="p-4">
-                <EncounterRowPreview />
-              </div>
-            </div>
-
-            {features.map((feature, i) => (
-              <div
-                key={feature.title}
-                className={`surface-panel rounded-lg p-5 lg:col-span-5 ${i === 0 ? "" : ""}`}
-              >
-                <feature.icon className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-                <h3 className="mt-4 text-base font-semibold text-[color:var(--foreground)]">
-                  {feature.title}
+          <div className="mt-12 grid gap-4 sm:mt-14 sm:gap-5 lg:grid-cols-12">
+            <article className="surface-panel overflow-hidden rounded-[2rem] lg:col-span-8">
+              <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+                <p className="section-label">Practitioner dashboard</p>
+                <h3 className="text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[color:var(--foreground)] sm:text-[1.55rem]">
+                  Queue, review, and appointment preparation live in one operational surface.
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                  {feature.description}
+                <p className="max-w-2xl text-sm leading-relaxed text-[color:var(--muted-strong)]">
+                  Encounter status, SOAP review, appointment requests, and supporting evidence are
+                  visible in one place so staff and practitioners can orient quickly.
                 </p>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <div className="relative h-[260px] border-t border-[color:var(--line)] bg-[color:var(--surface)] sm:h-[320px] md:h-[540px]">
+                <Image
+                  src="/screenshots/dashboard-proof.png"
+                  alt="CliniqFlow dashboard with operational intake and documentation workflow."
+                  fill
+                  className="object-contain object-left-top p-3 sm:p-4 lg:object-cover lg:p-0"
+                />
+              </div>
+            </article>
 
-      {/* Who it's for + compliance */}
-      <section className="mx-auto grid max-w-[1200px] gap-12 px-6 py-24 lg:grid-cols-12 lg:px-10">
-        <div className="lg:col-span-5">
-          <SectionIntro
-            label="Who it's for"
-            title="Built for modern outpatient practices"
-          />
-          <ul className="mt-8 space-y-3">
-            {idealFor.map((item) => (
-              <li key={item} className="flex items-center gap-3 text-sm text-[color:var(--muted-strong)]">
-                <Users className="h-4 w-4 shrink-0 text-[color:var(--primary)]" strokeWidth={1.5} />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="surface-panel rounded-lg p-8 lg:col-span-7">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-            <span className="section-label">Practitioner review required</span>
-          </div>
-          <h3 className="mt-4 text-xl font-semibold text-[color:var(--foreground)]">
-            Documentation-assist — not autonomous clinical software
-          </h3>
-          <p className="mt-4 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-            CliniqFlow does not diagnose patients, prescribe treatment, or replace practitioner
-            judgment. All outputs require licensed practitioner review and approval before clinical
-            use.
-          </p>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="scroll-mt-28 border-t border-[color:var(--line)]">
-        <div className="mx-auto max-w-[1200px] px-6 py-24 lg:px-10">
-          <SectionIntro label="Pricing" title="Simple clinic pricing" />
-
-          <div className="mt-14 grid gap-4 lg:grid-cols-3">
-            {pricingPlans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-lg border p-8 ${
-                  plan.highlighted
-                    ? "border-[color:var(--primary)] bg-[color:var(--surface-raised)] shadow-[var(--shadow)]"
-                    : "border-[color:var(--line)] bg-[color:var(--surface-muted)]/50"
-                }`}
-              >
-                {plan.highlighted ? (
-                  <span className="section-label text-[color:var(--primary)]">Recommended</span>
-                ) : null}
-                <h3 className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">{plan.name}</h3>
-                <p className="mt-3">
-                  <span className="display-font text-4xl">{plan.price}</span>
-                  <span className="text-sm text-[color:var(--muted)]">{plan.period}</span>
+            <article className="surface-panel overflow-hidden rounded-[2rem] lg:col-span-4">
+              <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+                <p className="section-label">Patient communication</p>
+                <h3 className="text-[1.25rem] font-semibold leading-[1.1] tracking-[-0.035em] text-[color:var(--foreground)] sm:text-[1.35rem]">
+                  Intake becomes a structured conversation patients can complete before arriving.
+                </h3>
+                <p className="text-sm leading-relaxed text-[color:var(--muted-strong)]">
+                  Specialty-specific questionnaires, consent capture, and progress states create a
+                  more organized handoff into the clinical visit.
                 </p>
-                <p className="mt-3 text-sm text-[color:var(--muted-strong)]">{plan.description}</p>
-                <ul className="mt-6 space-y-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-[color:var(--muted-strong)]">
-                      <BadgeCheck className="h-4 w-4 shrink-0 text-[color:var(--accent)]" />
-                      {feature}
-                    </li>
+              </div>
+              <div className="border-t border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-4 sm:px-5 sm:py-5">
+                <div className="overflow-hidden rounded-[1.4rem] border border-[color:var(--line)]">
+                  <Image
+                    src="/screenshots/intake-proof.png"
+                    alt="CliniqFlow patient intake flow with specialty-specific questions."
+                    width={1024}
+                    height={980}
+                    className="h-auto w-full"
+                  />
+                </div>
+              </div>
+            </article>
+
+            <article className="overflow-hidden rounded-[2rem] border border-[color:rgba(11,16,32,0.12)] bg-[color:var(--charcoal)] text-white lg:col-span-4">
+              <div className="px-5 py-6 sm:px-6 sm:py-7">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 text-white/80" />
+                  <p className="section-label text-white/55">Clinical control</p>
+                </div>
+                <h3 className="mt-4 text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-white sm:text-[1.55rem]">
+                  Documentation stays in practitioner review, not autopilot.
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-white/72">
+                  CliniqFlow helps structure history, surface assessment patterns, and prepare draft
+                  notes, but it does not replace clinical judgment or silently finalize the record.
+                </p>
+
+                <div className="mt-6 space-y-3">
+                  {[
+                    "SOAP notes start in draft status",
+                    "Evidence and data gaps stay visible",
+                    "Approval remains with the practitioner",
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-3 text-sm leading-6 text-white/80">
+                      <span className="mt-2 h-1.5 w-1.5 rounded-full bg-white/75" />
+                      <span>{item}</span>
+                    </div>
                   ))}
-                </ul>
-                {plan.external ? (
-                  <a
-                    href={plan.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`mt-8 inline-flex w-full items-center justify-center rounded-md px-4 py-3 text-sm font-semibold ${
-                      plan.highlighted ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    {plan.cta}
-                  </a>
-                ) : (
-                  <Link
-                    href={plan.href}
-                    className={`mt-8 inline-flex w-full items-center justify-center rounded-md px-4 py-3 text-sm font-semibold ${
-                      plan.highlighted ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
-                )}
+                </div>
               </div>
+            </article>
+
+            <article className="surface-panel overflow-hidden rounded-[2rem] lg:col-span-8">
+              <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+                <p className="section-label">Encounter review</p>
+                <h3 className="text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[color:var(--foreground)] sm:text-[1.55rem]">
+                  Review-first SOAP drafting keeps the workflow clear and trustworthy.
+                </h3>
+                <p className="max-w-2xl text-sm leading-relaxed text-[color:var(--muted-strong)]">
+                  Practitioners can review structured subjective, objective, assessment, and plan
+                  sections in the same screen where the patient context first became useful.
+                </p>
+              </div>
+              <div className="relative h-[260px] border-t border-[color:var(--line)] bg-[color:var(--surface)] sm:h-[320px] md:h-[520px]">
+                <Image
+                  src="/screenshots/encounter-proof.png"
+                  alt="CliniqFlow encounter review screen with practitioner-first SOAP editing."
+                  fill
+                  className="object-contain object-left-top p-3 sm:p-4 lg:object-cover lg:p-0"
+                />
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="why-cliniqflow" className="scroll-mt-28 mx-auto max-w-[1280px] px-5 py-20 sm:px-6 lg:px-10 lg:py-24">
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <SectionIntro
+            label="Why it helps"
+            title="What the clinic gets back is focus."
+            description="The primary value is not novelty. It is reducing friction in the parts of the day that usually feel fragmented, repetitive, or mentally expensive."
+          />
+
+          <div className="space-y-6 sm:space-y-7">
+            {calmOutcomes.map((item) => (
+              <article
+                key={item.title}
+                className="grid gap-3 border-t border-[color:var(--line)] pt-6 md:grid-cols-[220px_minmax(0,1fr)] md:gap-8 md:pt-7"
+              >
+                <p className="text-sm font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
+                  {item.title}
+                </p>
+                <p className="max-w-2xl text-[0.98rem] leading-relaxed text-[color:var(--muted-strong)] sm:text-base">
+                  {item.description}
+                </p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="scroll-mt-28 mx-auto max-w-[1200px] px-6 pb-24 lg:px-10">
+      <section id="faq" className="scroll-mt-28 mx-auto max-w-[1280px] px-5 pb-20 sm:px-6 lg:px-10 lg:pb-24">
         <SectionIntro label="FAQ" title="Common questions" />
-        <div className="mt-10 max-w-2xl space-y-3">
+
+        <div className="mt-10 max-w-3xl space-y-3">
           {faqs.map((faq) => (
             <details
               key={faq.question}
-              className="group rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-5 py-4"
+              className="group rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-5 py-5"
             >
-              <summary className="cursor-pointer font-medium text-[color:var(--foreground)]">
+              <summary className="cursor-pointer text-base font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
                 {faq.question}
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted-strong)]">
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[color:var(--muted-strong)]">
                 {faq.answer}
               </p>
             </details>
@@ -531,36 +521,39 @@ export function HomepageLanding() {
         </div>
       </section>
 
-      {/* Final CTA — calm, not loud */}
-      <section id="contact" className="scroll-mt-28 border-t border-[color:var(--line)]">
-        <div className="mx-auto max-w-[1200px] px-6 py-20 lg:px-10">
-          <div className="grid gap-8 rounded-lg border border-[color:var(--line)] bg-[color:var(--primary)] px-8 py-12 text-white lg:grid-cols-[1fr_auto] lg:items-center lg:px-12">
-            <div>
-              <h2 className="display-font text-[clamp(1.75rem,3vw,2.5rem)] leading-tight">
-                {BRAND.bigIdea}
-              </h2>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75">{BRAND.narrative}</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={BRAND.demoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-[color:var(--primary)] transition hover:bg-white/95"
-              >
-                Book a demo
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-              <a
-                href={BRAND.demoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-md border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Talk to sales
-              </a>
+      <section className="border-t border-[color:var(--line)]">
+        <div className="mx-auto max-w-[1280px] px-5 py-16 sm:px-6 sm:py-20 lg:px-10">
+          <div className="overflow-hidden rounded-[2.25rem] border border-[color:rgba(11,16,32,0.12)] bg-[color:var(--charcoal)] px-6 py-8 text-white sm:px-8 sm:py-12 lg:px-12 lg:py-14">
+            <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p className="section-label text-white/55">Calm clinical operating system</p>
+                <h2 className="mt-4 max-w-3xl text-[clamp(2rem,8vw,3.75rem)] font-semibold leading-[0.95] tracking-[-0.05em] text-white">
+                  Reduce chaos before the appointment begins.
+                </h2>
+                <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-white/72 sm:text-base">
+                  See the workflow, review the product, and decide whether it fits how your clinic
+                  wants intake and documentation to feel.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href={BRAND.signupHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[color:var(--primary)] transition hover:bg-white/94"
+                >
+                  Start onboarding
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="#product"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  View product demo
+                </a>
+              </div>
             </div>
           </div>
+
           <div className="mt-6">
             <GradientRule />
           </div>

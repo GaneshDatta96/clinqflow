@@ -1,19 +1,20 @@
 export const BRAND = {
   name: "CliniqFlow",
-  nameDisplay: "Cliniqflow",
-  tagline: "Clinical intake & documentation workflows",
-  bigIdea: "Give practitioners their energy back.",
+  nameDisplay: "CliniqFlow",
+  tagline: "Calm intake and documentation workflows for clinics",
+  bigIdea: "Reduce chaos before the appointment begins.",
   positioning:
-    "A calm operating layer for structured intake, organized patient context, and practitioner-review-first documentation.",
+    "A clinical intake infrastructure platform that helps teams collect structured patient context, reduce repetitive discovery conversations, and keep documentation review-first.",
   narrative:
-    "Healthcare professionals spend enormous mental energy collecting fragmented patient information before they can begin meaningful care. CliniqFlow structures intake, organizes context, and streamlines documentation — so practitioners arrive at each visit with clarity instead of chaos.",
-  demoUrl: "https://cal.com/ganesh-datta-bygktk/sales-throughput-session",
+    "CliniqFlow organizes pre-visit intake, patient communication, and documentation setup so practitioners begin with clearer context and less operational chaos.",
+  signupHref: "/signup",
+  loginHref: "/login",
   colors: {
-    primary: "#1E3A5F",
-    secondary: "#3BA99C",
-    background: "#F8FAFC",
-    accentSoft: "#7DD3FC",
-    text: "#111827",
+    primary: "#0B1020",
+    secondary: "#7C3AED",
+    background: "#FAFAF7",
+    accentSoft: "#E5E7EB",
+    text: "#0B1020",
   },
   pillars: [
     {
@@ -38,12 +39,12 @@ export const BRAND = {
     },
   ],
   hero: {
-    headline: "Clinic workflows, finally calm and organized.",
+    headline: "Reduce intake chaos before the appointment even begins.",
     subheadline:
-      "Structured pre-visit intake, organized patient context, and practitioner-review-first documentation — built for outpatient practices that need operational depth, not another AI wrapper.",
+      "CliniqFlow helps clinics collect structured patient intake, reduce repetitive discovery conversations, and streamline practitioner documentation workflows.",
     emotional:
-      "Reduce cognitive load before the appointment even starts.",
+      "Calmer prep for practitioners. Less friction for staff.",
     functional:
-      "Intake links, structured summaries, and SOAP drafts in one workflow your team can trust.",
+      "Structured patient communication, practitioner-review-first drafting, and clearer operational visibility before the visit starts.",
   },
 } as const;

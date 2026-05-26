@@ -37,11 +37,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT;
+
+// Only enable the Sentry build integration when release/source-map upload
+// credentials are configured. Runtime Sentry still initializes separately.
+export default sentryAuthToken && sentryOrg && sentryProject
+  ? withSentryConfig(nextConfig, {
+      authToken: sentryAuthToken,
+      org: sentryOrg,
+      project: sentryProject,
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+    })
+  : nextConfig;

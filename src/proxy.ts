@@ -56,7 +56,7 @@ function isAppPath(pathname: string) {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   let response = NextResponse.next({ request });
 
@@ -143,7 +143,6 @@ export async function middleware(request: NextRequest) {
   }
 
   if (user && pathname.startsWith("/api/admin")) {
-    // Platform admin APIs validated in route handlers
     return response;
   }
 

@@ -1,8 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import { nicheConfigs } from "@/lib/clinics/niche-configs";
 import { BRAND } from "@/lib/brand/site";
+import {
+  DashboardProductPreview,
+  EncounterProductPreview,
+  IntakeProductPreview,
+} from "@/components/home/homepage-product-previews";
 import { GradientRule, PetalAccent } from "@/components/home/petal-accent";
 import { proofCases, proofEncounter } from "@/lib/marketing/proof-data";
 
@@ -229,17 +233,9 @@ export function HomepageLanding() {
                 ))}
               </div>
 
-              <div className="grid lg:grid-cols-[minmax(0,1.2fr)_320px]">
-                <div className="border-b border-[color:var(--line)] lg:border-b-0 lg:border-r">
-                  <div className="relative h-[280px] bg-[color:var(--surface-muted)] sm:h-[320px] md:h-[430px]">
-                    <Image
-                      src="/screenshots/dashboard-proof.png"
-                      alt="CliniqFlow dashboard showing queue, SOAP review, and structured patient context."
-                      fill
-                      priority
-                      className="object-contain object-left-top p-3 sm:p-4 lg:object-cover lg:p-0"
-                    />
-                  </div>
+              <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,320px)]">
+                <div className="border-b border-[color:var(--line)] p-4 sm:p-5 lg:border-b-0 lg:border-r lg:p-5">
+                  <EncounterProductPreview />
                 </div>
 
                 <div className="grid">
@@ -377,8 +373,8 @@ export function HomepageLanding() {
           />
 
           <div className="mt-12 grid gap-4 sm:mt-14 sm:gap-5 lg:grid-cols-12">
-            <article className="surface-panel overflow-hidden rounded-[2rem] lg:col-span-8">
-              <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+            <article className="surface-panel overflow-hidden rounded-[2rem] p-4 sm:p-5 lg:col-span-7">
+              <div className="space-y-3 px-1 pb-4 sm:px-1 sm:pb-5">
                 <p className="section-label">Practitioner dashboard</p>
                 <h3 className="text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[color:var(--foreground)] sm:text-[1.55rem]">
                   Queue, review, and appointment preparation live in one operational surface.
@@ -388,18 +384,11 @@ export function HomepageLanding() {
                   visible in one place so staff and practitioners can orient quickly.
                 </p>
               </div>
-              <div className="relative h-[260px] border-t border-[color:var(--line)] bg-[color:var(--surface)] sm:h-[320px] md:h-[540px]">
-                <Image
-                  src="/screenshots/dashboard-proof.png"
-                  alt="CliniqFlow dashboard with operational intake and documentation workflow."
-                  fill
-                  className="object-contain object-left-top p-3 sm:p-4 lg:object-cover lg:p-0"
-                />
-              </div>
+              <DashboardProductPreview />
             </article>
 
-            <article className="surface-panel overflow-hidden rounded-[2rem] lg:col-span-4">
-              <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+            <article className="surface-panel overflow-hidden rounded-[2rem] p-4 sm:p-5 lg:col-span-5">
+              <div className="space-y-3 px-1 pb-4 sm:px-1 sm:pb-5">
                 <p className="section-label">Patient communication</p>
                 <h3 className="text-[1.25rem] font-semibold leading-[1.1] tracking-[-0.035em] text-[color:var(--foreground)] sm:text-[1.35rem]">
                   Intake becomes a structured conversation patients can complete before arriving.
@@ -409,17 +398,7 @@ export function HomepageLanding() {
                   more organized handoff into the clinical visit.
                 </p>
               </div>
-              <div className="border-t border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-4 sm:px-5 sm:py-5">
-                <div className="overflow-hidden rounded-[1.4rem] border border-[color:var(--line)]">
-                  <Image
-                    src="/screenshots/intake-proof.png"
-                    alt="CliniqFlow patient intake flow with specialty-specific questions."
-                    width={1024}
-                    height={980}
-                    className="h-auto w-full"
-                  />
-                </div>
-              </div>
+              <IntakeProductPreview />
             </article>
 
             <article className="overflow-hidden rounded-[2rem] border border-[color:rgba(11,16,32,0.12)] bg-[color:var(--charcoal)] text-white lg:col-span-4">
@@ -451,8 +430,8 @@ export function HomepageLanding() {
               </div>
             </article>
 
-            <article className="surface-panel overflow-hidden rounded-[2rem] lg:col-span-8">
-              <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+            <article className="surface-panel overflow-hidden rounded-[2rem] p-4 sm:p-5 lg:col-span-8">
+              <div className="space-y-3 px-1 pb-4 sm:px-1 sm:pb-5">
                 <p className="section-label">Encounter review</p>
                 <h3 className="text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[color:var(--foreground)] sm:text-[1.55rem]">
                   Review-first SOAP drafting keeps the workflow clear and trustworthy.
@@ -462,14 +441,7 @@ export function HomepageLanding() {
                   sections in the same screen where the patient context first became useful.
                 </p>
               </div>
-              <div className="relative h-[260px] border-t border-[color:var(--line)] bg-[color:var(--surface)] sm:h-[320px] md:h-[520px]">
-                <Image
-                  src="/screenshots/encounter-proof.png"
-                  alt="CliniqFlow encounter review screen with practitioner-first SOAP editing."
-                  fill
-                  className="object-contain object-left-top p-3 sm:p-4 lg:object-cover lg:p-0"
-                />
-              </div>
+              <EncounterProductPreview />
             </article>
           </div>
         </div>

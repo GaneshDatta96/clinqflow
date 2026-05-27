@@ -58,3 +58,10 @@ Build Log Initialized.
 - Updated src/components/intake/patient-intake-experience.tsx and src/app/questionnaire/page.tsx to support a public intake mode that hides internal demo-sharing UI.
 - Removed the public Create Demo Route CTA, pointed internal navigation and create-demo success links to the internal demo routes area, and marked internal demo pages as noindex.
 - Verified with npm run lint, npm run typecheck, and npm run build.
+
+[2026-05-27] - fix: Replace static homepage screenshots with framed live product previews
+- Removed PNG screenshot embeds from src/components/home/homepage-landing.tsx that used inconsistent heights and object-fit cropping.
+- Added src/components/home/product-preview-frame.tsx for consistent browser chrome and aspect ratios (16:10 wide, 4:5 intake).
+- Added src/components/home/scaled-app-preview.tsx to scale real UI to the preview frame via container queries.
+- Added src/components/home/homepage-product-previews.tsx with live dashboard, intake, and encounter previews from proof data.
+- Hero operational panel now shows encounter review preview alongside the intake progression list.

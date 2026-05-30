@@ -146,13 +146,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           />
         </label>
       )}
-      {mode === "login" && (
-        <p className="rounded-xl bg-[color:var(--surface-strong)] px-4 py-3 text-xs text-[color:var(--muted-strong)]">
-          Clinic roles: owner/admin, practitioner, staff, viewer. Cliniqflow internal
-          roles: customer support (<code>PLATFORM_SUPPORT_EMAILS</code>) and God mode (
-          <code>PLATFORM_ADMIN_EMAILS</code>).
-        </p>
-      )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {message && <p className="text-sm text-green-700">{message}</p>}
       {mode === "signup" && message ? (

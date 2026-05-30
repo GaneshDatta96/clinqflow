@@ -7,7 +7,7 @@
 --   • Fresh Supabase project → run this entire file once.
 --   • Already ran older RUN_ON_SUPABASE.sql → run ONLY the migrations you
 --     are missing (see list below), or use repair_finish_setup.sql for policy
---     duplicates, then run migrations 20260601–20260605.
+--     duplicates, then run migrations 20260601–20260606.
 --
 -- MIGRATION ORDER (also in supabase/migrations/)
 --   1. 20260415070000_init.sql
@@ -19,6 +19,7 @@
 --   7. 20260603000000_add_support_role.sql
 --   8. 20260604000000_platform_support_role.sql
 --   9. 20260605000000_security_hardening.sql
+--  10. 20260606000000_paypal_webhook_events.sql
 --
 -- AFTER THIS SQL (run locally from repo root — NOT in SQL Editor)
 --   npm run seed:niche-configs          Load specialty intake configs
@@ -1283,21 +1284,23 @@ create policy platform_support_prompts_select on public.prompt_templates for sel
 create policy platform_support_ai_jobs_select on public.ai_jobs for select
   using (public.is_platform_support());
 
+-- ========== 20260606000000_paypal_webhook_events.sql ==========
+
+-- PayPal webhook idempotency (run in SQL Editor if not using full RUN_ON_SUPABASE.sql)
+
+create table if not exists public.paypal_webhook_events (
+  id text primary key,
+  event_type text not null,
+  processed_at timestamptz not null default now()
+);
+
+alter table public.paypal_webhook_events enable row level security;
+
+comment on table public.paypal_webhook_events is
+  'Idempotency store for PayPal REST webhooks';
+
 -- =============================================================================
--- POST-RUN VERIFICATION (optional — run these SELECTs after the migrations)
+-- POST-RUN VERIFICATION (optional)
 -- =============================================================================
-
--- Should return ~15+ public tables
--- select tablename from pg_tables where schemaname = 'public' order by 1;
-
--- Should include tenants, profiles, clinics, stripe_webhook_events, consent_records
--- select table_name from information_schema.tables
---   where table_schema = 'public' order by 1;
-
--- Confirm RLS enabled on core tables
--- select tablename, rowsecurity from pg_tables
---   where schemaname = 'public' and tablename in ('tenants','patients','encounters')
---   order by 1;
-
 -- If db push failed with "policy already exists", run repair_finish_setup.sql next.
 -- =============================================================================

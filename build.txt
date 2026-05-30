@@ -80,3 +80,7 @@ Build Log Initialized.
 - Updated supabase/RUN_ON_SUPABASE.sql with all migrations through 20260605000000_security_hardening.sql.
 - Added supabase/SETUP_CHECKLIST.md with SQL, auth, seed, platform admin, and Vercel steps.
 - Added npm run create:platform-admin script.
+
+[2026-05-27] - feat: Add PayPal webhook endpoint and server verification
+- Added /api/webhooks/paypal with signature verification and tenant plan activation by payer email.
+- Added supabase/migrations/20260606000000_paypal_webhook_events.sql for webhook idempotency.

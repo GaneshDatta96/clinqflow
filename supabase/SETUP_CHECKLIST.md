@@ -90,7 +90,24 @@ Copy from `.env` / `.env.example` into **Vercel → Settings → Environment Var
 | `UPSTASH_REDIS_REST_TOKEN` | |
 | `CRON_SECRET` | 32+ characters |
 
-Optional: Stripe, PayPal (`NEXT_PUBLIC_PAYPAL_*`), email, Sentry — see `.env.example`.
+**PayPal webhook** (after creating webhook in PayPal Developer Dashboard):
+
+| Variable | Notes |
+|----------|--------|
+| `NEXT_PUBLIC_PAYPAL_CLIENT_ID` | Same Client ID as your PayPal app |
+| `NEXT_PUBLIC_PAYPAL_HOSTED_BUTTON_ID` | Hosted button on homepage |
+| `PAYPAL_CLIENT_SECRET` | Server only — never `NEXT_PUBLIC_*` |
+| `PAYPAL_WEBHOOK_ID` | Dashboard → Webhooks → ID starts with `WH-` |
+| `PAYPAL_MODE` | `live` or `sandbox` |
+| `PAYPAL_DEFAULT_PLAN` | Usually `growth` |
+
+Webhook URL in PayPal: `https://cliniqflow.app/api/webhooks/paypal`
+
+Run in SQL Editor if not using full `RUN_ON_SUPABASE.sql`:
+
+`supabase/migrations/20260606000000_paypal_webhook_events.sql`
+
+Optional: Stripe, email, Sentry — see `.env.example`.
 
 Redeploy after saving env vars.
 

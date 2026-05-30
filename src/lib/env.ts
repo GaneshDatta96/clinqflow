@@ -9,6 +9,11 @@ const serverSchema = z.object({
   OPENROUTER_MODEL: z.string().min(1).optional(),
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  PAYPAL_CLIENT_ID: z.string().min(1).optional(),
+  PAYPAL_CLIENT_SECRET: z.string().min(1).optional(),
+  PAYPAL_WEBHOOK_ID: z.string().min(1).optional(),
+  PAYPAL_MODE: z.enum(["live", "sandbox"]).optional(),
+  PAYPAL_DEFAULT_PLAN: z.enum(["starter", "growth", "enterprise", "trial"]).optional(),
   INTAKE_TOKEN_SECRET: z.string().min(32).optional(),
   APP_URL: z.string().url().optional(),
   PLATFORM_ADMIN_EMAILS: z.string().optional(),
@@ -42,6 +47,16 @@ export const env = {
   openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? null,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? null,
+  paypalClientId:
+    process.env.PAYPAL_CLIENT_ID ?? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? null,
+  paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET ?? null,
+  paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID ?? null,
+  paypalMode: (process.env.PAYPAL_MODE ?? "live") as "live" | "sandbox",
+  paypalDefaultPlan: (process.env.PAYPAL_DEFAULT_PLAN ?? "growth") as
+    | "starter"
+    | "growth"
+    | "enterprise"
+    | "trial",
   get intakeTokenSecret() {
     return resolveIntakeTokenSecret();
   },

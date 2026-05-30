@@ -41,7 +41,7 @@ export function TeamInvitesPanel() {
     <section className="space-y-4 rounded-2xl border border-[color:var(--line)] bg-white/80 p-6">
       <h2 className="text-xl font-semibold">Team invites</h2>
       <p className="text-sm text-[color:var(--muted)]">
-        Invites are sent by email when Resend or SendGrid is configured. Accept links
+        Invites are sent by email when Zoho SMTP or SendGrid is configured. Accept links
         are not returned in the API response.
       </p>
       <form onSubmit={onSubmit} className="flex flex-wrap gap-3">

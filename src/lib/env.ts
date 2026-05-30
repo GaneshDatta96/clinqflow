@@ -18,10 +18,11 @@ const serverSchema = z.object({
   APP_URL: z.string().url().optional(),
   PLATFORM_ADMIN_EMAILS: z.string().optional(),
   PLATFORM_SUPPORT_EMAILS: z.string().optional(),
-  EMAIL_PROVIDER: z.enum(["resend", "sendgrid"]).optional(),
+  EMAIL_PROVIDER: z.enum(["zoho", "sendgrid", "resend"]).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   SENDGRID_API_KEY: z.string().min(1).optional(),
-  EMAIL_FROM: z.string().email().optional(),
+  ZOHO_ACCOUNTS_JSON: z.string().min(2).optional(),
+  EMAIL_FROM: z.string().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(16).optional(),
@@ -71,10 +72,14 @@ export const env = {
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
-  emailProvider: (process.env.EMAIL_PROVIDER ?? "resend") as "resend" | "sendgrid",
+  emailProvider: (process.env.EMAIL_PROVIDER ?? "zoho") as
+    | "zoho"
+    | "sendgrid"
+    | "resend",
   resendApiKey: process.env.RESEND_API_KEY ?? null,
   sendgridApiKey: process.env.SENDGRID_API_KEY ?? null,
-  emailFrom: process.env.EMAIL_FROM ?? "Cliniqflow <onboarding@resend.dev>",
+  zohoAccountsJson: process.env.ZOHO_ACCOUNTS_JSON ?? null,
+  emailFrom: process.env.EMAIL_FROM ?? "CliniqFlow",
   cronSecret: process.env.CRON_SECRET ?? null,
   sentryDsn: process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN ?? null,
   aiPhiMode: (process.env.AI_PHI_MODE ?? "restricted") as "restricted" | "full",
@@ -84,7 +89,10 @@ export const env = {
     if (this.emailProvider === "sendgrid") {
       return Boolean(this.sendgridApiKey);
     }
-    return Boolean(this.resendApiKey);
+    if (this.emailProvider === "resend") {
+      return Boolean(this.resendApiKey);
+    }
+    return Boolean(this.zohoAccountsJson);
   },
 };
 

@@ -31,6 +31,8 @@ Use this checklist after pulling the latest code. Everything you run **in Supaba
 |---------|--------|
 | Site URL | `https://cliniqflow.app` |
 | Redirect URLs | `https://cliniqflow.app/auth/callback` |
+| | `https://cliniqflow.app/auth/verify` |
+| | `https://cliniqflow.app/auth/confirm` |
 | | `https://cliniqflow.vercel.app/auth/callback` |
 | | `http://localhost:3000/auth/callback` |
 

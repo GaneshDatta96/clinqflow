@@ -21,6 +21,8 @@ const PUBLIC_PATHS = [
   "/signup",
   "/forgot-password",
   "/auth/callback",
+  "/auth/verify",
+  "/auth/confirm",
   "/onboarding",
   "/invite",
   "/api/health",

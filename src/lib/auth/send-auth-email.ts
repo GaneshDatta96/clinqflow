@@ -6,14 +6,10 @@ import {
 } from "@/lib/email/templates/auth-verify";
 import { env } from "@/lib/env";
 import { badRequest } from "@/lib/api/errors";
+import { appAuthVerifyUrl } from "@/lib/auth/verification-link";
 
-function authCallbackUrl() {
-  return `${env.appUrl.replace(/\/$/, "")}/auth/callback`;
-}
-
-function readActionLink(properties: Record<string, unknown> | undefined) {
-  const link = properties?.action_link;
-  return typeof link === "string" && link.length > 0 ? link : null;
+function readVerificationUrl(properties: Record<string, unknown> | undefined) {
+  return appAuthVerifyUrl(properties);
 }
 
 export async function sendSignupVerificationEmail(args: {
@@ -39,7 +35,6 @@ export async function sendSignupVerificationEmail(args: {
     password: args.password,
     options: {
       data: { full_name: args.fullName.trim() },
-      redirectTo: authCallbackUrl(),
     },
   });
 
@@ -51,7 +46,7 @@ export async function sendSignupVerificationEmail(args: {
     throw badRequest(error.message);
   }
 
-  const verifyUrl = readActionLink(
+  const verifyUrl = readVerificationUrl(
     data.properties as Record<string, unknown> | undefined,
   );
   if (!verifyUrl) {
@@ -89,9 +84,6 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: {
-      redirectTo: authCallbackUrl(),
-    },
   });
 
   if (error) {
@@ -105,7 +97,7 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
     throw badRequest(error.message);
   }
 
-  const verifyUrl = readActionLink(
+  const verifyUrl = readVerificationUrl(
     data.properties as Record<string, unknown> | undefined,
   );
   if (!verifyUrl) {
@@ -145,9 +137,6 @@ export async function sendPasswordResetEmail(args: { email: string }) {
   const { data, error } = await admin.auth.admin.generateLink({
     type: "recovery",
     email,
-    options: {
-      redirectTo: `${authCallbackUrl()}?type=recovery`,
-    },
   });
 
   if (error) {
@@ -155,7 +144,7 @@ export async function sendPasswordResetEmail(args: { email: string }) {
     return { emailSent: true as const };
   }
 
-  const resetUrl = readActionLink(
+  const resetUrl = readVerificationUrl(
     data.properties as Record<string, unknown> | undefined,
   );
   if (!resetUrl) {

@@ -35,9 +35,11 @@ if (error) {
   process.exit(1);
 }
 
-const verifyUrl = data.properties?.action_link;
+const verifyUrl = data.properties?.hashed_token
+  ? `${(process.env.APP_URL ?? "https://cliniqflow.app").replace(/\/$/, "")}/auth/verify?token=${encodeURIComponent(data.properties.hashed_token)}&type=${encodeURIComponent(data.properties.verification_type ?? "magiclink")}`
+  : data.properties?.action_link;
 if (!verifyUrl) {
-  console.error("No action_link returned");
+  console.error("No verification link returned");
   process.exit(1);
 }
 

@@ -48,9 +48,11 @@ export const env = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? null,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? null,
   paypalClientId:
-    process.env.PAYPAL_CLIENT_ID ?? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? null,
-  paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET ?? null,
-  paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID ?? null,
+    process.env.PAYPAL_CLIENT_ID?.trim() ??
+    process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() ??
+    null,
+  paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET?.trim() ?? null,
+  paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID?.trim() ?? null,
   paypalMode: (process.env.PAYPAL_MODE ?? "live") as "live" | "sandbox",
   paypalDefaultPlan: (process.env.PAYPAL_DEFAULT_PLAN ?? "growth") as
     | "starter"

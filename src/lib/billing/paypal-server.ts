@@ -31,7 +31,11 @@ export async function getPayPalAccessToken() {
   });
 
   if (!response.ok) {
-    throw new Error(`PayPal OAuth failed (${response.status})`);
+    const hint =
+      env.paypalMode === "live"
+        ? " Check PAYPAL_CLIENT_ID/SECRET are Live credentials (not Sandbox)."
+        : " Check PAYPAL_CLIENT_ID/SECRET are Sandbox credentials and PAYPAL_MODE=sandbox.";
+    throw new Error(`PayPal OAuth failed (${response.status}).${hint}`);
   }
 
   const data = (await response.json()) as {
@@ -47,16 +51,59 @@ export async function getPayPalAccessToken() {
   return data.access_token;
 }
 
+function readPayPalTransmissionHeaders(headers: Headers) {
+  const values: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    if (key.toLowerCase().startsWith("paypal-")) {
+      values[key.toLowerCase()] = value;
+    }
+  });
+
+  return {
+    auth_algo: values["paypal-auth-algo"] ?? null,
+    cert_url: values["paypal-cert-url"] ?? null,
+    transmission_id: values["paypal-transmission-id"] ?? null,
+    transmission_sig: values["paypal-transmission-sig"] ?? null,
+    transmission_time: values["paypal-transmission-time"] ?? null,
+  };
+}
+
 export async function verifyPayPalWebhookSignature(args: {
   headers: Headers;
   body: string;
 }) {
-  if (!env.paypalWebhookId) {
+  const webhookId = env.paypalWebhookId?.trim();
+  if (!webhookId) {
     throw new Error("PAYPAL_WEBHOOK_ID is not configured.");
   }
 
+  const transmission = readPayPalTransmissionHeaders(args.headers);
+  const missingHeaders = Object.entries(transmission)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingHeaders.length > 0) {
+    return {
+      verified: false,
+      verificationStatus: "MISSING_HEADERS",
+      missingHeaders,
+      transmissionId: null,
+    };
+  }
+
+  let webhookEvent: Record<string, unknown>;
+  try {
+    webhookEvent = JSON.parse(args.body) as Record<string, unknown>;
+  } catch {
+    return {
+      verified: false,
+      verificationStatus: "INVALID_JSON",
+      missingHeaders: [],
+      transmissionId: transmission.transmission_id,
+    };
+  }
+
   const token = await getPayPalAccessToken();
-  const webhookEvent = JSON.parse(args.body) as Record<string, unknown>;
 
   const response = await fetch(
     `${paypalApiBase()}/v1/notifications/verify-webhook-signature`,
@@ -67,12 +114,12 @@ export async function verifyPayPalWebhookSignature(args: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        auth_algo: args.headers.get("paypal-auth-algo"),
-        cert_url: args.headers.get("paypal-cert-url"),
-        transmission_id: args.headers.get("paypal-transmission-id"),
-        transmission_sig: args.headers.get("paypal-transmission-sig"),
-        transmission_time: args.headers.get("paypal-transmission-time"),
-        webhook_id: env.paypalWebhookId,
+        auth_algo: transmission.auth_algo,
+        cert_url: transmission.cert_url,
+        transmission_id: transmission.transmission_id,
+        transmission_sig: transmission.transmission_sig,
+        transmission_time: transmission.transmission_time,
+        webhook_id: webhookId,
         webhook_event: webhookEvent,
       }),
     },
@@ -83,7 +130,12 @@ export async function verifyPayPalWebhookSignature(args: {
   }
 
   const result = (await response.json()) as { verification_status?: string };
-  return result.verification_status === "SUCCESS";
+  return {
+    verified: result.verification_status === "SUCCESS",
+    verificationStatus: result.verification_status ?? "UNKNOWN",
+    missingHeaders: [],
+    transmissionId: transmission.transmission_id,
+  };
 }
 
 export function extractPayPalPayerEmail(event: PayPalWebhookEvent) {

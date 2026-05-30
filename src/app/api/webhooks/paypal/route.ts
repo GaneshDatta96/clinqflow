@@ -9,6 +9,9 @@ import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { env } from "@/lib/env";
 import { logError, logInfo } from "@/lib/logging/logger";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const ACTIVATION_EVENTS = new Set([
   "PAYMENT.CAPTURE.COMPLETED",
   "PAYMENT.SALE.COMPLETED",
@@ -144,15 +147,26 @@ export async function POST(request: Request) {
     return Response.json({ error: "PayPal webhook not configured" }, { status: 503 });
   }
 
-  const body = await request.text();
+  const body = Buffer.from(await request.arrayBuffer()).toString("utf8");
 
   try {
-    const verified = await verifyPayPalWebhookSignature({
+    const verification = await verifyPayPalWebhookSignature({
       headers: request.headers,
       body,
     });
 
-    if (!verified) {
+    if (!verification.verified) {
+      logError({
+        message: "paypal.webhook.verification_failed",
+        step: "billing_webhook",
+        status: "error",
+        metadata: {
+          verificationStatus: verification.verificationStatus,
+          transmissionId: verification.transmissionId,
+          missingHeaders: verification.missingHeaders,
+          webhookIdConfigured: Boolean(env.paypalWebhookId),
+        },
+      });
       return Response.json({ error: "Invalid signature" }, { status: 400 });
     }
   } catch (error) {

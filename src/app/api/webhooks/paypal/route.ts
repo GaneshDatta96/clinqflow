@@ -7,7 +7,7 @@ import {
 } from "@/lib/billing/paypal-server";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { env } from "@/lib/env";
-import { logError, logInfo } from "@/lib/logging/logger";
+import { logError, logInfo, logWarn } from "@/lib/logging/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
     });
 
     if (!verification.verified) {
-      logError({
+      logWarn({
         message: "paypal.webhook.verification_failed",
         step: "billing_webhook",
         status: "error",

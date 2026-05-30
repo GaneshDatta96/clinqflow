@@ -9,7 +9,7 @@ const forgotSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/auth/forgot-password",
   step: "auth_forgot_password",
-  rateLimit: "auth",
+  rateLimit: false,
   schema: forgotSchema,
   handler: async ({ body }) => {
     await sendPasswordResetEmail({ email: body.email });

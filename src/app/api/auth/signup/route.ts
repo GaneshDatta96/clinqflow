@@ -11,7 +11,7 @@ const signupSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/auth/signup",
   step: "auth_signup",
-  rateLimit: "auth",
+  rateLimit: false,
   schema: signupSchema,
   handler: async ({ body }) => {
     const result = await sendSignupVerificationEmail({

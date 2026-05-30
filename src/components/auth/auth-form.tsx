@@ -14,6 +14,34 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [resendPending, setResendPending] = useState(false);
+
+  async function handleResendVerification() {
+    if (!email.trim()) {
+      setError("Enter your email address first.");
+      return;
+    }
+
+    setError(null);
+    setResendPending(true);
+
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to resend verification email.");
+      }
+      setMessage("Verification email sent again. Check your inbox and spam folder.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to resend verification email.");
+    } finally {
+      setResendPending(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -22,33 +50,41 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setPending(true);
 
     try {
-      const supabase = createSupabaseBrowserClient();
-
       if (mode === "forgot") {
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-          email,
-          { redirectTo: `${window.location.origin}/auth/callback?type=recovery` },
-        );
-        if (resetError) throw resetError;
+        const response = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const payload = (await response.json()) as { error?: string };
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Unable to send reset email.");
+        }
         setMessage("Check your email for a password reset link.");
         return;
       }
 
       if (mode === "signup") {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
+        const response = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            full_name: fullName,
+          }),
         });
-        if (signUpError) throw signUpError;
+        const payload = (await response.json()) as { error?: string };
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Unable to create account.");
+        }
         setMessage(
           "Account created. Check your email to verify your address, then continue to onboarding.",
         );
         return;
       }
+
+      const supabase = createSupabaseBrowserClient();
 
       const { data: signInData, error: signInError } =
         await supabase.auth.signInWithPassword({
@@ -119,6 +155,16 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {message && <p className="text-sm text-green-700">{message}</p>}
+      {mode === "signup" && message ? (
+        <button
+          type="button"
+          disabled={resendPending || !email.trim()}
+          onClick={handleResendVerification}
+          className="w-full rounded-full border border-[color:var(--line)] py-3 text-sm font-semibold disabled:opacity-60"
+        >
+          {resendPending ? "Sending…" : "Resend verification email"}
+        </button>
+      ) : null}
       <button
         type="submit"
         disabled={pending}

@@ -55,7 +55,7 @@ export function PayPalHostedButton({
     <div className={className}>
       <Script
         src={sdkUrl}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         onLoad={() => setSdkReady(true)}
       />
       <div id={containerId} className="min-h-[45px]" />

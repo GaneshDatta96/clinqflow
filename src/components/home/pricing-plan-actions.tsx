@@ -1,8 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { PayPalHostedButton } from "@/components/billing/paypal-hosted-button";
 import { isPayPalConfigured, paypalPublicConfig } from "@/lib/billing/paypal-public";
+
+const PayPalHostedButton = dynamic(
+  () =>
+    import("@/components/billing/paypal-hosted-button").then(
+      (mod) => mod.PayPalHostedButton,
+    ),
+  { ssr: false },
+);
 
 type PricingPlanActionsProps = {
   cta: string;

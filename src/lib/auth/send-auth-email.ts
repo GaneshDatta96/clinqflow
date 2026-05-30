@@ -87,7 +87,7 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
 
   const email = args.email.trim().toLowerCase();
   const { data, error } = await admin.auth.admin.generateLink({
-    type: "signup",
+    type: "magiclink",
     email,
     options: {
       redirectTo: authCallbackUrl(),

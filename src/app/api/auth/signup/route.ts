@@ -17,7 +17,7 @@ export const POST = createApiHandler({
     const result = await sendSignupVerificationEmail({
       email: body.email,
       password: body.password,
-      full_name: body.full_name,
+      fullName: body.full_name,
     });
 
     return jsonCreated(result);

@@ -8,6 +8,7 @@ import {
   IntakeProductPreview,
 } from "@/components/home/homepage-product-previews";
 import { GradientRule, PetalAccent } from "@/components/home/petal-accent";
+import { PricingPlanActions } from "@/components/home/pricing-plan-actions";
 import { proofCases, proofEncounter } from "@/lib/marketing/proof-data";
 
 const heroPoints = [
@@ -86,6 +87,7 @@ const pricingPlans = [
     cta: "Start free trial",
     href: BRAND.signupHref,
     highlighted: true,
+    showPayPal: true,
   },
   {
     name: "Scale",
@@ -560,25 +562,19 @@ export function HomepageLanding() {
                   ))}
                 </ul>
                 {"external" in plan && plan.external ? (
-                  <a
+                  <PricingPlanActions
+                    cta={plan.cta}
                     href={plan.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${
-                      plan.highlighted ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    {plan.cta}
-                  </a>
+                    highlighted={plan.highlighted}
+                    external
+                  />
                 ) : (
-                  <Link
+                  <PricingPlanActions
+                    cta={plan.cta}
                     href={plan.href}
-                    className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${
-                      plan.highlighted ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
+                    highlighted={plan.highlighted}
+                    showPayPal={"showPayPal" in plan && plan.showPayPal}
+                  />
                 )}
               </article>
             ))}

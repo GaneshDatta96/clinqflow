@@ -70,3 +70,8 @@ Build Log Initialized.
 - Restored pricing plans (Starter, Growth, Scale) to src/components/home/homepage-landing.tsx after upstream homepage redesign removed them.
 - Hero, header, and bottom CTA now lead with Start free trial / Get started to /signup; product demo moved to secondary action.
 - Added Pricing to marketing header and footer navigation.
+
+[2026-05-27] - feat: Add PayPal hosted button to Growth pricing plan
+- Added src/components/billing/paypal-hosted-button.tsx using PayPal SDK hosted-buttons component.
+- Added src/components/home/pricing-plan-actions.tsx with optional PayPal checkout on the Growth plan card.
+- Configured via NEXT_PUBLIC_PAYPAL_CLIENT_ID and NEXT_PUBLIC_PAYPAL_HOSTED_BUTTON_ID.

@@ -215,7 +215,7 @@ export function scorePatterns(input: NormalizedIntake): AssessmentResult[] {
   return [
     assessmentResultSchema.parse({
       pattern_key: "nonspecific_pattern",
-      label: "Nonspecific Clinical Pattern",
+      label: "Nonspecific intake theme",
       confidence: 0.32,
       risk_level:
         intake.red_flags.length > 0

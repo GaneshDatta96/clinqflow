@@ -19,6 +19,10 @@ export function LegalPageShell({ title, description, children }: LegalPageShellP
         <p className="mt-2 text-sm text-[color:var(--muted)]">
           Last updated: {LEGAL.lastUpdated}
         </p>
+        <p className="mt-2 text-xs leading-6 text-[color:var(--muted)]">
+          Service provider: {LEGAL.legalName}, {LEGAL.entityDescription} (
+          {LEGAL.jurisdiction}).
+        </p>
         <article className="legal-prose mt-10">{children}</article>
       </section>
 

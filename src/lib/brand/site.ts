@@ -4,7 +4,7 @@ export const BRAND = {
   tagline: "Calm intake and documentation workflows for clinics",
   bigIdea: "Reduce chaos before the appointment begins.",
   positioning:
-    "A clinical intake infrastructure platform that helps teams collect structured patient context, reduce repetitive discovery conversations, and keep documentation review-first.",
+    "An intake and documentation workflow platform with AI-assisted documentation and clinical decision-support for review-first clinic teams.",
   narrative:
     "CliniqFlow organizes pre-visit intake, patient communication, and documentation setup so practitioners begin with clearer context and less operational chaos.",
   signupHref: "/signup",

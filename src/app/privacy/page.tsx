@@ -1,169 +1,162 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
+import { AI_DISCLAIMER_SHORT, SERVICE_DESCRIPTION } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: `How ${LEGAL.productName} collects, uses, and protects information for clinic teams and patients.`,
+  description: `How ${LEGAL.productName} collects, uses, and protects information.`,
 };
 
 export default function PrivacyPolicyPage() {
   return (
     <LegalPageShell
       title="Privacy Policy"
-      description={`This Privacy Policy describes how ${LEGAL.companyName} ("we," "us," or "our") handles personal information when you use ${LEGAL.productName}, our multi-tenant platform for outpatient wellness clinics.`}
+      description={`This Privacy Policy describes how ${LEGAL.legalName}, ${LEGAL.entityDescription}, handles personal information when you use ${LEGAL.productName}.`}
     >
       <h2>1. Who this policy applies to</h2>
       <p>
-        This policy applies to clinic staff and administrators who create accounts on{" "}
-        {LEGAL.productName}, and to individuals who complete intake questionnaires through
-        links provided by a clinic. If you interact with {LEGAL.productName} only as a
-        patient of a clinic, your clinic is generally responsible for how your health
-        information is used; we process that information on the clinic&apos;s behalf as a
-        service provider.
+        This policy applies to clinic staff and administrators who create accounts, individuals
+        who complete intake questionnaires through clinic links, and visitors to our website.
+        For patient health information submitted by a clinic, the clinic is generally the
+        controller and CliniqFlow acts as a processor/service provider on the clinic&apos;s
+        behalf.
       </p>
 
       <h2>2. Information we collect</h2>
-      <p>Depending on how you use the service, we may collect:</p>
       <ul>
         <li>
-          <strong>Account information:</strong> name, email address, clinic or organization
-          name, role, and authentication credentials managed through our identity provider.
+          <strong>Account information:</strong> name, email, organization name, role, and
+          authentication credentials.
         </li>
         <li>
-          <strong>Clinical workflow data:</strong> patient demographics, intake responses,
-          assessment outputs, encounter notes, SOAP drafts, appointment requests, and related
-          metadata submitted by authorized clinic users or patients via secure intake links.
+          <strong>Clinical workflow data:</strong> patient demographics, contact information,
+          intake questionnaire responses, symptoms, structured intake highlights, documentation
+          drafts, consent records, and related metadata submitted by clinics or patients via
+          secure intake links.
         </li>
         <li>
-          <strong>Billing information:</strong> subscription plan, billing status, and
-          payment details processed by our payment processor. We do not store full payment
-          card numbers on our servers.
+          <strong>Billing information:</strong> subscription plan and payment metadata processed
+          by Stripe or PayPal. We do not store full payment card numbers.
         </li>
         <li>
-          <strong>Usage and technical data:</strong> log data, device and browser type, IP
-          address, pages viewed, feature usage, and error diagnostics needed to operate and
-          secure the platform.
+          <strong>Technical data:</strong> IP address, browser type, device information, log
+          data, and error diagnostics needed to operate and secure the platform.
+        </li>
+        <li>
+          <strong>Consent records:</strong> consent version, timestamp, truncated or hashed IP
+          where stored, and user agent string for audit purposes.
         </li>
       </ul>
 
       <h2>3. How we use information</h2>
       <p>We use information to:</p>
       <ul>
-        <li>Provide, maintain, and improve the {LEGAL.productName} platform.</li>
+        <li>Provide, maintain, and improve {LEGAL.productName}.</li>
         <li>Authenticate users, enforce access controls, and protect tenant isolation.</li>
-        <li>Generate structured clinical drafts and workflow outputs requested by clinics.</li>
-        <li>Process subscriptions, trials, invoices, and account communications.</li>
+        <li>
+          Generate draft documentation and structured intake highlights through rule-based logic
+          and AI-assisted documentation and clinical decision-support.
+        </li>
+        <li>Process subscriptions and account communications.</li>
         <li>Monitor performance, prevent abuse, and comply with legal obligations.</li>
       </ul>
       <p>
         We do not sell personal information. We do not use patient intake content for
-        unrelated advertising purposes.
+        advertising.
       </p>
 
-      <h2>4. AI-assisted features</h2>
+      <h2>4. AI processing</h2>
+      <p>{AI_DISCLAIMER_SHORT}</p>
       <p>
-        {LEGAL.productName} may send selected clinical context to third-party AI providers to
-        produce structured draft documentation. Outputs are intended to assist licensed
-        clinicians and must be reviewed before clinical use. We configure integrations to
-        request structured responses and limit data sent to what is necessary for the
-        requested task.
+        In restricted mode, we send minimized clinical context to AI providers: age, sex,
+        symptoms, intake questionnaire responses, and rule-based intake theme highlights. We
+        do not send patient name, email, phone, or physical address to AI providers in this
+        mode.
+      </p>
+      <p>
+        We configure our OpenRouter integration to send{" "}
+        <code>X-OpenRouter-Data-Policy: deny</code> to request that the provider not retain
+        request data for training. Third-party provider policies govern actual retention. We do
+        not guarantee provider compliance.
       </p>
 
-      <h2>5. How we share information</h2>
-      <p>We may share information with:</p>
+      <h2>5. Access roles</h2>
       <ul>
         <li>
-          <strong>Service providers</strong> that help us host infrastructure, authenticate
-          users, process payments, deliver email, and operate AI features (for example,
-          database hosting, payment processing, and model inference providers).
+          <strong>Practitioners and clinic staff</strong> access records within their clinic
+          according to role permissions.
         </li>
         <li>
-          <strong>Your clinic organization</strong>, according to role-based permissions
-          configured within your tenant workspace.
+          <strong>CliniqFlow Support</strong> does not access patient records.
         </li>
         <li>
-          <strong>Legal and safety recipients</strong> when required by law, court order, or
-          to protect rights, safety, and security.
+          <strong>Platform administrators</strong> may access tenant systems for maintenance,
+          security, compliance, and operations. Access is logged and auditable.
         </li>
       </ul>
+
+      <h2>6. Sharing and subprocessors</h2>
       <p>
-        We require service providers to handle information under contractual obligations
-        appropriate to their role and the sensitivity of the data processed.
+        We share information with service providers listed in our{" "}
+        <Link href="/subprocessors">Subprocessor Disclosure</Link>, with your clinic
+        organization per permissions, and with legal recipients when required by law.
       </p>
 
-      <h2>6. Health information and compliance</h2>
+      <h2>7. Health information</h2>
       <p>
-        Clinics using {LEGAL.productName} may submit information that is protected health
-        information under applicable laws, including HIPAA where relevant. Clinics are
-        responsible for determining lawful bases for collection and for obtaining any
-        required patient consents. Where required, a separate business associate agreement
-        may govern our processing of protected health information on a clinic&apos;s behalf.
-      </p>
-      <p>
-        {LEGAL.productName} is a software platform, not a medical provider. We do not provide
-        medical advice, diagnosis, or treatment.
+        Clinics may submit protected health information. Clinics are responsible for lawful
+        bases and patient consents. CliniqFlow is a software platform, not a medical provider.
+        We do not provide medical advice, diagnosis, or treatment. See{" "}
+        <Link href="/medical-disclaimer">Medical Disclaimer</Link>.
       </p>
 
-      <h2>7. Data retention</h2>
+      <h2>8. Retention</h2>
+      <ul>
+        <li>
+          Clinical records: retained while your subscription is active and until deletion is
+          requested, subject to backup cycles.
+        </li>
+        <li>Audit logs: approximately six years (configurable).</li>
+        <li>Usage metrics: ninety (90) days.</li>
+        <li>Intake drafts: seven (7) days if not submitted.</li>
+      </ul>
+
+      <h2>9. Security</h2>
       <p>
-        We retain information for as long as needed to provide the service, meet contractual
-        obligations, resolve disputes, and comply with law. Clinics may request export or
-        deletion of tenant data subject to applicable retention requirements and backup
-        cycles.
+        We use administrative, technical, and organizational measures described in our{" "}
+        <Link href="/security-policy">Security Policy</Link>. No method of transmission or
+        storage is completely secure.
       </p>
 
-      <h2>8. Security</h2>
+      <h2>10. Your rights and requests</h2>
       <p>
-        We use administrative, technical, and organizational measures designed to protect
-        information, including encrypted transport, authenticated access, tenant-scoped data
-        controls, and monitoring. No method of transmission or storage is completely secure,
-        and we cannot guarantee absolute security.
+        Clinic account holders may update account information in workspace settings. Patients
+        should contact their clinic regarding intake data. Depending on your location, you may
+        have rights to access, correct, delete, or restrict processing. Submit requests via{" "}
+        <Link href="/privacy-request">Privacy Requests</Link> or{" "}
+        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>. We aim to respond
+        within {LEGAL.dataDeletionSlaDays} days where applicable.
       </p>
 
-      <h2>9. Your choices and rights</h2>
+      <h2>11. International transfers</h2>
       <p>
-        Clinic account holders may access, update, or delete certain account information
-        through workspace settings. Patients should contact their clinic directly regarding
-        intake data. Depending on your location, you may have rights to access, correct,
-        delete, or restrict processing of personal information. Contact us at{" "}
-        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a> to submit a
-        request.
+        Information may be processed in India, the United States, and other countries where
+        our subprocessors operate. Where required, we use appropriate safeguards such as
+        Standard Contractual Clauses under our <Link href="/dpa">DPA</Link>.
       </p>
 
-      <h2>10. International transfers</h2>
+      <h2>12. Children</h2>
       <p>
-        If you access the service from outside the country where our infrastructure or
-        providers operate, your information may be transferred internationally. We take steps
-        designed to ensure appropriate safeguards where required.
+        The service is not directed to children under 13. We do not knowingly collect personal
+        information from children except where submitted by a clinic as part of lawful intake.
       </p>
 
-      <h2>11. Children</h2>
+      <h2>13. Changes and contact</h2>
       <p>
-        {LEGAL.productName} is intended for use by clinics and authorized staff. It is not
-        directed to children under 13, and we do not knowingly collect personal information
-        from children except where submitted by a clinic as part of lawful clinical intake.
-      </p>
-
-      <h2>12. Changes to this policy</h2>
-      <p>
-        We may update this Privacy Policy from time to time. We will post the revised version
-        on this page and update the &quot;Last updated&quot; date. Material changes may also
-        be communicated through the product or by email where appropriate.
-      </p>
-
-      <h2>13. Contact us</h2>
-      <p>
-        Questions about this Privacy Policy can be sent to{" "}
-        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a> or through{" "}
-        <a href={LEGAL.website}>{LEGAL.website}</a>. For subscription or account support,
-        contact <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a>.
-      </p>
-      <p>
-        See also our <Link href="/terms">Terms of Service</Link>,{" "}
-        <Link href="/terms-of-use">Terms of Use</Link>, and{" "}
-        <Link href="/cancellation">Cancellation Policy</Link>.
+        We may update this policy by posting a revised version. Questions:{" "}
+        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>.
       </p>
     </LegalPageShell>
   );

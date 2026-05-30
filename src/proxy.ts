@@ -37,6 +37,15 @@ const PUBLIC_PATHS = [
   "/terms",
   "/terms-of-use",
   "/cancellation",
+  "/medical-disclaimer",
+  "/ai-disclaimer",
+  "/acceptable-use",
+  "/dpa",
+  "/security-policy",
+  "/cookies",
+  "/subprocessors",
+  "/legal-liability",
+  "/privacy-request",
 ];
 
 const AUTH_PATHS = ["/login", "/signup", "/forgot-password"];

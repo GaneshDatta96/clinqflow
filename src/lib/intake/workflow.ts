@@ -142,7 +142,7 @@ export async function processAuthenticatedIntakeSubmission(
     promptVersion: generated.promptVersion,
     model: generated.model,
     usedFallback: generated.usedFallback,
-    supportsAppointments: true,
+    supportsAppointments: false,
   };
 }
 
@@ -261,7 +261,7 @@ export async function processPublicIntakeSubmission(
     promptVersion: generated.promptVersion,
     model: generated.model,
     usedFallback: generated.usedFallback,
-    supportsAppointments: true,
+    supportsAppointments: false,
   };
 }
 

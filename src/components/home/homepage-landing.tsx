@@ -12,10 +12,10 @@ import { PricingPlanActions } from "@/components/home/pricing-plan-actions";
 import { proofCases, proofEncounter } from "@/lib/marketing/proof-data";
 
 const heroPoints = [
-  "Save ~5.2 minutes of physician discovery time",
+  "Designed to reduce repetitive pre-visit discovery",
   "Reduce repetitive intake conversations",
   "Help patients communicate more openly",
-  "Practitioner-review-first AI drafting",
+  "Practitioner-review-first AI documentation and clinical decision-support",
 ];
 
 const workflowMoments = [
@@ -81,8 +81,8 @@ const pricingPlans = [
     features: [
       "Multi-user access",
       "Advanced workflows",
-      "SOAP drafting",
-      "Pattern scoring",
+      "AI-assisted documentation and clinical decision-support",
+      "Structured intake highlights",
     ],
     cta: "Start free trial",
     href: BRAND.signupHref,
@@ -116,7 +116,7 @@ const faqs = [
   {
     question: "Does it diagnose patients or finalize notes automatically?",
     answer:
-      "No. CliniqFlow structures intake, surfaces patterns, and prepares draft documentation. Licensed practitioners remain responsible for diagnosis, interpretation, and final approval.",
+      "No. CliniqFlow structures intake, organizes responses into documentation themes, and prepares draft documentation. Licensed practitioners remain responsible for diagnosis, interpretation, and final approval.",
   },
   {
     question: "Can intake be tailored by clinic or specialty?",
@@ -266,7 +266,7 @@ export function HomepageLanding() {
 
               <div className="grid gap-px bg-[color:var(--line)] md:grid-cols-3">
                 {[
-                  { value: "~5.2 min", label: "Physician discovery time saved" },
+                  { value: "Less repetition", label: "Repetitive discovery reduced in workflow" },
                   { value: `${completedIntakeCount}/${proofCases.length}`, label: "Patients with intake completed" },
                   { value: `${readyForReviewCount}`, label: "Encounters ready for practitioner review" },
                 ].map((item) => (
@@ -327,7 +327,7 @@ export function HomepageLanding() {
 
                     <div className="bg-[color:var(--surface-raised)] px-5 py-5 lg:px-6">
                       <p className="text-sm font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
-                        Structured insights
+                        Intake theme highlights
                       </p>
                       <div className="mt-3 space-y-2">
                         {proofEncounter.patterns.slice(0, 2).map((pattern) => (
@@ -426,7 +426,7 @@ export function HomepageLanding() {
                   Queue, review, and appointment preparation live in one operational surface.
                 </h3>
                 <p className="max-w-2xl text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                  Encounter status, SOAP review, appointment requests, and supporting evidence are
+                  Encounter status, SOAP review, and supporting intake themes are
                   visible in one place so staff and practitioners can orient quickly.
                 </p>
               </div>
@@ -457,7 +457,7 @@ export function HomepageLanding() {
                   Documentation stays in practitioner review, not autopilot.
                 </h3>
                 <p className="mt-4 text-sm leading-relaxed text-white/72">
-                  CliniqFlow helps structure history, surface assessment patterns, and prepare draft
+                  CliniqFlow helps structure history, organize intake into documentation themes, and prepare draft
                   notes, but it does not replace clinical judgment or silently finalize the record.
                 </p>
 

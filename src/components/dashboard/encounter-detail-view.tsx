@@ -40,6 +40,13 @@ export function EncounterDetailView({ encounter }: { encounter: EncounterDashboa
 
       {encounter.soap ? (
         <div className="mt-8 space-y-4">
+          <p className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm leading-6 text-amber-950">
+            Draft documentation and clinical decision-support only — not a clinical record until
+            you edit and approve.{" "}
+            <a href="/ai-disclaimer" className="font-semibold underline">
+              AI disclaimer
+            </a>
+          </p>
           {(["subjective", "objective", "assessment", "plan"] as const).map((key) => (
             <div
               key={key}

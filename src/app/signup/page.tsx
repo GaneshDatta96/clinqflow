@@ -20,6 +20,14 @@ export default function SignupPage() {
         <Link href="/terms-of-use" className="font-semibold text-[color:var(--accent)]">
           Terms of Use
         </Link>
+        ,{" "}
+        <Link href="/acceptable-use" className="font-semibold text-[color:var(--accent)]">
+          Acceptable Use Policy
+        </Link>
+        ,{" "}
+        <Link href="/ai-disclaimer" className="font-semibold text-[color:var(--accent)]">
+          AI Disclaimer
+        </Link>
         , and{" "}
         <Link href="/privacy" className="font-semibold text-[color:var(--accent)]">
           Privacy Policy

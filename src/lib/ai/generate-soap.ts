@@ -18,18 +18,18 @@ import { canUseOpenRouterInProduction } from "@/lib/env";
 const PROMPT_VERSION = "soap_v2_niche_config";
 
 const SYSTEM_PROMPT = `You are a clinical documentation assistant for a US outpatient wellness clinic.
-Generate a SOAP note from structured intake and structured assessment results.
+Generate a SOAP note draft from structured intake and structured intake theme highlights.
 
 Rules:
 - Do not provide a definitive diagnosis.
 - Do not prescribe medications, supplements, or treatment regimens.
-- Use strong but non-diagnostic clinical language.
+- Use draft documentation language only — never diagnostic or predictive language.
 - Follow the clinic's SOAP template to decide what belongs in S, O, and A.
 - Examples:
-  - "Findings are consistent with..."
-  - "Pattern suggests..."
-  - "Presentation may reflect..."
-- The Objective section must be limited to facts explicitly present in the intake or assessment inputs.
+  - "Intake responses are consistent with..."
+  - "Submitted information may reflect..."
+  - "Draft documentation theme: ..."
+- The Objective section must be limited to facts explicitly present in the intake inputs.
 - If no exam, labs, or vitals are provided, say so clearly.
 - The Plan section must stay brief, clearly provisional, and easy for the clinician to edit manually.
 - ${PROMPT_INJECTION_GUARD}
@@ -101,8 +101,8 @@ function buildConfiguredFallbackSoap(
     assessment:
       assessment ||
       (topPattern
-        ? `Leading working impression suggests ${topPattern.label.toLowerCase()} with clinician correlation still required.`
-        : "Initial assessment remains broad and should be refined during clinician review."),
+        ? `Draft documentation theme: ${topPattern.label.toLowerCase()} — practitioner correlation required.`
+        : "Draft documentation section remains broad and should be refined during clinician review."),
     plan_draft: ["Manual Plan", ...planLines].join("\n"),
   });
 }
@@ -153,16 +153,16 @@ function buildAssessmentLine(
   }
 
   if (normalizedBullet.includes("severity")) {
-    return `Severity classification: patient-reported severity is ${intake.chief_complaint.severity_0_10}/10 with current workflow priority considered ${topPattern?.risk_level.replaceAll("_", " ") ?? "routine"}.`;
+    return `Patient-reported severity (draft): ${intake.chief_complaint.severity_0_10}/10; review priority ${topPattern?.risk_level.replaceAll("_", " ") ?? "routine"}.`;
   }
 
   if (normalizedBullet.includes("chronic") || normalizedBullet.includes("acute")) {
-    return `Chronicity assessment: reported duration is ${intake.chief_complaint.duration.toLowerCase()}, which should be interpreted in the context of onset and functional impact.`;
+    return `Reported duration (draft): ${intake.chief_complaint.duration.toLowerCase()} — practitioner to interpret in visit context.`;
   }
 
   if (normalizedBullet.includes("pattern")) {
     return topPattern
-      ? `${sentenceCase(bullet)}: leading intake pattern suggests ${topPattern.label.toLowerCase()} with confidence ${topPattern.confidence.toFixed(2)}.`
+      ? `${sentenceCase(bullet)}: intake theme ${topPattern.label.toLowerCase()} — draft for practitioner review.`
       : `${sentenceCase(bullet)}: intake remains nonspecific and needs clinician correlation.`;
   }
 
@@ -226,18 +226,16 @@ function buildDefaultFallbackSoap(
     const evidence = joinSentence(item.evidence.slice(0, 3));
     const gaps = joinSentence(item.data_gaps.slice(0, 3));
 
-    return `${item.rank}. Findings are consistent with ${item.label.toLowerCase()}. Confidence ${item.confidence.toFixed(
-      2,
-    )}. Supporting evidence includes ${evidence}. Risk stratification: ${item.risk_level.replaceAll(
+    return `${item.rank}. Draft documentation theme: ${item.label.toLowerCase()}. Supporting intake items include ${evidence}. Review priority: ${item.risk_level.replaceAll(
       "_",
       " ",
-    )}. Data gaps include ${gaps}.`;
+    )}. Open items for clinician review include ${gaps}.`;
   });
 
   const assessment = [
     topPattern
-      ? `Pattern suggests ${topPattern.label.toLowerCase()} as the leading non-diagnostic working impression.`
-      : "Pattern suggests a nonspecific but clinically relevant symptom cluster requiring further review.",
+      ? `Intake responses are consistent with ${topPattern.label.toLowerCase()} as a draft documentation theme for practitioner review.`
+      : "Intake responses describe a symptom cluster requiring further practitioner review.",
     ...assessmentLines,
   ].join(" ");
 
@@ -247,9 +245,9 @@ function buildDefaultFallbackSoap(
     "Suggested Investigations:",
     "- Clinician to determine based on examination and history review.",
     "Monitoring:",
-    "- Track symptom severity, frequency, and response to initial recommendations.",
+    "- Track symptom severity and frequency per clinician direction.",
     "Follow-up:",
-    "- Review after practitioner assessment and any indicated workup.",
+    "- Review after practitioner evaluation.",
   ].join("\n");
 
   return soapDraftSchema.parse({

@@ -83,6 +83,13 @@ export function EncounterDashboardShell({
 
         {active.soap ? (
           <div className="space-y-4">
+            <p className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm leading-6 text-amber-950">
+              Draft documentation only — not a clinical record until you edit, approve, and
+              sign.{" "}
+              <a href="/ai-disclaimer" className="font-semibold underline">
+                AI disclaimer
+              </a>
+            </p>
             <SoapSection title="Subjective" icon={User} content={active.soap.subjective} />
             <SoapSection title="Objective" icon={HeartPulse} content={active.soap.objective} />
             <SoapSection title="Assessment" icon={Stethoscope} content={active.soap.assessment} />
@@ -101,23 +108,14 @@ export function EncounterDashboardShell({
           <p className="text-[color:var(--muted)]">No SOAP draft available.</p>
         )}
 
-        {active.appointment_request && (
-          <div className="mt-6 rounded-xl border border-[color:var(--line)] bg-white/80 p-4">
-            <h3 className="font-semibold">Appointment request</h3>
-            <p className="mt-2 text-sm text-[color:var(--muted)]">
-              {active.appointment_request.preferred_day} ·{" "}
-              {active.appointment_request.preferred_time} ·{" "}
-              {active.appointment_request.status}
-            </p>
-            {active.appointment_request.notes && (
-              <p className="mt-1 text-sm">{active.appointment_request.notes}</p>
-            )}
-          </div>
-        )}
+        {active.appointment_request && null}
 
         {active.patterns.length > 0 && (
           <div className="mt-8">
-            <h3 className="text-lg font-semibold">Pattern assessment</h3>
+            <h3 className="text-lg font-semibold">Intake theme highlights</h3>
+            <p className="mt-1 text-xs text-[color:var(--muted)]">
+              Structured intake themes for practitioner review — not a clinical diagnosis.
+            </p>
             <ul className="mt-3 space-y-3">
               {active.patterns.map((p) => (
                 <li
@@ -126,7 +124,7 @@ export function EncounterDashboardShell({
                 >
                   <p className="font-semibold">{p.pattern_key.replaceAll("_", " ")}</p>
                   <p className="text-sm text-[color:var(--muted)]">
-                    Confidence {p.confidence.toFixed(2)} · {p.risk_level}
+                    Review priority: {p.risk_level.replaceAll("_", " ")}
                   </p>
                   {p.evidence.slice(0, 2).map((e) => (
                     <p key={e} className="mt-1 text-sm">

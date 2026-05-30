@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_RETENTION_DAYS = 90;
 const MIN_AUDIT_RETENTION_DAYS = 365;
+const INTAKE_DRAFT_RETENTION_DAYS = 7;
 
 export const GET = createApiHandler({
   route: "/api/cron/retention",
@@ -48,11 +49,21 @@ export const GET = createApiHandler({
       .is("accepted_at", null)
       .lt("expires_at", new Date().toISOString());
 
+    const draftCutoff = new Date();
+    draftCutoff.setDate(draftCutoff.getDate() - INTAKE_DRAFT_RETENTION_DAYS);
+
+    const { count: draftsDeleted } = await admin
+      .from("intake_drafts")
+      .delete({ count: "exact" })
+      .lt("updated_at", draftCutoff.toISOString());
+
     return jsonOk({
       auditLogsDeleted: auditDeleted ?? 0,
       usageRowsDeleted: usageDeleted ?? 0,
       expiredInvitesDeleted: expiredInvites ?? 0,
+      intakeDraftsDeleted: draftsDeleted ?? 0,
       auditRetentionDays,
+      intakeDraftRetentionDays: INTAKE_DRAFT_RETENTION_DAYS,
     });
   },
 });

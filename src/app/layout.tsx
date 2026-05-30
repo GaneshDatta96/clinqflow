@@ -4,6 +4,7 @@ import { sourceSerif } from "@/lib/fonts/display";
 import { AppProviders } from "@/components/providers/app-providers";
 import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
+import { CookieNotice } from "@/components/legal/cookie-notice";
 import { BRAND } from "@/lib/brand/site";
 import "./globals.css";
 
@@ -37,6 +38,7 @@ export default function RootLayout({
           <GlobalHeader />
           <main className="flex flex-1 flex-col">{children}</main>
           <GlobalFooter />
+          <CookieNotice />
         </AppProviders>
       </body>
     </html>

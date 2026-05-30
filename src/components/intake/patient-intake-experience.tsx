@@ -234,9 +234,8 @@ export function PatientIntakeExperience(props: {
                 {props.clinic.config.label} intake sent to the clinic.
               </h1>
               <p className="max-w-3xl leading-7 text-[color:var(--muted)]">
-                The responses have been structured into a niche-aware SOAP draft
-                so the practitioner can review stronger Subjective and
-                Assessment context before the visit.
+                The responses have been structured into documentation drafts for
+                practitioner review before the visit.
               </p>
             </div>
           </div>
@@ -261,79 +260,18 @@ export function PatientIntakeExperience(props: {
           <SoapPreviewCard clinic={props.clinic} soap={submission.soap} />
         ) : null}
 
-        {submission.bookingEnabled ? (
-          <AppointmentRequestCard
-            encounterId={submission.encounterId}
-            bookingState={bookingState}
-            onSkip={() =>
-              setBookingState({
-                pending: false,
-                error: null,
-                submitted: false,
-                skipped: true,
-              })
-            }
-            onSubmit={async (values) => {
-              if (!submission.encounterId) {
-                return;
-              }
+        {submission.bookingEnabled ? null : null}
 
-              setBookingState({
-                pending: true,
-                error: null,
-                submitted: false,
-                skipped: false,
-              });
-
-              try {
-                const response = await fetch(
-                  `/api/encounters/${submission.encounterId}/appointment-request`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(values),
-                  },
-                );
-
-                const payload = (await response.json()) as { error?: string };
-
-                if (!response.ok) {
-                  throw new Error(payload.error ?? "Unable to request appointment.");
-                }
-
-                setBookingState({
-                  pending: false,
-                  error: null,
-                  submitted: true,
-                  skipped: false,
-                });
-              } catch (error) {
-                setBookingState({
-                  pending: false,
-                  error:
-                    error instanceof Error
-                      ? error.message
-                      : "Unable to request appointment.",
-                  submitted: false,
-                  skipped: false,
-                });
-              }
-            }}
-          />
-        ) : (
-          <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
-            <p className="section-label">Appointment</p>
-            <h2 className="mt-2 text-2xl font-semibold">
-              Demo intake saved without scheduling.
-            </h2>
-            <p className="mt-3 max-w-3xl leading-7 text-[color:var(--muted)]">
-              This clinic is currently using the newer demo persistence flow, so
-              appointment requests are left out of the route for now.
-            </p>
-          </section>
-        )}
+        <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
+          <p className="text-sm leading-7 text-[color:var(--muted)]">
+            <strong className="text-[color:var(--foreground)]">Not for emergencies.</strong>{" "}
+            If you need urgent medical care, contact local emergency services
+            immediately.{" "}
+            <a href="/medical-disclaimer" className="font-semibold text-[color:var(--accent)]">
+              Medical disclaimer
+            </a>
+          </p>
+        </section>
       </div>
     );
   }

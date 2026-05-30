@@ -89,3 +89,379 @@ Build Log Initialized.
 - Added src/lib/email/zoho-accounts.ts with round-robin rotation across ZOHO_ACCOUNTS_JSON mailboxes.
 - Updated src/lib/email/client.ts to send via nodemailer over smtp.zoho.in (SendGrid kept as optional fallback).
 - Default EMAIL_PROVIDER is now zoho; removed resend dependency.
+
+================================================================================
+[2026-05-30] - LEGAL & COMPLIANCE PACKAGE (major evolution)
+Version label: legal-compliance-v1
+Legal lastUpdated constant: May 30, 2026
+Patient consent version: 2026-05-30
+Build verified: npm run build (Next.js 16.2.6, 55 routes, success)
+================================================================================
+
+PURPOSE
+-------
+Production-ready legal and compliance layer for CliniqFlow as an intake and
+documentation workflow platform (NOT an EHR, telehealth, prescription, insurance,
+treatment-management, or appointment-scheduling system).
+
+Contracting party documented everywhere:
+  Ganesh Datta, sole proprietor operating under trade name CliniqFlow (India).
+Placeholders still require manual fill before counsel sign-off:
+  [Registration Number], [Registered Business Address], [Arbitration institution]
+
+Governing law: India
+Dispute resolution: binding arbitration, seat India or Singapore
+Standard product phrase (use in all customer-facing copy):
+  "AI-assisted documentation and clinical decision-support"
+Prohibited customer-facing phrases:
+  AI diagnosis, diagnostic engine, diagnostic recommendation, predictive diagnosis,
+  pattern scoring (marketing), confidence scores in UI
+
+================================================================================
+A. NEW FILES (create these to restore this version from scratch)
+================================================================================
+
+Legal configuration
+  src/lib/legal/site.ts
+    - LEGAL constant (entity, emails, trialDays, arbitration, deletion SLA)
+    - LEGAL_PAGES registry (13 public policy routes)
+    - legalEntityBlock() helper
+
+  src/lib/legal/clauses.ts
+    - SERVICE_DESCRIPTION, AI_DISCLAIMER_SHORT
+    - LIABILITY_CAP_INTRO, EXCLUDED_DAMAGES
+    - GOVERNING_LAW, ARBITRATION_CLAUSE
+    - Shared across Terms, ToU, legal-liability pages
+
+Legal UI shell
+  src/components/legal/cookie-notice.tsx
+    - Strictly-necessary cookie banner; localStorage key: cliniqflow_cookie_notice_ack
+
+Public legal pages (all use LegalPageShell + LEGAL from site.ts)
+  src/app/privacy/page.tsx              (rewritten)
+  src/app/terms/page.tsx                (rewritten)
+  src/app/terms-of-use/page.tsx         (rewritten)
+  src/app/medical-disclaimer/page.tsx   (NEW)
+  src/app/ai-disclaimer/page.tsx        (NEW)
+  src/app/acceptable-use/page.tsx       (NEW)
+  src/app/dpa/page.tsx                  (NEW)
+  src/app/security-policy/page.tsx      (NEW)
+  src/app/cookies/page.tsx              (NEW)
+  src/app/subprocessors/page.tsx        (NEW)
+  src/app/legal-liability/page.tsx      (NEW)
+  src/app/privacy-request/page.tsx      (NEW)
+  src/app/cancellation/page.tsx         (unchanged from prior version)
+
+Database migration
+  supabase/migrations/20260607000000_support_no_phi_access.sql
+    - Drops platform_support_*_select RLS on all PHI/clinical tables
+    - Also appended to end of supabase/RUN_ON_SUPABASE.sql
+
+================================================================================
+B. MODIFIED FILES (behavior + copy changes)
+================================================================================
+
+Access control & security
+  src/lib/tenancy/context.ts
+    - logPhiAccessIfPlatformStaff() now logs ONLY platform admin (not support)
+    BEFORE: logged for isPlatformAdmin || isPlatformSupport
+    AFTER:  logged for isPlatformAdmin only
+    RESTORE support logging: revert the guard to include isPlatformSupport
+
+  src/lib/security/platform-staff.ts
+    - Comment updated: support has no PHI access
+
+  src/proxy.ts
+    - PUBLIC_PATHS extended with all new legal routes:
+      /medical-disclaimer, /ai-disclaimer, /acceptable-use, /dpa,
+      /security-policy, /cookies, /subprocessors, /legal-liability, /privacy-request
+
+AI & clinical language (code outputs affect stored SOAP text)
+  src/lib/ai/phi.ts
+    - Restricted mode now sends ONLY: age, sex, symptoms, truncated chief complaint,
+      red_flags, metadata; strips history, lifestyle, goals, contact, names
+    BEFORE: redacted names/contact but kept history/lifestyle/goals/chief_complaint fields
+    RESTORE broader payload: revert minimizeIntakeForAi() to prior redaction-only logic
+
+  src/lib/ai/generate-soap.ts
+    - SYSTEM_PROMPT: draft documentation language; no "Pattern suggests"
+    - Fallback templates: "draft documentation theme", "intake responses are consistent with"
+    - Removed "working impression", "Severity classification", confidence in output text
+    RESTORE: git checkout prior generate-soap.ts for old prompt/fallback wording
+
+  src/lib/assessment/pattern-library.ts
+    - Labels renamed: e.g. "Digestive-related intake theme" (was "Digestive Dysfunction Pattern")
+    - assessmentHints use practitioner-review language, not diagnostic suggestions
+
+  src/lib/assessment/score-patterns.ts
+    - Fallback label: "Nonspecific intake theme" (was "Nonspecific Clinical Pattern")
+
+Intake & appointments
+  src/lib/intake/workflow.ts
+    - supportsAppointments: false (was true in both pipeline return paths)
+    RESTORE appointments: set supportsAppointments back to true
+
+  src/components/intake/patient-intake-experience.tsx
+    - Removed AppointmentRequestCard flow from post-submit UI
+    - Added emergency disclaimer + link to /medical-disclaimer
+    - Copy: "documentation drafts" instead of "SOAP-ready / Assessment context"
+    RESTORE: re-enable bookingEnabled block with AppointmentRequestCard
+
+  src/components/intake/patient-intake-form.tsx
+    - Consent text links to /privacy; adds emergency disclaimer
+    - Header copy: "structured documentation drafts"
+
+Consent & retention
+  src/services/consent.service.ts
+    - CURRENT_CONSENT_VERSION = "2026-05-30" (was "2026-05-23")
+    NOTE: existing consent_records in DB retain old version strings
+
+  src/app/api/cron/retention/route.ts
+    - INTAKE_DRAFT_RETENTION_DAYS = 7
+    - Deletes intake_drafts where updated_at older than 7 days
+    - Response includes intakeDraftsDeleted, intakeDraftRetentionDays
+    RESTORE: remove draft purge block and constant
+
+Marketing & dashboard UI
+  src/components/home/homepage-landing.tsx
+    - Removed "~5.2 min saved" performance claim
+    - Growth plan: "Structured intake highlights" (was "Pattern scoring")
+    - FAQ/product copy: documentation themes, not "assessment patterns"
+    - Hero stat: "Less repetition" qualitative (was "~5.2 min")
+
+  src/lib/marketing/proof-data.ts
+    - Sanitized SOAP assessment text (no "lab follow-up should be reviewed")
+    - Pattern keys renamed (sleep_stress_theme, thyroid_history_noted, etc.)
+    - appointment_request set to null on proof-enc-1
+
+  src/lib/brand/site.ts
+    - positioning string includes "AI-assisted documentation and clinical decision-support"
+
+  src/components/dashboard/encounter-dashboard-shell.tsx
+    - "Intake theme highlights" (was "Pattern assessment")
+    - Hides confidence numeric; shows "Review priority" only
+    - AI disclaimer banner on SOAP section with link to /ai-disclaimer
+    - Appointment request panel removed (null render)
+
+  src/components/dashboard/encounter-detail-view.tsx
+    - AI disclaimer banner on encounter SOAP detail
+
+Layout & integration
+  src/app/layout.tsx
+    - Added <CookieNotice /> after GlobalFooter
+
+  src/components/layout/footer.tsx
+    - Disclaimer updated; links to /medical-disclaimer
+    - Footer nav driven by LEGAL_PAGES (now 13 entries)
+
+  src/components/legal/legal-page-shell.tsx
+    - Shows service provider entity block under lastUpdated
+
+  src/app/signup/page.tsx
+    - Acceptance links: ToS, ToU, AUP, AI Disclaimer, Privacy
+
+  src/app/app/settings/compliance/page.tsx
+    - Links: Privacy, DPA, Security Policy, Subprocessors, Privacy Requests
+
+  src/app/globals.css
+    - .legal-prose table, th, td, code styles for subprocessors/cookies pages
+
+================================================================================
+C. DATABASE / SUPABASE CHANGES
+================================================================================
+
+Migration: 20260607000000_support_no_phi_access.sql
+
+DROPPED policies (platform support loses SELECT on):
+  platform_support_patients_select
+  platform_support_encounters_select
+  platform_support_intake_submissions_select
+  platform_support_assessment_results_select
+  platform_support_soap_notes_select
+  platform_support_appointment_requests_select
+  platform_support_intake_links_select
+  platform_support_intake_drafts_select
+  platform_support_ai_generations_select
+  platform_support_consent_select
+
+Platform support RETAINS SELECT on (unchanged):
+  tenants, profiles, tenant_memberships, tenant_invites, clinics,
+  audit_logs, subscriptions, usage_tracking, api_keys, niche_configs,
+  baa_agreements, prompt_templates, ai_jobs
+
+Platform admin: full cross-tenant access unchanged (logged via audit).
+
+TO APPLY on Supabase:
+  Run migration file in SQL Editor, OR re-run tail of RUN_ON_SUPABASE.sql
+  (section: 20260607000000_support_no_phi_access.sql)
+
+TO RESTORE support PHI read access (NOT recommended for legal alignment):
+  Re-create policies from 20260605000000_security_hardening.sql lines 252-287
+  (platform_support_*_select on clinical tables)
+  Revert logPhiAccessIfPlatformStaff in context.ts
+
+================================================================================
+D. LEGAL DOCUMENT MAP (routes → purpose)
+================================================================================
+
+  /terms              B2B subscription agreement (clinic customers)
+  /terms-of-use       All users; liability references ToS for paying clinics
+  /privacy            Controller/processor roles, AI minimization, retention
+  /medical-disclaimer Not a provider; emergencies; practitioner responsibility
+  /ai-disclaimer      Draft-only AI; minimized inputs; qualified OpenRouter retention
+  /acceptable-use     Prohibited conduct including autonomous diagnosis
+  /dpa                GDPR/UK GDPR processor terms + optional HIPAA BAA reference
+  /security-policy    Actual controls: RLS, support no-PHI, admin audit logging
+  /cookies            Session + tenant cookies only; no marketing analytics
+  /subprocessors      Supabase, OpenRouter, Stripe, PayPal, Zoho/SendGrid,
+                      Vercel, Upstash, Sentry
+  /legal-liability    Cap (12-month fees), excluded damages, indemnification exhibit
+  /privacy-request    Access/deletion request process (30-day SLA)
+  /cancellation       Subscription cancellation (pre-existing)
+
+Key legal positions encoded in documents:
+  - CliniqFlow Support: NO patient record access
+  - Super Admin (platform admin): logged, auditable access
+  - OpenRouter: X-OpenRouter-Data-Policy: deny sent (verified in generate-soap.ts:322)
+    Legal text does NOT warrant provider compliance — request only
+  - Liability cap unified: 12-month fees (removed ToU $100 cap conflict)
+  - Force majeure + class action waiver (US where enforceable)
+
+================================================================================
+E. PRODUCT BEHAVIOR CHANGES (runtime)
+================================================================================
+
+1. Platform support users cannot SELECT patient/clinical rows via RLS.
+2. AI restricted payload is narrower (see phi.ts section B).
+3. Appointment request UI disabled; supportsAppointments always false.
+4. Intake drafts auto-deleted after 7 days (retention cron).
+5. Cookie notice shown until user clicks "Understood".
+6. SOAP/encounter views show in-app AI disclaimer banners.
+7. Patient intake consent version bumped — new submissions record 2026-05-30.
+
+UNCHANGED (explicitly out of scope):
+  - No new patient/clinical delete API (privacy-request is email/process only)
+  - appointment_requests table and API route still exist but UI disabled
+  - Rule-based scorePatterns() logic unchanged (only labels/copy changed)
+  - OpenRouter integration path unchanged except prompt/fallback text
+
+================================================================================
+F. TERMINOLOGY REFERENCE (before → after)
+================================================================================
+
+  "AI-assisted assessment support"     → "AI-assisted documentation and clinical decision-support"
+  "Pattern scoring" (pricing)          → "Structured intake highlights"
+  "Pattern assessment" (dashboard)     → "Intake theme highlights"
+  "Confidence 0.86 · medium"           → "Review priority: medium" (no numeric confidence)
+  "~5.2 min physician time saved"      → "Less repetition" / qualitative only
+  "Pattern suggests..." (AI output)    → "Intake responses are consistent with..."
+  "working impression"                 → "draft documentation theme"
+  "Digestive Dysfunction Pattern"      → "Digestive-related intake theme"
+
+================================================================================
+G. HOW TO RESTORE / REVERT THIS VERSION
+================================================================================
+
+Full revert (git):
+  If committed: git log --oneline | find legal/compliance commit, then git revert <sha>
+  Or: git checkout <prior-commit> -- . for selective file restore
+
+Selective restores:
+
+  Legal pages only:
+    Delete src/app/{medical-disclaimer,ai-disclaimer,acceptable-use,dpa,security-policy,
+      cookies,subprocessors,legal-liability,privacy-request}/ directories
+    Restore prior src/app/{privacy,terms,terms-of-use}/page.tsx from git
+    Restore src/lib/legal/site.ts to companyName-only config (4 LEGAL_PAGES)
+
+  Support PHI access:
+    Do NOT re-run 20260607000000; instead re-apply SELECT policies from
+    20260605000000_security_hardening.sql
+    Revert src/lib/tenancy/context.ts logPhiAccessIfPlatformStaff guard
+
+  Appointments:
+    workflow.ts supportsAppointments: true
+    Restore AppointmentRequestCard block in patient-intake-experience.tsx
+    Restore appointment_request in proof-data.ts
+
+  AI payload:
+    git checkout HEAD~1 -- src/lib/ai/phi.ts
+
+  Marketing claims:
+    git checkout HEAD~1 -- src/components/home/homepage-landing.tsx
+    git checkout HEAD~1 -- src/lib/marketing/proof-data.ts
+
+  Consent version:
+    Set CURRENT_CONSENT_VERSION back to "2026-05-23" in consent.service.ts
+    (does not alter existing DB rows)
+
+  Intake draft retention:
+    Remove draft purge from src/app/api/cron/retention/route.ts
+
+  Cookie notice:
+    Remove CookieNotice from src/app/layout.tsx
+    Delete src/components/legal/cookie-notice.tsx
+
+================================================================================
+H. POST-DEPLOY CHECKLIST (operator)
+================================================================================
+
+  [ ] Run supabase migration 20260607000000_support_no_phi_access.sql
+  [ ] Fill LEGAL.registrationPlaceholder and addressPlaceholder in site.ts
+  [ ] Fill LEGAL.arbitrationInstitution in site.ts
+  [ ] Attorney review before US healthcare customer contracts
+  [ ] Confirm OpenRouter account terms align with zero-retention request
+  [ ] Verify PLATFORM_SUPPORT_EMAILS users cannot query patients table in Supabase
+  [ ] Spot-check all 13 legal routes render on production
+  [ ] Confirm footer shows updated disclaimer + policy links
+
+================================================================================
+I. FILES TOUCHED — COMPLETE LIST (for audit)
+================================================================================
+
+NEW:
+  supabase/migrations/20260607000000_support_no_phi_access.sql
+  src/lib/legal/clauses.ts
+  src/components/legal/cookie-notice.tsx
+  src/app/medical-disclaimer/page.tsx
+  src/app/ai-disclaimer/page.tsx
+  src/app/acceptable-use/page.tsx
+  src/app/dpa/page.tsx
+  src/app/security-policy/page.tsx
+  src/app/cookies/page.tsx
+  src/app/subprocessors/page.tsx
+  src/app/legal-liability/page.tsx
+  src/app/privacy-request/page.tsx
+
+MODIFIED:
+  supabase/RUN_ON_SUPABASE.sql
+  src/lib/legal/site.ts
+  src/lib/ai/phi.ts
+  src/lib/ai/generate-soap.ts
+  src/lib/assessment/pattern-library.ts
+  src/lib/assessment/score-patterns.ts
+  src/lib/intake/workflow.ts
+  src/lib/brand/site.ts
+  src/lib/marketing/proof-data.ts
+  src/lib/tenancy/context.ts
+  src/lib/security/platform-staff.ts
+  src/proxy.ts
+  src/services/consent.service.ts
+  src/app/layout.tsx
+  src/app/globals.css
+  src/app/signup/page.tsx
+  src/app/privacy/page.tsx
+  src/app/terms/page.tsx
+  src/app/terms-of-use/page.tsx
+  src/app/app/settings/compliance/page.tsx
+  src/app/api/cron/retention/route.ts
+  src/components/legal/legal-page-shell.tsx
+  src/components/layout/footer.tsx
+  src/components/home/homepage-landing.tsx
+  src/components/dashboard/encounter-dashboard-shell.tsx
+  src/components/dashboard/encounter-detail-view.tsx
+  src/components/intake/patient-intake-form.tsx
+  src/components/intake/patient-intake-experience.tsx
+
+END legal-compliance-v1
+================================================================================

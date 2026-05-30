@@ -105,11 +105,11 @@ export function PatientIntakeForm(props: {
         <div className="space-y-3">
           <p className="section-label">{props.clinic.config.label}</p>
           <h2 className="text-2xl font-semibold tracking-tight text-[color:var(--foreground)]">
-            Dynamic questionnaire mapped to SOAP-ready output.
+            Dynamic questionnaire mapped to structured documentation drafts.
           </h2>
           <p className="max-w-3xl text-sm leading-7 text-[color:var(--muted)]">
             Each answer below is rendered from the selected niche config and fed
-            into a stronger Subjective and Assessment draft. Plan stays manual
+            into Subjective and documentation-section drafts. Plan stays manual
             for the practitioner.
           </p>
         </div>
@@ -257,8 +257,12 @@ export function PatientIntakeForm(props: {
               className="mt-1"
             />
             <span>
-              I consent to the collection and use of my health information for
-              this intake, as described in the clinic&apos;s privacy practices.
+              I consent to the collection and use of my health information for this intake, as
+              described in the clinic&apos;s privacy practices and the{" "}
+              <a href="/privacy" className="font-semibold text-[color:var(--accent)]">
+                CliniqFlow Privacy Policy
+              </a>
+              . This service is not for medical emergencies.
             </span>
           </label>
         )}

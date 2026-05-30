@@ -1,6 +1,10 @@
 import type { NormalizedIntake } from "@/lib/schemas/intake";
 import { isAiPhiRestricted } from "@/lib/env";
 
+/**
+ * Restricted AI mode: send only age, sex, symptoms, and symptom-related chief complaint text.
+ * Questionnaire Q&A is passed separately via SOAP_CONTEXT in generateSoapDraft.
+ */
 export function minimizeIntakeForAi(intake: NormalizedIntake): NormalizedIntake {
   if (!isAiPhiRestricted()) {
     return intake;
@@ -9,28 +13,43 @@ export function minimizeIntakeForAi(intake: NormalizedIntake): NormalizedIntake 
   return {
     ...intake,
     patient_info: {
-      ...intake.patient_info,
       first_name: "Patient",
-      last_name: intake.patient_info.last_name?.slice(0, 1) ?? "X",
+      last_name: "X",
+      age: intake.patient_info.age,
+      sex_at_birth: intake.patient_info.sex_at_birth,
+      gender_identity: intake.patient_info.gender_identity,
       contact: {
         phone: "[redacted]",
         email: "[redacted]",
       },
     },
     chief_complaint: {
-      ...intake.chief_complaint,
       primary_issue: intake.chief_complaint.primary_issue.slice(0, 500),
+      duration: "",
+      severity_0_10: intake.chief_complaint.severity_0_10,
+      onset: "",
+      aggravating_factors: [],
+      relieving_factors: [],
+    },
+    symptoms: intake.symptoms,
+    history: {
+      conditions: [],
+      medications: [],
+      surgeries: [],
+      family_history: [],
+    },
+    lifestyle: {
+      diet: "",
+      exercise: "",
+      sleep: "",
+      stress: "",
+      substance_use: "",
     },
     goals: {
-      ...intake.goals,
-      expectations: intake.goals.expectations?.slice(0, 300) ?? intake.goals.expectations,
+      patient_priorities: [],
+      expectations: "",
     },
-    history: {
-      ...intake.history,
-      medications: intake.history.medications.map(() => "[redacted]"),
-      family_history: intake.history.family_history.map((item) =>
-        item.length > 80 ? `${item.slice(0, 80)}…` : item,
-      ),
-    },
+    red_flags: intake.red_flags,
+    metadata: intake.metadata,
   };
 }

@@ -26,14 +26,14 @@ export const proofCases: EncounterDashboardCase[] = [
       objective:
         "Pre-visit intake only. No vitals or physical exam documented yet. Questionnaire responses indicate irregular sleep schedule, high caffeine use, and moderate exercise tolerance.",
       assessment:
-        "Structured intake suggests sleep-stress dysregulation with symptom clustering around fatigue, concentration, and recovery. Thyroid-related history and lab follow-up should be reviewed during the visit.",
+        "Draft documentation: intake notes sleep-stress themes with fatigue and concentration items. Practitioner to confirm history and any follow-up during the visit.",
       plan:
         "Draft only. Practitioner to confirm history, complete exam, and decide on counseling, labs, and follow-up plan.",
       review_status: "draft",
     },
     patterns: [
       {
-        pattern_key: "sleep_stress_axis",
+        pattern_key: "sleep_stress_theme",
         confidence: 0.86,
         risk_level: "medium",
         evidence: [
@@ -42,7 +42,7 @@ export const proofCases: EncounterDashboardCase[] = [
         ],
       },
       {
-        pattern_key: "thyroid_review_flag",
+        pattern_key: "thyroid_history_noted",
         confidence: 0.63,
         risk_level: "low",
         evidence: [
@@ -51,12 +51,7 @@ export const proofCases: EncounterDashboardCase[] = [
         ],
       },
     ],
-    appointment_request: {
-      preferred_day: "Thursday",
-      preferred_time: "Afternoon",
-      notes: "Prefers telehealth if available.",
-      status: "pending",
-    },
+    appointment_request: null,
   },
   {
     id: "proof-enc-2",
@@ -74,14 +69,14 @@ export const proofCases: EncounterDashboardCase[] = [
       objective:
         "Pre-visit intake only. No physical findings yet. Questionnaire highlights meal timing variability and low water intake.",
       assessment:
-        "Structured intake suggests digestive pattern review with dietary and stress-related triggers worth exploring in visit.",
+        "Draft documentation: intake notes digestive-related themes with dietary context for practitioner review during the visit.",
       plan:
         "Draft only. Practitioner to validate symptom history, review red flags, and determine testing or diet trial approach.",
       review_status: "approved",
     },
     patterns: [
       {
-        pattern_key: "digestive_irritation",
+        pattern_key: "digestive_intake_theme",
         confidence: 0.74,
         risk_level: "medium",
         evidence: [

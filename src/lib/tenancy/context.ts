@@ -85,7 +85,7 @@ export async function logPhiAccessIfPlatformStaff(args: {
   resourceId?: string;
   metadata?: Record<string, unknown>;
 }) {
-  if (!args.context.isPlatformAdmin && !args.context.isPlatformSupport) {
+  if (!args.context.isPlatformAdmin) {
     return;
   }
 

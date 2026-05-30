@@ -4,8 +4,9 @@ import type { createSupabaseServerClient } from "@/lib/db/supabase-server";
 import type { TenantContext } from "@/lib/tenancy/types";
 
 /**
- * Platform support has SELECT-only RLS. When impersonating a tenant, writes use
- * the service role with explicit tenant_id filters in application code.
+ * Platform support has no patient/clinical record access (RLS). When impersonating
+ * a tenant for operational tasks, writes use the service role with explicit
+ * tenant_id filters in application code — never for PHI tables.
  */
 export function resolveDbClientForContext(
   userClient: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,

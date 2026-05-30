@@ -59,8 +59,12 @@ export function GlobalFooter() {
         </div>
 
         <p className="text-center text-xs leading-6 text-[color:var(--muted)] md:text-left">
-          CliniqFlow is a workflow and documentation-assist platform. All clinical
-          decisions remain the responsibility of licensed healthcare professionals.
+          CliniqFlow is an intake and documentation workflow platform with AI-assisted
+          documentation and clinical decision-support. All clinical decisions remain the
+          responsibility of licensed healthcare professionals.{" "}
+          <Link href="/medical-disclaimer" className="font-medium text-[color:var(--accent)]">
+            Medical disclaimer
+          </Link>
         </p>
 
         <div className="flex flex-col items-center gap-3 border-t border-[color:var(--line)]/50 pt-8 md:flex-row md:justify-between">

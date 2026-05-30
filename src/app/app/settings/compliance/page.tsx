@@ -28,9 +28,13 @@ export default async function ComplianceSettingsPage() {
         <p className="text-xs text-[color:var(--muted)]">
           Includes tenant-scoped audit events. Do not share exports outside your compliance program.
         </p>
-        <Link href="/privacy" className="block text-sm font-semibold text-[color:var(--accent)]">
-          Privacy Policy
-        </Link>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-[color:var(--accent)]">
+          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/dpa">Data Processing Addendum</Link>
+          <Link href="/security-policy">Security Policy</Link>
+          <Link href="/subprocessors">Subprocessors</Link>
+          <Link href="/privacy-request">Privacy Requests</Link>
+        </div>
       </div>
     </div>
   );

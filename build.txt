@@ -75,3 +75,8 @@ Build Log Initialized.
 - Added src/components/billing/paypal-hosted-button.tsx using PayPal SDK hosted-buttons component.
 - Added src/components/home/pricing-plan-actions.tsx with optional PayPal checkout on the Growth plan card.
 - Configured via NEXT_PUBLIC_PAYPAL_CLIENT_ID and NEXT_PUBLIC_PAYPAL_HOSTED_BUTTON_ID.
+
+[2026-05-27] - docs: Regenerate complete Supabase setup SQL and checklist
+- Updated supabase/RUN_ON_SUPABASE.sql with all migrations through 20260605000000_security_hardening.sql.
+- Added supabase/SETUP_CHECKLIST.md with SQL, auth, seed, platform admin, and Vercel steps.
+- Added npm run create:platform-admin script.

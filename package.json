@@ -12,7 +12,8 @@
     "supabase:push": "npx supabase db push",
     "vercel:pull": "npx vercel pull",
     "seed:niche-configs": "node --env-file-if-exists=.env.local scripts/seed-niche-configs.mjs",
-    "db:backfill-tenants": "node --env-file-if-exists=.env.local scripts/backfill-tenant-ids.mjs"
+    "db:backfill-tenants": "node --env-file-if-exists=.env.local scripts/backfill-tenant-ids.mjs",
+    "create:platform-admin": "node --env-file-if-exists=.env scripts/create-platform-admin.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

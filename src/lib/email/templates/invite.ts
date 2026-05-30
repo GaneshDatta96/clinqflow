@@ -1,5 +1,6 @@
 import { ROLE_LABELS } from "@/lib/tenancy/role-routing";
 import type { TenantRole } from "@/lib/tenancy/types";
+import { emailShell } from "@/lib/email/templates/shared";
 
 export function buildInviteEmail(args: {
   organizationName: string;
@@ -8,24 +9,23 @@ export function buildInviteEmail(args: {
   inviterEmail?: string;
 }) {
   const roleLabel = ROLE_LABELS[args.role] ?? args.role;
+  const subject = `${args.organizationName} saved you a seat`;
 
-  const subject = `You're invited to ${args.organizationName} on Cliniqflow`;
+  const lines = [
+    `You've been invited to join <strong>${args.organizationName}</strong> on CliniqFlow as <strong>${roleLabel}</strong>.`,
+    args.inviterEmail
+      ? `${args.inviterEmail} thinks you'll make the front desk calmer.`
+      : "Your team thinks you'll make the front desk calmer.",
+    "Accept below and skip the \"what's the login again?\" thread.",
+  ];
 
-  const html = `
-    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
-      <h1 style="color: #0e7c7b;">Join ${args.organizationName}</h1>
-      <p>You've been invited as <strong>${roleLabel}</strong> on Cliniqflow.</p>
-      ${args.inviterEmail ? `<p>Invited by ${args.inviterEmail}</p>` : ""}
-      <p>
-        <a href="${args.acceptUrl}" style="display: inline-block; background: #0e7c7b; color: #fff; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
-          Accept invitation
-        </a>
-      </p>
-      <p style="color: #61777d; font-size: 14px;">This link expires in 7 days. If you did not expect this email, you can ignore it.</p>
-    </div>
-  `;
-
-  const text = `Join ${args.organizationName} on Cliniqflow as ${roleLabel}.\n\nAccept: ${args.acceptUrl}\n\nExpires in 7 days.`;
+  const { html, text } = emailShell({
+    title: "You're on the guest list",
+    lines,
+    ctaLabel: "Join the workspace",
+    ctaUrl: args.acceptUrl,
+    footer: "Link expires in 7 days. Wrong inbox? Ignore this.",
+  });
 
   return { subject, html, text };
 }

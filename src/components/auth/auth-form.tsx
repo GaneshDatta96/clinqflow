@@ -15,6 +15,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [resendPending, setResendPending] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   async function handleResendVerification() {
     if (!email.trim()) {
@@ -36,6 +37,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         throw new Error(payload.error ?? "Unable to resend verification email.");
       }
       setMessage("Verification email sent again. Check your inbox and spam folder.");
+      setNeedsVerification(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to resend verification email.");
     } finally {
@@ -47,6 +49,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     event.preventDefault();
     setError(null);
     setMessage(null);
+    setNeedsVerification(false);
     setPending(true);
 
     try {
@@ -79,8 +82,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           throw new Error(payload.error ?? "Unable to create account.");
         }
         setMessage(
-          "Account created. Check your email to verify your address, then continue to onboarding.",
+          "Account created. Check your email to verify your address, then sign in.",
         );
+        setNeedsVerification(true);
         return;
       }
 
@@ -91,10 +95,24 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           email,
           password,
         });
-      if (signInError) throw signInError;
+
+      if (signInError) {
+        const authMessage = signInError.message.toLowerCase();
+        if (authMessage.includes("email not confirmed")) {
+          setMessage(
+            "Verify your email first — we sent a link when you signed up. Need a fresh one?",
+          );
+          setNeedsVerification(true);
+          return;
+        }
+        throw signInError;
+      }
 
       if (!signInData.user?.email_confirmed_at) {
-        setMessage("Please verify your email before signing in.");
+        setMessage(
+          "Verify your email first — we sent a link when you signed up. Need a fresh one?",
+        );
+        setNeedsVerification(true);
         await supabase.auth.signOut();
         return;
       }
@@ -149,6 +167,16 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       {error && <p className="text-sm text-red-600">{error}</p>}
       {message && <p className="text-sm text-green-700">{message}</p>}
       {mode === "signup" && message ? (
+        <button
+          type="button"
+          disabled={resendPending || !email.trim()}
+          onClick={handleResendVerification}
+          className="w-full rounded-full border border-[color:var(--line)] py-3 text-sm font-semibold disabled:opacity-60"
+        >
+          {resendPending ? "Sending…" : "Resend verification email"}
+        </button>
+      ) : null}
+      {mode === "login" && needsVerification ? (
         <button
           type="button"
           disabled={resendPending || !email.trim()}

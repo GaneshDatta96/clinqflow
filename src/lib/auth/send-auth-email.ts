@@ -1,6 +1,8 @@
+import { findAuthUserByEmail, isEmailConfirmed } from "@/lib/auth/auth-users";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { sendEmail } from "@/lib/email/client";
 import {
+  buildAlreadyRegisteredEmail,
   buildPasswordResetEmail,
   buildSignupVerifyEmail,
 } from "@/lib/email/templates/auth-verify";
@@ -8,8 +10,52 @@ import { env } from "@/lib/env";
 import { badRequest } from "@/lib/api/errors";
 import { appAuthVerifyUrl } from "@/lib/auth/verification-link";
 
+function loginUrl() {
+  return `${env.appUrl.replace(/\/$/, "")}/login`;
+}
+
 function readVerificationUrl(properties: Record<string, unknown> | undefined) {
   return appAuthVerifyUrl(properties);
+}
+
+async function sendVerificationEmail(args: {
+  email: string;
+  fullName?: string;
+  properties: Record<string, unknown> | undefined;
+}) {
+  const verifyUrl = readVerificationUrl(args.properties);
+  if (!verifyUrl) {
+    throw badRequest("Could not generate a verification link.");
+  }
+
+  const template = buildSignupVerifyEmail({
+    verifyUrl,
+    fullName: args.fullName,
+  });
+
+  await sendEmail({
+    to: args.email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
+}
+
+async function sendAlreadyRegisteredNotice(args: {
+  email: string;
+  fullName?: string;
+}) {
+  const template = buildAlreadyRegisteredEmail({
+    loginUrl: loginUrl(),
+    fullName: args.fullName,
+  });
+
+  await sendEmail({
+    to: args.email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
 }
 
 export async function sendSignupVerificationEmail(args: {
@@ -29,43 +75,61 @@ export async function sendSignupVerificationEmail(args: {
   }
 
   const email = args.email.trim().toLowerCase();
+  const fullName = args.fullName.trim();
+  const existing = await findAuthUserByEmail(email);
+
+  if (existing && isEmailConfirmed(existing)) {
+    await sendAlreadyRegisteredNotice({
+      email,
+      fullName:
+        fullName ||
+        (typeof existing.user_metadata?.full_name === "string"
+          ? existing.user_metadata.full_name
+          : undefined),
+    });
+    return { emailSent: true, existingAccount: true as const };
+  }
+
+  if (existing) {
+    const { error: updateError } = await admin.auth.admin.updateUserById(
+      existing.id,
+      {
+        password: args.password,
+        user_metadata: { full_name: fullName },
+      },
+    );
+    if (updateError) {
+      throw badRequest(updateError.message);
+    }
+  } else {
+    const { error: createError } = await admin.auth.admin.createUser({
+      email,
+      password: args.password,
+      email_confirm: false,
+      user_metadata: { full_name: fullName },
+    });
+    if (createError) {
+      throw badRequest(createError.message);
+    }
+  }
+
   const { data, error } = await admin.auth.admin.generateLink({
     type: "signup",
     email,
     password: args.password,
-    options: {
-      data: { full_name: args.fullName.trim() },
-    },
   });
 
   if (error) {
-    const message = error.message.toLowerCase();
-    if (message.includes("already") || message.includes("registered")) {
-      throw badRequest("An account with this email already exists. Try signing in.");
-    }
     throw badRequest(error.message);
   }
 
-  const verifyUrl = readVerificationUrl(
-    data.properties as Record<string, unknown> | undefined,
-  );
-  if (!verifyUrl) {
-    throw badRequest("Could not generate a verification link.");
-  }
-
-  const template = buildSignupVerifyEmail({
-    verifyUrl,
-    fullName: args.fullName,
+  await sendVerificationEmail({
+    email,
+    fullName,
+    properties: data.properties as Record<string, unknown> | undefined,
   });
 
-  await sendEmail({
-    to: email,
-    subject: template.subject,
-    html: template.html,
-    text: template.text,
-  });
-
-  return { emailSent: true as const };
+  return { emailSent: true, existingAccount: false as const };
 }
 
 export async function resendSignupVerificationEmail(args: { email: string }) {
@@ -81,44 +145,44 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
   }
 
   const email = args.email.trim().toLowerCase();
+  const existing = await findAuthUserByEmail(email);
+
+  if (!existing) {
+    throw badRequest("No account found for this email.");
+  }
+
+  if (isEmailConfirmed(existing)) {
+    await sendAlreadyRegisteredNotice({
+      email,
+      fullName:
+        typeof existing.user_metadata?.full_name === "string"
+          ? existing.user_metadata.full_name
+          : undefined,
+    });
+    return { emailSent: true, existingAccount: true as const };
+  }
+
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
   });
 
   if (error) {
-    const message = error.message.toLowerCase();
-    if (message.includes("not found") || message.includes("no user")) {
-      throw badRequest("No account found for this email.");
-    }
-    if (message.includes("already") && message.includes("confirm")) {
-      throw badRequest("This email is already verified. You can sign in.");
-    }
     throw badRequest(error.message);
   }
 
-  const verifyUrl = readVerificationUrl(
-    data.properties as Record<string, unknown> | undefined,
-  );
-  if (!verifyUrl) {
-    throw badRequest("Could not generate a verification link.");
-  }
-
   const fullName =
-    typeof data.user?.user_metadata?.full_name === "string"
-      ? data.user.user_metadata.full_name
+    typeof existing.user_metadata?.full_name === "string"
+      ? existing.user_metadata.full_name
       : undefined;
 
-  const template = buildSignupVerifyEmail({ verifyUrl, fullName });
-
-  await sendEmail({
-    to: email,
-    subject: template.subject,
-    html: template.html,
-    text: template.text,
+  await sendVerificationEmail({
+    email,
+    fullName,
+    properties: data.properties as Record<string, unknown> | undefined,
   });
 
-  return { emailSent: true as const };
+  return { emailSent: true, existingAccount: false as const };
 }
 
 export async function sendPasswordResetEmail(args: { email: string }) {

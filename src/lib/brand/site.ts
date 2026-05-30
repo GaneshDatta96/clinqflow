@@ -9,6 +9,7 @@ export const BRAND = {
     "CliniqFlow organizes pre-visit intake, patient communication, and documentation setup so practitioners begin with clearer context and less operational chaos.",
   signupHref: "/signup",
   loginHref: "/login",
+  salesUrl: "https://cal.com/ganesh-datta-bygktk/sales-throughput-session",
   colors: {
     primary: "#0B1020",
     secondary: "#7C3AED",

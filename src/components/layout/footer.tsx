@@ -10,6 +10,7 @@ import { LEGAL, LEGAL_PAGES } from "@/lib/legal/site";
 const footerLinks = [
   { label: "Product", href: "/#product" },
   { label: "Workflow", href: "/#workflow" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "Why it helps", href: "/#why-cliniqflow" },
   { label: "FAQ", href: "/#faq" },
 ];

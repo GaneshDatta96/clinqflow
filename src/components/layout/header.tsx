@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ArrowUpRight, LayoutDashboard, Settings, Users } from "lucide-react";
 import clsx from "clsx";
 import { BrandLogo } from "@/components/brand/logo";
+import { BRAND } from "@/lib/brand/site";
 
 const appNavigation = [
   { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -15,6 +16,7 @@ const appNavigation = [
 const marketingNavigation = [
   { name: "Product", href: "#product" },
   { name: "Workflow", href: "#workflow" },
+  { name: "Pricing", href: "#pricing" },
   { name: "Why it helps", href: "#why-cliniqflow" },
   { name: "FAQ", href: "#faq" },
 ];
@@ -51,10 +53,10 @@ export function GlobalHeader() {
             </nav>
 
             <Link
-              href="/#product"
+              href={BRAND.signupHref}
               className="btn-primary !px-4 !py-2.5 !text-sm"
             >
-              View product demo
+              Get started
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </>

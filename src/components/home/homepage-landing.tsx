@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BadgeCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import { nicheConfigs } from "@/lib/clinics/niche-configs";
 import { BRAND } from "@/lib/brand/site";
 import {
@@ -58,6 +58,50 @@ const calmOutcomes = [
     title: "Operational calmness",
     description:
       "The system is designed to reduce cognitive overload, not add another glowing dashboard for staff to babysit.",
+  },
+];
+
+const pricingPlans = [
+  {
+    name: "Starter",
+    price: "$399",
+    period: "/month",
+    description: "For smaller practices digitizing intake workflows.",
+    features: ["Intake workflows", "Patient links", "Basic SOAP drafting", "1 clinic workspace"],
+    cta: "Start free trial",
+    href: BRAND.signupHref,
+    highlighted: false,
+  },
+  {
+    name: "Growth",
+    price: "$449",
+    period: "/month",
+    description: "For growing clinics needing operational efficiency.",
+    features: [
+      "Multi-user access",
+      "Advanced workflows",
+      "SOAP drafting",
+      "Pattern scoring",
+    ],
+    cta: "Start free trial",
+    href: BRAND.signupHref,
+    highlighted: true,
+  },
+  {
+    name: "Scale",
+    price: "Custom",
+    period: " pricing",
+    description: "For multi-location practices and advanced customization.",
+    features: [
+      "Multi-location support",
+      "Advanced customization",
+      "Dedicated onboarding",
+      "Priority support",
+    ],
+    cta: "Talk to sales",
+    href: BRAND.salesUrl,
+    highlighted: false,
+    external: true,
   },
 ];
 
@@ -188,12 +232,12 @@ export function HomepageLanding() {
             </div>
 
             <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
-              <a href="#product" className="btn-primary">
+              <Link href={BRAND.signupHref} className="btn-primary">
+                Start free trial
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href="#product" className="btn-secondary">
                 View product demo
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-              <a href="#workflow" className="btn-secondary">
-                See workflow
               </a>
             </div>
 
@@ -473,6 +517,75 @@ export function HomepageLanding() {
         </div>
       </section>
 
+      <section id="pricing" className="scroll-mt-28 border-t border-[color:var(--line)] bg-[color:var(--surface-muted)]">
+        <div className="mx-auto max-w-[1280px] px-5 py-20 sm:px-6 lg:px-10 lg:py-24">
+          <SectionIntro
+            label="Pricing"
+            title="Simple clinic pricing."
+            description="Start with a free trial, then choose the plan that matches your team size and workflow depth."
+          />
+
+          <div className="mt-12 grid gap-4 sm:mt-14 lg:grid-cols-3">
+            {pricingPlans.map((plan) => (
+              <article
+                key={plan.name}
+                className={`rounded-[2rem] border p-6 sm:p-8 ${
+                  plan.highlighted
+                    ? "border-[color:var(--primary)] bg-[color:var(--surface-raised)] shadow-[var(--shadow)]"
+                    : "border-[color:var(--line)] bg-[color:var(--surface-raised)]/80"
+                }`}
+              >
+                {plan.highlighted ? (
+                  <span className="section-label text-[color:var(--accent)]">Recommended</span>
+                ) : null}
+                <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
+                  {plan.name}
+                </h3>
+                <p className="mt-3">
+                  <span className="display-font text-4xl">{plan.price}</span>
+                  <span className="text-sm text-[color:var(--muted)]">{plan.period}</span>
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted-strong)]">
+                  {plan.description}
+                </p>
+                <ul className="mt-6 space-y-2.5">
+                  {plan.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2.5 text-sm leading-6 text-[color:var(--muted-strong)]"
+                    >
+                      <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--accent)]" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                {"external" in plan && plan.external ? (
+                  <a
+                    href={plan.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${
+                      plan.highlighted ? "btn-primary" : "btn-secondary"
+                    }`}
+                  >
+                    {plan.cta}
+                  </a>
+                ) : (
+                  <Link
+                    href={plan.href}
+                    className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${
+                      plan.highlighted ? "btn-primary" : "btn-secondary"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className="scroll-mt-28 mx-auto max-w-[1280px] px-5 pb-20 sm:px-6 lg:px-10 lg:pb-24">
         <SectionIntro label="FAQ" title="Common questions" />
 
@@ -503,8 +616,8 @@ export function HomepageLanding() {
                   Reduce chaos before the appointment begins.
                 </h2>
                 <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-white/72 sm:text-base">
-                  See the workflow, review the product, and decide whether it fits how your clinic
-                  wants intake and documentation to feel.
+                  Create your clinic workspace, send your first intake link, and see whether the
+                  workflow fits how your team prepares for visits.
                 </p>
               </div>
 
@@ -513,14 +626,14 @@ export function HomepageLanding() {
                   href={BRAND.signupHref}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[color:var(--primary)] transition hover:bg-white/94"
                 >
-                  Start onboarding
+                  Start free trial
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
-                  href="#product"
+                  href="#pricing"
                   className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
-                  View product demo
+                  View pricing
                 </a>
               </div>
             </div>

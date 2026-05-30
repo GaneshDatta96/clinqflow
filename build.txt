@@ -65,3 +65,8 @@ Build Log Initialized.
 - Added src/components/home/scaled-app-preview.tsx to scale real UI to the preview frame via container queries.
 - Added src/components/home/homepage-product-previews.tsx with live dashboard, intake, and encounter previews from proof data.
 - Hero operational panel now shows encounter review preview alongside the intake progression list.
+
+[2026-05-27] - fix: Restore pricing section and prioritize signup CTAs on homepage
+- Restored pricing plans (Starter, Growth, Scale) to src/components/home/homepage-landing.tsx after upstream homepage redesign removed them.
+- Hero, header, and bottom CTA now lead with Start free trial / Get started to /signup; product demo moved to secondary action.
+- Added Pricing to marketing header and footer navigation.

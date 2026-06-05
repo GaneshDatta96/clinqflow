@@ -4,10 +4,13 @@ import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { AI_DISCLAIMER_SHORT } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "AI Disclaimer",
   description: `How ${LEGAL.productName} uses AI for documentation and clinical decision-support.`,
-};
+  path: "/ai-disclaimer",
+});
 
 export default function AiDisclaimerPage() {
   return (

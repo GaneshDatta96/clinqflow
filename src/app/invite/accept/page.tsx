@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LoaderCircle } from "lucide-react";
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -46,8 +46,7 @@ export default function AcceptInvitePage() {
   }, [token, router]);
 
   return (
-    <div className="mx-auto flex max-w-md flex-1 flex-col justify-center px-6 py-20">
-      <h1 className="text-2xl font-semibold">Accept invitation</h1>
+    <>
       {status === "loading" && (
         <p className="mt-4 inline-flex items-center gap-2 text-[color:var(--muted)]">
           <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -67,6 +66,24 @@ export default function AcceptInvitePage() {
       )}
       {status === "ok" && <p className="mt-4 text-green-700">{message}</p>}
       {status === "error" && <p className="mt-4 text-red-600">{message}</p>}
+    </>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <div className="mx-auto flex max-w-md flex-1 flex-col justify-center px-6 py-20">
+      <h1 className="text-2xl font-semibold">Accept invitation</h1>
+      <Suspense
+        fallback={
+          <p className="mt-4 inline-flex items-center gap-2 text-[color:var(--muted)]">
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Loading…
+          </p>
+        }
+      >
+        <AcceptInviteContent />
+      </Suspense>
     </div>
   );
 }

@@ -3,10 +3,13 @@ import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Subprocessor Disclosure",
   description: `Third-party subprocessors used by ${LEGAL.productName}.`,
-};
+  path: "/subprocessors",
+});
 
 export default function SubprocessorsPage() {
   return (

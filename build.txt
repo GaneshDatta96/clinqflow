@@ -494,3 +494,12 @@ END legal-compliance-v1
 - Whitelisted /api/auth/session-role in proxy.ts; auth-form shows a clear message when role resolution fails.
 - Reordered security_hardening migration so platform-flag reset runs before the privilege-escalation trigger.
 - Set site favicon (src/app/icon.png, apple-icon.png) from the CliniqFlow circular mark; updated public/brand/cliniqflow-logo.png for header BrandLogo.
+
+[2026-06-05] - feat: SEO Phase 1 & 2 — technical foundation and marketing landing pages
+- Added src/lib/seo (site, metadata, routes, schema, home-faqs), JsonLd component, robots.ts, sitemap.ts, and public/og/cliniqflow-og.png.
+- Upgraded root layout metadataBase, OG/Twitter defaults, Organization + WebSite JSON-LD; fixed LEGAL.website to https://cliniqflow.app.
+- Optimized homepage metadata, H1/H2 hierarchy, internal links, FAQ + SoftwareApplication schema, and preview alt text.
+- Added landing pages: /how-patient-intake-works, /ai-documentation, /clinic-workflows, /security, /faq with MarketingPageShell.
+- Extended header/footer marketing nav and Product links; refactored 13 legal pages to buildPageMetadata; noindex on auth/intake routes.
+- Added docs/SEO_KEYWORDS.md, SEO_STRATEGY.md, CONTENT_MAP.md.
+- Fixed invite/accept Suspense boundary for production build; verified with npm run typecheck and npm run build.

@@ -9,10 +9,13 @@ import {
 } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Limitation of Liability and Indemnification",
   description: `Liability and indemnification terms for ${LEGAL.productName}.`,
-};
+  path: "/legal-liability",
+});
 
 export default function LegalLiabilityPage() {
   return (

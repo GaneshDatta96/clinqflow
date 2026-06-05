@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { buildPageMetadata, NOINDEX_ROBOTS } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Choose a new password",
+  description: "Set a new password for your CliniqFlow account.",
+  path: "/reset-password",
+  robots: NOINDEX_ROBOTS,
+});
 
 export default function ResetPasswordPage() {
   return (

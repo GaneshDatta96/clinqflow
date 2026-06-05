@@ -6,6 +6,7 @@ import { ArrowUpRight, LayoutDashboard, Settings, Users } from "lucide-react";
 import clsx from "clsx";
 import { BrandLogo } from "@/components/brand/logo";
 import { BRAND } from "@/lib/brand/site";
+import { SEO_LANDING_PAGES, isMarketingPath } from "@/lib/seo/routes";
 
 const appNavigation = [
   { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -13,7 +14,7 @@ const appNavigation = [
   { name: "Settings", href: "/app/settings", icon: Settings },
 ];
 
-const marketingNavigation = [
+const homeNavigation = [
   { name: "Product", href: "#product" },
   { name: "Workflow", href: "#workflow" },
   { name: "Pricing", href: "#pricing" },
@@ -28,34 +29,55 @@ function isActivePath(pathname: string, href: string) {
 export function GlobalHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isApp = pathname.startsWith("/app");
+  const showMarketingShell = !isApp && (isHome || isMarketingPath(pathname));
 
   if (pathname.startsWith("/proof")) {
     return null;
   }
+
+  const marketingLinks = isHome
+    ? homeNavigation
+    : SEO_LANDING_PAGES.map((item) => ({
+        name: item.label,
+        href: item.path,
+      }));
 
   return (
     <header className="fixed left-0 top-0 z-[100] w-full border-b border-[color:var(--line)] bg-[color:var(--background)]/92 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-6 py-3 lg:px-10">
         <BrandLogo />
 
-        {isHome ? (
+        {showMarketingShell ? (
           <>
-            <nav className="hidden items-center gap-7 md:flex">
-              {marketingNavigation.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--foreground)]"
-                >
-                  {item.name}
-                </a>
-              ))}
+            <nav className="hidden items-center gap-6 md:flex">
+              {marketingLinks.map((item) =>
+                isHome ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--foreground)]"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={clsx(
+                      "text-sm font-medium transition-colors",
+                      isActivePath(pathname, item.href)
+                        ? "text-[color:var(--foreground)]"
+                        : "text-[color:var(--muted-strong)] hover:text-[color:var(--foreground)]",
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                ),
+              )}
             </nav>
 
-            <Link
-              href={BRAND.signupHref}
-              className="btn-primary !px-4 !py-2.5 !text-sm"
-            >
+            <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
               Sign up
               <ArrowUpRight className="h-4 w-4" />
             </Link>

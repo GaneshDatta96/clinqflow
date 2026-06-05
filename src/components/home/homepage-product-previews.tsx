@@ -34,6 +34,7 @@ export function HeroOperationalPreview({ className = "" }: PreviewProps) {
       aspect="wide"
       elevated
       className={className}
+      ariaLabel="CliniqFlow practitioner dashboard preview showing patient intake queue and encounter review"
     >
       <ClientOnly fallback={<PreviewPlaceholder />}>
         <ScaledAppPreview designWidth={1120} fadeBottom padding={false}>
@@ -57,6 +58,7 @@ export function DashboardProductPreview({ className = "" }: PreviewProps) {
       aspect="wide"
       elevated
       className={className}
+      ariaLabel="Clinic documentation workflow dashboard with encounter status and SOAP review"
     >
       <ClientOnly fallback={<PreviewPlaceholder />}>
         <ScaledAppPreview designWidth={1120} fadeBottom padding={false}>
@@ -80,6 +82,7 @@ export function EncounterProductPreview({ className = "" }: PreviewProps) {
       aspect="wide"
       elevated
       className={className}
+      ariaLabel="Encounter review screen with draft SOAP documentation sections for practitioner approval"
     >
       <ClientOnly fallback={<PreviewPlaceholder />}>
         <ScaledAppPreview designWidth={1000} fadeBottom padding={false}>
@@ -101,6 +104,7 @@ export function IntakeProductPreview({ className = "" }: PreviewProps) {
       aspect="tall"
       elevated
       className={className}
+      ariaLabel="Digital patient intake form with structured specialty questionnaire before the clinic visit"
     >
       <ClientOnly fallback={<PreviewPlaceholder />}>
         <ScaledAppPreview designWidth={960}>

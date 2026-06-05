@@ -4,10 +4,13 @@ import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { SERVICE_DESCRIPTION } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Data Processing Addendum",
   description: `DPA for ${LEGAL.productName} clinic customers.`,
-};
+  path: "/dpa",
+});
 
 export default function DpaPage() {
   return (

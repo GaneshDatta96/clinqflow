@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { PatientIntakeExperience } from "@/components/intake/patient-intake-experience";
 import { getDefaultClinic } from "@/lib/clinics/niche-configs";
 import { getClinicForSlug } from "@/lib/clinics/store";
+import { buildPageMetadata, NOINDEX_ROBOTS } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Patient questionnaire",
+  description: "Secure patient questionnaire form.",
+  path: "/questionnaire",
+  robots: NOINDEX_ROBOTS,
+});
 
 export default async function QuestionnairePage({
   searchParams,

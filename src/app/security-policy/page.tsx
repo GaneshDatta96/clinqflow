@@ -3,10 +3,13 @@ import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Security & Data Protection Policy",
   description: `Security practices for ${LEGAL.productName}.`,
-};
+  path: "/security-policy",
+});
 
 export default function SecurityPolicyPage() {
   return (

@@ -3,10 +3,13 @@ import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Medical Disclaimer",
   description: `${LEGAL.productName} is not a medical provider. Read our medical disclaimer.`,
-};
+  path: "/medical-disclaimer",
+});
 
 export default function MedicalDisclaimerPage() {
   return (

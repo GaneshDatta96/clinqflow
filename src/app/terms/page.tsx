@@ -10,10 +10,13 @@ import {
 } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Terms of Service",
   description: `Subscription and service terms for clinic accounts using ${LEGAL.productName}.`,
-};
+  path: "/terms",
+});
 
 export default function TermsOfServicePage() {
   return (

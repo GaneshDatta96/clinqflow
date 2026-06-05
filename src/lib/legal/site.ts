@@ -7,7 +7,7 @@ export const LEGAL = {
   jurisdiction: "India",
   registrationPlaceholder: "[Registration Number]",
   addressPlaceholder: "[Registered Business Address, City, State, India]",
-  website: "https://clinqflow.vercel.app",
+  website: "https://cliniqflow.app",
   supportEmail: "support@cliniqflow.com",
   privacyEmail: "privacy@cliniqflow.com",
   securityEmail: "security@cliniqflow.com",

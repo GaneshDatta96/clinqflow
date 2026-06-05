@@ -5,7 +5,9 @@ import { AppProviders } from "@/components/providers/app-providers";
 import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
 import { CookieNotice } from "@/components/legal/cookie-notice";
-import { BRAND } from "@/lib/brand/site";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildRootMetadata } from "@/lib/seo/metadata";
+import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,10 +23,7 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: BRAND.nameDisplay,
-  description: BRAND.positioning,
-};
+export const metadata: Metadata = buildRootMetadata();
 
 export default function RootLayout({
   children,
@@ -34,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} ${sourceSerif.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col text-[15px] text-[color:var(--foreground)]">
+        <JsonLd data={[organizationSchema(), websiteSchema()]} />
         <AppProviders>
           <GlobalHeader />
           <main className="flex flex-1 flex-col">{children}</main>

@@ -9,10 +9,13 @@ import {
 } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Terms of Use",
   description: `Rules for accessing and using the ${LEGAL.productName} platform.`,
-};
+  path: "/terms-of-use",
+});
 
 export default function TermsOfUsePage() {
   return (

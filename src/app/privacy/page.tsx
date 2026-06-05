@@ -3,11 +3,13 @@ import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { AI_DISCLAIMER_SHORT, SERVICE_DESCRIPTION } from "@/lib/legal/clauses";
 import { LEGAL } from "@/lib/legal/site";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Privacy Policy",
   description: `How ${LEGAL.productName} collects, uses, and protects information.`,
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPolicyPage() {
   return (

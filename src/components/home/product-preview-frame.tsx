@@ -13,15 +13,19 @@ export function ProductPreviewFrame({
   aspect = "wide",
   className = "",
   elevated = false,
+  ariaLabel,
 }: {
   children: ReactNode;
   label?: string;
   aspect?: keyof typeof aspectClasses;
   className?: string;
   elevated?: boolean;
+  ariaLabel?: string;
 }) {
   return (
     <div
+      role={ariaLabel ? "img" : undefined}
+      aria-label={ariaLabel}
       className={`overflow-hidden rounded-[1.15rem] border border-[color:var(--line-strong)] bg-[color:var(--surface-raised)] ${
         elevated
           ? "shadow-[0_1px_0_rgba(11,16,32,0.04),0_20px_50px_rgba(11,16,32,0.1),0_4px_12px_rgba(11,16,32,0.04)]"

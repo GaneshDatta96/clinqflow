@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ChevronDown, ShieldCheck } from "lucide-react";
+import { JsonLd } from "@/components/seo/json-ld";
 import { nicheConfigs } from "@/lib/clinics/niche-configs";
 import { BRAND } from "@/lib/brand/site";
+import { HOME_FAQS } from "@/lib/seo/home-faqs";
+import { faqPageSchema, softwareApplicationSchema } from "@/lib/seo/schema";
 import {
   DashboardProductPreview,
   EncounterProductPreview,
@@ -105,29 +108,6 @@ const pricingPlans = [
     href: BRAND.salesUrl,
     highlighted: false,
     external: true,
-  },
-];
-
-const faqs = [
-  {
-    question: "Is CliniqFlow an EHR?",
-    answer:
-      "No. CliniqFlow is an intake, documentation, and practitioner-support workflow layer. It is designed to organize the work before and around the visit, not replace a full EHR.",
-  },
-  {
-    question: "Does it diagnose patients or finalize notes automatically?",
-    answer:
-      "No. CliniqFlow structures intake, organizes responses into documentation themes, and prepares draft documentation. Licensed practitioners remain responsible for diagnosis, interpretation, and final approval.",
-  },
-  {
-    question: "Can intake be tailored by clinic or specialty?",
-    answer:
-      "Yes. Intake flows are driven by specialty-specific configurations so clinics can collect structured context that fits their workflow instead of forcing a generic questionnaire.",
-  },
-  {
-    question: "What happens after a clinic signs up?",
-    answer:
-      "Teams create their workspace, complete onboarding, and begin sending signed intake links. From there, the dashboard, encounter review, and documentation workflow become the operating surface for pre-visit preparation.",
   },
 ];
 
@@ -238,6 +218,7 @@ export function HomepageLanding() {
 
   return (
     <div className="overflow-x-hidden pt-[4.5rem]">
+      <JsonLd data={[softwareApplicationSchema(), faqPageSchema(HOME_FAQS)]} />
       <section className="mx-auto max-w-[1280px] px-5 pb-16 pt-10 sm:px-6 lg:px-10 lg:pb-20 lg:pt-16">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
@@ -246,13 +227,14 @@ export function HomepageLanding() {
               <span className="section-label">{BRAND.tagline}</span>
             </div>
 
-            <h1 className="max-w-[16ch] text-balance text-[clamp(2.25rem,4.8vw,3.65rem)] font-semibold leading-[1.02] tracking-[-0.045em] text-[color:var(--foreground)] sm:max-w-none">
-              Reduce intake chaos before the appointment begins.
+            <h1 className="max-w-[20ch] text-balance text-[clamp(2.25rem,4.8vw,3.65rem)] font-semibold leading-[1.02] tracking-[-0.045em] text-[color:var(--foreground)] sm:max-w-none">
+              Patient intake and documentation workflow software for clinics
             </h1>
 
             <p className="mt-5 max-w-lg text-base leading-relaxed text-[color:var(--muted-strong)] sm:text-[1.05rem]">
-              CliniqFlow collects structured patient intake, prepares draft documentation, and
-              keeps everything in one practitioner dashboard.
+              Reduce intake chaos before the appointment begins. CliniqFlow collects structured
+              patient intake, prepares draft documentation, and keeps everything in one practitioner
+              dashboard.
             </p>
 
             <ul className="mt-6 space-y-2.5">
@@ -293,9 +275,25 @@ export function HomepageLanding() {
           <div className="lg:sticky lg:top-28 lg:self-start">
             <SectionIntro
               label="Workflow"
-              title="A calmer hour before the visit."
+              title="Healthcare intake workflow for calmer pre-visit preparation"
               description="Patient communication, intake structure, practitioner review, and documentation — organized in one pre-visit workflow."
             />
+
+            <p className="mt-4 text-sm leading-relaxed text-[color:var(--muted-strong)]">
+              Learn more about{" "}
+              <Link href="/how-patient-intake-works" className="font-semibold text-[color:var(--accent)]">
+                how patient intake works
+              </Link>
+              ,{" "}
+              <Link href="/clinic-workflows" className="font-semibold text-[color:var(--accent)]">
+                clinic documentation workflows
+              </Link>
+              , and{" "}
+              <Link href="/security" className="font-semibold text-[color:var(--accent)]">
+                data safeguards
+              </Link>
+              .
+            </p>
 
             <div className="mt-6 rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-muted)] p-5">
               <p className="text-sm font-semibold text-[color:var(--foreground)]">
@@ -336,9 +334,21 @@ export function HomepageLanding() {
       <PageSection id="product" muted>
         <SectionIntro
           label="Product"
-          title="Real screens, not mockups."
+          title="Clinic documentation workflow in practice"
           description="The interface you see here is the same workflow your team uses — queue, intake, and SOAP review."
         />
+
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[color:var(--muted-strong)]">
+          Explore{" "}
+          <Link href="/ai-documentation" className="font-semibold text-[color:var(--accent)]">
+            AI-assisted clinical documentation
+          </Link>{" "}
+          and read the{" "}
+          <Link href="/faq" className="font-semibold text-[color:var(--accent)]">
+            frequently asked questions
+          </Link>
+          .
+        </p>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:gap-5">
           <ShowcaseCard
@@ -490,7 +500,7 @@ export function HomepageLanding() {
           />
 
           <div className="space-y-3">
-            {faqs.map((faq) => (
+            {HOME_FAQS.map((faq) => (
               <details
                 key={faq.question}
                 className="group rounded-[1.35rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-5 py-4 transition hover:border-[color:var(--line-strong)]"

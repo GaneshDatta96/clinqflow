@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { buildPageMetadata, NOINDEX_ROBOTS } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Sign in",
+  description: "Sign in to your CliniqFlow clinic workspace.",
+  path: "/login",
+  robots: NOINDEX_ROBOTS,
+});
 
 export default function LoginPage() {
   return (

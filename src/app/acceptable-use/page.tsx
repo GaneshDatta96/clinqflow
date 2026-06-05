@@ -3,10 +3,13 @@ import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { LEGAL } from "@/lib/legal/site";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Acceptable Use Policy",
   description: `Acceptable use rules for ${LEGAL.productName}.`,
-};
+  path: "/acceptable-use",
+});
 
 export default function AcceptableUsePage() {
   return (

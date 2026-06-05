@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
-import { requireGodModeContext } from "@/lib/tenancy/context";
+import { requireGodModeContextForPage } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ type AuditLogRow = {
 };
 
 export default async function AdminAuditPage() {
-  await requireGodModeContext();
+  await requireGodModeContextForPage();
   const admin = getSupabaseAdmin();
   let logs: AuditLogRow[] = [];
 

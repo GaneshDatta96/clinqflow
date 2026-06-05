@@ -1,10 +1,10 @@
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
-import { requireGodModeContext } from "@/lib/tenancy/context";
+import { requireGodModeContextForPage } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
-  await requireGodModeContext();
+  await requireGodModeContextForPage();
   const admin = getSupabaseAdmin();
 
   const tenantCount = admin

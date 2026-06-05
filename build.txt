@@ -486,3 +486,11 @@ END legal-compliance-v1
 [2026-06-05] - fix: Auth email and password reset flow improvements
 - Expanded auth-form (reset-password mode, resend verification); added src/app/reset-password/page.tsx.
 - Refreshed Zoho auth-verify and invite email templates; app-hosted verify links in auth/verify route.
+
+[2026-06-05] - fix: God mode login, workspace errors, and site icon
+- Fixed production 500 on /api/auth/session-role when Upstash Redis is missing or unreachable (fail-open rate limiting with warn logs instead of crashing).
+- Added requireTenantContextForPage and requireGodModeContextForPage so platform staff redirect to /app/admin instead of Server Components crashes on settings, billing, dashboard, and admin analytics/audit routes.
+- Hardened app layout tenant switcher fetch and improved workspace error copy for God mode users.
+- Whitelisted /api/auth/session-role in proxy.ts; auth-form shows a clear message when role resolution fails.
+- Reordered security_hardening migration so platform-flag reset runs before the privilege-escalation trigger.
+- Set site favicon (src/app/icon.png, apple-icon.png) from the CliniqFlow circular mark; updated public/brand/cliniqflow-logo.png for header BrandLogo.

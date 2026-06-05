@@ -23,7 +23,15 @@ begin
 end;
 $$;
 
+-- Reset rogue flags before the escalation trigger exists; staff are re-synced on login.
 drop trigger if exists profiles_prevent_privilege_escalation on public.profiles;
+update public.profiles
+set
+  is_platform_admin = false,
+  is_platform_support = false,
+  updated_at = now()
+where is_platform_admin = true or is_platform_support = true;
+
 create trigger profiles_prevent_privilege_escalation
   before update on public.profiles
   for each row execute function public.prevent_profile_privilege_escalation();
@@ -32,14 +40,6 @@ drop policy if exists profiles_update_own on public.profiles;
 create policy profiles_update_own on public.profiles for update
   using (id = auth.uid())
   with check (id = auth.uid());
-
--- Reset rogue flags; legitimate staff are re-synced via service role on next login
-update public.profiles
-set
-  is_platform_admin = false,
-  is_platform_support = false,
-  updated_at = now()
-where is_platform_admin = true or is_platform_support = true;
 
 -- ---------------------------------------------------------------------------
 -- TEN-03: Encounter patient must belong to same tenant

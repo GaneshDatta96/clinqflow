@@ -4,8 +4,7 @@ import { EncounterSearch } from "@/components/dashboard/encounter-search";
 import { mapEncounterToDashboardCase } from "@/lib/dashboard/encounter-view";
 import { listEncountersForTenant } from "@/lib/db/repositories/encounters";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
-import { requireTenantContext } from "@/lib/tenancy/context";
-import { redirect } from "next/navigation";
+import { requireTenantContextForPage } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -15,22 +14,7 @@ export default async function AppDashboardPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  let supabase;
-  let context;
-
-  try {
-    const result = await requireTenantContext();
-    supabase = result.supabase;
-    context = result.context;
-  } catch {
-    try {
-      const { requirePlatformAdminContext } = await import("@/lib/tenancy/context");
-      await requirePlatformAdminContext();
-      redirect("/app/admin");
-    } catch {
-      redirect("/onboarding");
-    }
-  }
+  const { supabase, context } = await requireTenantContextForPage();
 
   const encounters = await listEncountersForTenant(supabase, context.tenantId, {
     search: q,

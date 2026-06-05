@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/db/supabase-server";
 import { forbidden, unauthorized } from "@/lib/api/errors";
 import { hasPermission, type Permission } from "@/lib/tenancy/permissions";
@@ -307,6 +308,32 @@ export async function listUserTenants(userId: string) {
       };
     })
     .filter((row): row is NonNullable<typeof row> => row !== null);
+}
+
+/** Tenant workspace pages — redirects platform staff and guests instead of throwing. */
+export async function requireTenantContextForPage(): Promise<{
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>;
+  context: TenantContext;
+}> {
+  try {
+    return await requireTenantContext();
+  } catch {
+    try {
+      await requirePlatformAdminContext();
+    } catch {
+      redirect("/onboarding");
+    }
+    redirect("/app/admin");
+  }
+}
+
+/** God-mode admin pages — redirects everyone else to the support console. */
+export async function requireGodModeContextForPage() {
+  try {
+    return await requireGodModeContext();
+  } catch {
+    redirect("/app/admin");
+  }
 }
 
 export async function tryGetTenantContext(): Promise<{

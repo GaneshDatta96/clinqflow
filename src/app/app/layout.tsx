@@ -66,10 +66,14 @@ export default async function AppLayout({
   const actingTenantId = await getActingTenantIdFromCookies();
   const activeTenantId =
     (await getActiveTenantIdFromCookies()) ?? context.tenantId;
-  const tenantOptions =
-    !platformStaffOnly && context.userId
-      ? await listUserTenants(context.userId)
-      : [];
+  let tenantOptions: Awaited<ReturnType<typeof listUserTenants>> = [];
+  if (!platformStaffOnly && context.userId) {
+    try {
+      tenantOptions = await listUserTenants(context.userId);
+    } catch {
+      tenantOptions = [];
+    }
+  }
 
   const navItems = getWorkspaceNav({
     role: context.role,

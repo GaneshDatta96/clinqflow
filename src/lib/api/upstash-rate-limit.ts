@@ -1,6 +1,7 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { tooManyRequests } from "@/lib/api/errors";
+import { ApiError, tooManyRequests } from "@/lib/api/errors";
+import { logWarn } from "@/lib/logging/logger";
 
 export { isUpstashConfigured } from "@/lib/env";
 
@@ -51,18 +52,35 @@ export async function assertRateLimit(bucket: RateLimitBucket, identifier: strin
 
   if (!limiter) {
     if (process.env.NODE_ENV === "production") {
-      throw tooManyRequests("Rate limiting is not configured.");
+      logWarn({
+        message: "rate_limit.skipped",
+        metadata: { bucket, reason: "not_configured" },
+      });
     }
     return;
   }
 
-  const { success, reset } = await limiter.limit(identifier);
+  try {
+    const { success, reset } = await limiter.limit(identifier);
 
-  if (!success) {
-    const retryAfter = Math.ceil((reset - Date.now()) / 1000);
-    throw tooManyRequests(
-      `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
-    );
+    if (!success) {
+      const retryAfter = Math.ceil((reset - Date.now()) / 1000);
+      throw tooManyRequests(
+        `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
+      );
+    }
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    logWarn({
+      message: "rate_limit.unavailable",
+      metadata: {
+        bucket,
+        error: error instanceof Error ? error.message : "unknown",
+      },
+    });
   }
 }
 

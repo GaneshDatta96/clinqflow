@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireTenantContext } from "@/lib/tenancy/context";
+import { requireTenantContextForPage } from "@/lib/tenancy/context";
 import { hasPermission } from "@/lib/tenancy/permissions";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
 import { TeamInvitesPanel } from "@/components/settings/team-invites-panel";
@@ -8,7 +8,7 @@ import { ROLE_LABELS } from "@/lib/tenancy/role-routing";
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { context } = await requireTenantContext();
+  const { context } = await requireTenantContextForPage();
   const entitlements = await getEntitlementsSummary(context.tenantId);
 
   return (

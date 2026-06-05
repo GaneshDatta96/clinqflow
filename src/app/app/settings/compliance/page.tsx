@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/lib/tenancy/permissions";
-import { requireTenantContext } from "@/lib/tenancy/context";
+import { requireTenantContextForPage } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
 export default async function ComplianceSettingsPage() {
-  const { context } = await requireTenantContext();
+  const { context } = await requireTenantContextForPage();
 
   if (!hasPermission(context.role, "tenant:manage") && !context.isPlatformAdmin) {
     redirect("/app/settings");

@@ -4,7 +4,7 @@ import { EncounterDetailView } from "@/components/dashboard/encounter-detail-vie
 import { getEncounterDetailForTenant } from "@/lib/db/repositories/encounters";
 import { mapEncounterToDashboardCase } from "@/lib/dashboard/encounter-view";
 import { writeAuditLog } from "@/services/audit.service";
-import { requireTenantContext } from "@/lib/tenancy/context";
+import { requireTenantContextForPage } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ export default async function EncounterDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, context } = await requireTenantContext();
+  const { supabase, context } = await requireTenantContextForPage();
   const encounter = await getEncounterDetailForTenant(supabase, context.tenantId, id);
 
   if (!encounter) {

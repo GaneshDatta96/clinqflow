@@ -170,7 +170,17 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       }
 
       const roleRes = await fetch("/api/auth/session-role");
-      const roleData = await roleRes.json();
+      const roleData = await roleRes.json().catch(() => ({}));
+      if (!roleRes.ok) {
+        setError(
+          typeof roleData.error === "string"
+            ? roleData.error
+            : "Could not resolve your workspace role. Try again.",
+        );
+        router.push("/app/dashboard");
+        router.refresh();
+        return;
+      }
       router.push(roleData.path ?? "/app/dashboard");
       router.refresh();
     } catch (err) {

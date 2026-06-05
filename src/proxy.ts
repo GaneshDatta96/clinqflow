@@ -30,6 +30,7 @@ const PUBLIC_PATHS = [
   "/api/webhooks",
   "/api/cron",
   "/api/auth/signup",
+  "/api/auth/session-role",
   "/api/auth/resend-verification",
   "/api/auth/forgot-password",
   "/intake",

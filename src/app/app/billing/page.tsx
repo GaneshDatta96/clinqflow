@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireTenantContext } from "@/lib/tenancy/context";
+import { requireTenantContextForPage } from "@/lib/tenancy/context";
 import { hasPermission } from "@/lib/tenancy/permissions";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
 import { BillingActions } from "@/components/settings/billing-actions";
@@ -7,7 +7,7 @@ import { BillingActions } from "@/components/settings/billing-actions";
 export const dynamic = "force-dynamic";
 
 export default async function BillingPage() {
-  const { context, supabase } = await requireTenantContext();
+  const { context, supabase } = await requireTenantContextForPage();
   const { data: profile } = await supabase
     .from("profiles")
     .select("email")

@@ -7,7 +7,12 @@ import { BillingActions } from "@/components/settings/billing-actions";
 export const dynamic = "force-dynamic";
 
 export default async function BillingPage() {
-  const { context } = await requireTenantContext();
+  const { context, supabase } = await requireTenantContext();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", context.userId)
+    .maybeSingle();
 
   if (!hasPermission(context.role, "tenant:billing") && !context.isPlatformAdmin) {
     redirect("/app/dashboard");
@@ -31,7 +36,10 @@ export default async function BillingPage() {
             {entitlements.aiGenerations.limit} this month
           </li>
         </ul>
-        <BillingActions currentPlan={entitlements.planKey} />
+        <BillingActions
+          currentPlan={entitlements.planKey}
+          userEmail={profile?.email ?? null}
+        />
       </div>
     </div>
   );

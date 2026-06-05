@@ -42,9 +42,9 @@ Tenant (organization)
 
 ## Billing
 
-- Stripe Checkout + Customer Portal
-- Webhooks with idempotency (`stripe_webhook_events`)
-- Plans: `trial`, `starter`, `growth`, `enterprise` — see `PLAN_LIMITS` in `src/lib/billing/stripe.ts`
+- Razorpay subscription payment links (Starter + Growth)
+- Webhooks with idempotency (`razorpay_webhook_events`)
+- Plans: `trial`, `starter`, `growth`, `enterprise` — see `PLAN_LIMITS` in `src/lib/billing/plans.ts`
 
 ## Compliance
 

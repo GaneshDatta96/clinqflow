@@ -36,9 +36,15 @@ export async function GET(request: Request) {
   });
 
   if (error) {
+    const errorPath =
+      type === "recovery" ? "/reset-password" : "/login";
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      `${origin}${errorPath}?error=${encodeURIComponent(error.message)}`,
     );
+  }
+
+  if (type === "recovery") {
+    return NextResponse.redirect(`${origin}/reset-password`);
   }
 
   const {

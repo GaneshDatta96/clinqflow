@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 
 export default function ForgotPasswordPage() {
@@ -8,8 +10,16 @@ export default function ForgotPasswordPage() {
         We will email you a secure link to reset your password.
       </p>
       <div className="mt-8">
-        <AuthForm mode="forgot" />
+        <Suspense fallback={<p className="text-sm text-[color:var(--muted)]">Loading…</p>}>
+          <AuthForm mode="forgot" />
+        </Suspense>
       </div>
+      <p className="mt-6 text-center text-sm text-[color:var(--muted)]">
+        Remember your password?{" "}
+        <Link href="/login" className="font-semibold text-[color:var(--accent)]">
+          Back to sign in
+        </Link>
+      </p>
     </div>
   );
 }

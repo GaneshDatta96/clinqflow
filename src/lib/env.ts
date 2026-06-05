@@ -7,13 +7,14 @@ const serverSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_MODEL: z.string().min(1).optional(),
-  STRIPE_SECRET_KEY: z.string().min(1).optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
   PAYPAL_CLIENT_ID: z.string().min(1).optional(),
   PAYPAL_CLIENT_SECRET: z.string().min(1).optional(),
   PAYPAL_WEBHOOK_ID: z.string().min(1).optional(),
   PAYPAL_MODE: z.enum(["live", "sandbox"]).optional(),
   PAYPAL_DEFAULT_PLAN: z.enum(["starter", "growth", "enterprise", "trial"]).optional(),
+  RAZORPAY_KEY_ID: z.string().min(1).optional(),
+  RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
   INTAKE_TOKEN_SECRET: z.string().min(32).optional(),
   APP_URL: z.string().url().optional(),
   PLATFORM_ADMIN_EMAILS: z.string().optional(),
@@ -46,8 +47,6 @@ export const env = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? null,
   openRouterApiKey: process.env.OPENROUTER_API_KEY ?? null,
   openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? null,
-  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? null,
   paypalClientId:
     process.env.PAYPAL_CLIENT_ID?.trim() ??
     process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() ??
@@ -60,6 +59,9 @@ export const env = {
     | "growth"
     | "enterprise"
     | "trial",
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID?.trim() ?? null,
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET?.trim() ?? null,
+  razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET?.trim() ?? null,
   get intakeTokenSecret() {
     return resolveIntakeTokenSecret();
   },
@@ -104,8 +106,6 @@ export function validateServerEnv() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     INTAKE_TOKEN_SECRET: process.env.INTAKE_TOKEN_SECRET,
     APP_URL: process.env.APP_URL,
     AI_PHI_MODE: process.env.AI_PHI_MODE,

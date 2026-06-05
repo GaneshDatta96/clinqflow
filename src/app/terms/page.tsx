@@ -51,11 +51,10 @@ export default function TermsOfServicePage() {
         and such access is logged and auditable.
       </p>
 
-      <h2>4. Trials and subscriptions</h2>
+      <h2>4. Subscriptions</h2>
       <p>
-        New accounts may receive a {LEGAL.trialDays}-day trial unless otherwise stated at
-        signup. Paid subscriptions renew according to the billing interval selected at checkout
-        unless canceled as described in our{" "}
+        After you sign up, paid subscriptions renew according to the billing interval selected
+        at checkout unless canceled as described in our{" "}
         <Link href="/cancellation">Cancellation Policy</Link>. Fees are billed in advance and
         are non-refundable except where required by law.
       </p>

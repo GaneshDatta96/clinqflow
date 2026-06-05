@@ -40,7 +40,7 @@ This document tracks every finding from the full 30-section security audit and r
 | H-04 | Viewer writes SOAP children | Fixed | Split RLS policies |
 | H-05 | Middleware public regex | Fixed | Removed catch-all single-segment |
 | H-06 | Next.js CVEs | Fixed | Upgrade to 16.2.6+ |
-| H-07 | Stripe early idempotency | Fixed | Mark processed after handler success |
+| H-07 | Razorpay webhook idempotency | Fixed | Mark processed after handler success |
 | H-08 | Cron unrate-limited | Fixed | `cron` bucket + secret length |
 
 ## Authentication

@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { forbidden, tooManyRequests } from "@/lib/api/errors";
-import { PLAN_LIMITS } from "@/lib/billing/stripe";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
 
 export async function getTenantSubscription(tenantId: string) {
   const admin = getSupabaseAdmin();

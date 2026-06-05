@@ -56,7 +56,7 @@ export function GlobalHeader() {
               href={BRAND.signupHref}
               className="btn-primary !px-4 !py-2.5 !text-sm"
             >
-              Get started
+              Sign up
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </>

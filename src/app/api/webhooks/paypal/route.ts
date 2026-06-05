@@ -1,4 +1,4 @@
-import { PLAN_LIMITS } from "@/lib/billing/stripe";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
 import {
   extractPayPalPayerEmail,
   resolvePayPalPlanKey,

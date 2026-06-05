@@ -22,6 +22,7 @@ async function sendVerificationEmail(args: {
   email: string;
   fullName?: string;
   properties: Record<string, unknown> | undefined;
+  purpose?: "signup" | "resend";
 }) {
   const verifyUrl = readVerificationUrl(args.properties);
   if (!verifyUrl) {
@@ -31,6 +32,7 @@ async function sendVerificationEmail(args: {
   const template = buildSignupVerifyEmail({
     verifyUrl,
     fullName: args.fullName,
+    purpose: args.purpose,
   });
 
   await sendEmail({
@@ -180,6 +182,7 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
     email,
     fullName,
     properties: data.properties as Record<string, unknown> | undefined,
+    purpose: "resend",
   });
 
   return { emailSent: true, existingAccount: false as const };

@@ -9,10 +9,14 @@ export function ScaledAppPreview({
   children,
   designWidth = 1200,
   className = "",
+  fadeBottom = false,
+  padding = true,
 }: {
   children: ReactNode;
   designWidth?: number;
   className?: string;
+  fadeBottom?: boolean;
+  padding?: boolean;
 }) {
   const scaleExpr = `calc(100cqw / ${designWidth}px)`;
 
@@ -25,8 +29,14 @@ export function ScaledAppPreview({
           transform: `scale(${scaleExpr})`,
         }}
       >
-        <div className="p-4 sm:p-5">{children}</div>
+        <div className={padding ? "p-4 sm:p-5" : ""}>{children}</div>
       </div>
+      {fadeBottom && (
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/85 to-transparent"
+          aria-hidden
+        />
+      )}
     </div>
   );
 }

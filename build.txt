@@ -68,7 +68,7 @@ Build Log Initialized.
 
 [2026-05-27] - fix: Restore pricing section and prioritize signup CTAs on homepage
 - Restored pricing plans (Starter, Growth, Scale) to src/components/home/homepage-landing.tsx after upstream homepage redesign removed them.
-- Hero, header, and bottom CTA now lead with Start free trial / Get started to /signup; product demo moved to secondary action.
+- Hero, header, and bottom CTA now lead with Sign up to /signup; product demo moved to secondary action.
 - Added Pricing to marketing header and footer navigation.
 
 [2026-05-27] - feat: Add PayPal hosted button to Growth pricing plan
@@ -313,7 +313,7 @@ D. LEGAL DOCUMENT MAP (routes → purpose)
   /dpa                GDPR/UK GDPR processor terms + optional HIPAA BAA reference
   /security-policy    Actual controls: RLS, support no-PHI, admin audit logging
   /cookies            Session + tenant cookies only; no marketing analytics
-  /subprocessors      Supabase, OpenRouter, Stripe, PayPal, Zoho/SendGrid,
+  /subprocessors      Supabase, OpenRouter, Razorpay, Zoho/SendGrid,
                       Vercel, Upstash, Sentry
   /legal-liability    Cap (12-month fees), excluded damages, indemnification exhibit
   /privacy-request    Access/deletion request process (30-day SLA)
@@ -465,3 +465,24 @@ MODIFIED:
 
 END legal-compliance-v1
 ================================================================================
+
+[2026-06-05] - feat: Razorpay billing replaces Stripe; homepage polish and signup-only CTAs
+- Removed Stripe checkout, portal, webhook routes and src/lib/billing/stripe.ts.
+- Added Razorpay server/public helpers, checkout + payment-link buttons, create-order/verify-payment APIs, and /api/webhooks/razorpay.
+- Added supabase migrations 20260608000000_razorpay_billing.sql and 20260609000000_remove_stripe.sql.
+- Updated billing page, billing-actions, pricing-plan-actions, entitlements, subprocessors, privacy, and env docs for Razorpay (INR).
+
+[2026-06-05] - feat: Redesign homepage hero and product sections with live app previews
+- Simplified hero: copy left, single HeroOperationalPreview right (removed nested operational-overview card, stats, and duplicate patient lists).
+- Added PageSection, SectionIntro, and ShowcaseCard helpers for consistent section rhythm across workflow, product, why, pricing, FAQ, and CTA.
+- Added src/components/home/app-workspace-preview-shell.tsx; dashboard/encounter previews use real EncounterDashboardShell in preview mode.
+- Improved ProductPreviewFrame (elevated shadow) and ScaledAppPreview (fade, skeleton placeholder); encounter-dashboard-shell preview props.
+
+[2026-06-05] - fix: Remove all free-trial marketing copy; sign up then subscribe
+- Homepage, header, footer, signup page, intake, and aurora demo CTAs now say Sign up (not Start free trial).
+- Pricing description and bottom CTA secondary action point to Subscribe / #pricing.
+- Terms and Cancellation policy updated: subscriptions after signup; removed free-trial section.
+
+[2026-06-05] - fix: Auth email and password reset flow improvements
+- Expanded auth-form (reset-password mode, resend verification); added src/app/reset-password/page.tsx.
+- Refreshed Zoho auth-verify and invite email templates; app-hosted verify links in auth/verify route.

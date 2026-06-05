@@ -109,7 +109,7 @@ Run in SQL Editor if not using full `RUN_ON_SUPABASE.sql`:
 
 `supabase/migrations/20260606000000_paypal_webhook_events.sql`
 
-Optional: Stripe, email, Sentry — see `.env.example`.
+Optional: Razorpay, email, Sentry — see `.env.example`.
 
 Redeploy after saving env vars.
 

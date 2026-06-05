@@ -70,7 +70,7 @@ export function AuroraBackgroundDemo() {
             className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92"
           >
             <ClipboardPlus className="size-4" />
-            Start free trial
+            Sign up
           </Link>
           <Link
             href="/login"

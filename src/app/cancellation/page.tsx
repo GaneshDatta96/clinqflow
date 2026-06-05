@@ -5,33 +5,28 @@ import { LEGAL } from "@/lib/legal/site";
 
 export const metadata: Metadata = {
   title: "Cancellation Policy",
-  description: `How to cancel your ${LEGAL.productName} subscription, trial, and billing.`,
+  description: `How to cancel your ${LEGAL.productName} subscription and billing.`,
 };
 
 export default function CancellationPolicyPage() {
   return (
     <LegalPageShell
       title="Cancellation Policy"
-      description={`This Cancellation Policy explains how clinic subscriptions, trials, and billing work when you cancel ${LEGAL.productName}.`}
+      description={`This Cancellation Policy explains how clinic subscriptions and billing work when you cancel ${LEGAL.productName}.`}
     >
       <h2>1. Scope</h2>
       <p>
-        This policy applies to paid subscriptions and trials for clinic accounts on{" "}
-        {LEGAL.productName}. It supplements our <Link href="/terms">Terms of Service</Link>.
-        Patient intake links are not separate subscriptions and are not billed directly to
-        patients through this policy.
+        This policy applies to paid subscriptions for clinic accounts on {LEGAL.productName}.
+        It supplements our <Link href="/terms">Terms of Service</Link>. Patient intake links
+        are not separate subscriptions and are not billed directly to patients through this
+        policy.
       </p>
 
-      <h2>2. Free trial</h2>
+      <h2>2. Sign up and subscribe</h2>
       <p>
-        New clinic accounts may receive a {LEGAL.trialDays}-day trial with access to trial
-        entitlements. You may cancel before the trial ends to avoid conversion to a paid plan.
-        If you do not subscribe to a paid plan before the trial expires, access to paid
+        Clinics sign up to create a workspace, then subscribe to a paid plan to access
+        subscription features. If a subscription lapses or is not active, access to paid
         features may be limited or suspended according to your workspace entitlements.
-      </p>
-      <p>
-        We do not charge a cancellation fee for ending a trial. No payment method is required
-        to start a trial unless you choose to add one during signup or upgrade.
       </p>
 
       <h2>3. How to cancel a paid subscription</h2>
@@ -42,13 +37,17 @@ export default function CancellationPolicyPage() {
           sidebar.
         </li>
         <li>
-          Select <strong>Manage subscription</strong> to open the secure customer portal
-          hosted by our payment processor (Stripe).
+          Open the Razorpay subscription management link from your payment confirmation email,
+          or contact us to cancel before your next renewal date.
         </li>
-        <li>Cancel the subscription in the portal before your next renewal date.</li>
+        <li>
+          Email{" "}
+          <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a> from your account
+          owner address if you need help locating your subscription.
+        </li>
       </ul>
       <p>
-        If you cannot access the portal, email{" "}
+        If you cannot locate your Razorpay subscription, email{" "}
         <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a> from your account
         owner email with your clinic name and request cancellation.
       </p>

@@ -45,16 +45,10 @@ export default function SubprocessorsPage() {
             <td>United States</td>
           </tr>
           <tr>
-            <td>Stripe</td>
+            <td>Razorpay</td>
             <td>Subscription billing</td>
             <td>Account and payment metadata</td>
-            <td>United States</td>
-          </tr>
-          <tr>
-            <td>PayPal</td>
-            <td>Alternative billing</td>
-            <td>Account and payment metadata</td>
-            <td>United States</td>
+            <td>India</td>
           </tr>
           <tr>
             <td>Zoho / SendGrid</td>

@@ -6,7 +6,7 @@
 2. `node --env-file-if-exists=.env.local scripts/backfill-tenant-ids.mjs` (if upgrading legacy DB)
 3. `npm run seed:niche-configs`
 4. Deploy Next.js to Vercel (Framework: **Next.js**, no custom output directory)
-5. Register Stripe webhook → `/api/webhooks/stripe`
+5. Register Razorpay webhook → `/api/webhooks/razorpay`
 
 ## Health
 

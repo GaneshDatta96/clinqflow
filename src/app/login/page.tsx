@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 
 export default function LoginPage() {
@@ -9,9 +10,16 @@ export default function LoginPage() {
         Access your clinic workspace, encounters, and intake queue.
       </p>
       <div className="mt-8">
-        <AuthForm mode="login" />
+        <Suspense fallback={<p className="text-sm text-[color:var(--muted)]">Loading…</p>}>
+          <AuthForm mode="login" />
+        </Suspense>
       </div>
       <p className="mt-6 text-center text-sm text-[color:var(--muted)]">
+        <Link href="/forgot-password" className="font-semibold text-[color:var(--accent)]">
+          Forgot your password?
+        </Link>
+      </p>
+      <p className="mt-3 text-center text-sm text-[color:var(--muted)]">
         No account?{" "}
         <Link href="/signup" className="font-semibold text-[color:var(--accent)]">
           Create one

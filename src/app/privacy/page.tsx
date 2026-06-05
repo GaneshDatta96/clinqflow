@@ -38,7 +38,7 @@ export default function PrivacyPolicyPage() {
         </li>
         <li>
           <strong>Billing information:</strong> subscription plan and payment metadata processed
-          by Stripe or PayPal. We do not store full payment card numbers.
+          by Razorpay. We do not store full payment card numbers.
         </li>
         <li>
           <strong>Technical data:</strong> IP address, browser type, device information, log

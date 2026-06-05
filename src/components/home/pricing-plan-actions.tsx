@@ -2,12 +2,15 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { isPayPalConfigured, paypalPublicConfig } from "@/lib/billing/paypal-public";
+import {
+  isRazorpayPaymentLinkConfigured,
+  type RazorpayBillablePlan,
+} from "@/lib/billing/razorpay-public";
 
-const PayPalHostedButton = dynamic(
+const RazorpayPaymentLinkButton = dynamic(
   () =>
-    import("@/components/billing/paypal-hosted-button").then(
-      (mod) => mod.PayPalHostedButton,
+    import("@/components/billing/razorpay-payment-link-button").then(
+      (mod) => mod.RazorpayPaymentLinkButton,
     ),
   { ssr: false },
 );
@@ -17,7 +20,8 @@ type PricingPlanActionsProps = {
   href: string;
   highlighted: boolean;
   external?: boolean;
-  showPayPal?: boolean;
+  showRazorpay?: boolean;
+  razorpayPlan?: RazorpayBillablePlan;
 };
 
 export function PricingPlanActions({
@@ -25,9 +29,10 @@ export function PricingPlanActions({
   href,
   highlighted,
   external = false,
-  showPayPal = false,
+  showRazorpay = false,
+  razorpayPlan = "starter",
 }: PricingPlanActionsProps) {
-  const payPalEnabled = showPayPal && isPayPalConfigured();
+  const razorpayEnabled = showRazorpay && isRazorpayPaymentLinkConfigured(razorpayPlan);
 
   return (
     <div className="mt-8 space-y-3">
@@ -53,14 +58,17 @@ export function PricingPlanActions({
         </Link>
       )}
 
-      {payPalEnabled ? (
+      {razorpayEnabled ? (
         <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-muted)] px-3 py-3">
           <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-[color:var(--muted)]">
-            Or pay with PayPal
+            Or subscribe with Razorpay (INR)
           </p>
-          <PayPalHostedButton
-            clientId={paypalPublicConfig.clientId!}
-            hostedButtonId={paypalPublicConfig.hostedButtonId!}
+          <RazorpayPaymentLinkButton
+            plan={razorpayPlan}
+            label={`Subscribe — ${razorpayPlan.charAt(0).toUpperCase()}${razorpayPlan.slice(1)}`}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold ${
+              highlighted ? "btn-primary" : "btn-secondary"
+            }`}
           />
         </div>
       ) : null}

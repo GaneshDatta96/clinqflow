@@ -1,6 +1,6 @@
 # HIPAA technical controls (Cliniqflow)
 
-Cliniqflow implements technical safeguards to support HIPAA-aligned operations. **Legal BAAs** with Supabase (Pro), Stripe, and your AI vendor remain your responsibility.
+Cliniqflow implements technical safeguards to support HIPAA-aligned operations. **Legal BAAs** with Supabase (Pro), Razorpay, and your AI vendor remain your responsibility.
 
 ## Implemented controls
 

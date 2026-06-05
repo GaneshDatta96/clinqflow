@@ -211,7 +211,7 @@ export function PatientIntakeExperience(props: {
                 href="/signup"
                 className="inline-flex rounded-full border border-[color:var(--line)] px-5 py-3 text-sm font-semibold"
               >
-                Start free trial
+                Sign up
               </Link>
             </div>
           )}

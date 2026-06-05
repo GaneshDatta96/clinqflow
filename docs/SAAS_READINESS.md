@@ -3,7 +3,7 @@
 - [x] Multi-tenant schema + RLS
 - [x] Auth (signup, login, email verification gate, onboarding)
 - [x] RBAC + tenant switcher
-- [x] Stripe billing + webhooks (incl. delete / payment_failed)
+- [x] Razorpay subscription billing + webhooks
 - [x] Public intake via signed links + consent
 - [x] Live practitioner dashboard + encounter detail
 - [x] Audit export + compliance page

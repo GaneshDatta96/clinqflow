@@ -1,44 +1,65 @@
 import { emailShell } from "@/lib/email/templates/shared";
 
-export function buildSignupVerifyEmail(args: { verifyUrl: string; fullName?: string }) {
-  const name = args.fullName?.trim();
-  const subject = "Quick verify — then back to clinic life";
+type VerificationPurpose = "signup" | "resend";
 
-  const lines = name
+export function buildSignupVerifyEmail(args: {
+  verifyUrl: string;
+  fullName?: string;
+  purpose?: VerificationPurpose;
+}) {
+  const name = args.fullName?.trim();
+  const greeting = name ? `Hi ${name},` : "Hi there,";
+  const isResend = args.purpose === "resend";
+
+  const subject = isResend
+    ? "Your fresh CliniqFlow verification link"
+    : "Welcome to CliniqFlow — confirm your email";
+
+  const lines = isResend
     ? [
-        `Hey ${name},`,
-        "Welcome to CliniqFlow. One tap below confirms your email so we can get you into onboarding.",
-        "No paperwork. No hold music. Just a button.",
+        greeting,
+        "Here is a new verification link for your CliniqFlow account.",
+        "Once confirmed, you can finish setting up your clinic workspace, invite your team, and start sending structured intake before appointments begin.",
+        "This link is personal to you. If it has expired, you can always request another from the sign-up page.",
       ]
     : [
-        "Hey,",
-        "Welcome to CliniqFlow. One tap below confirms your email so we can get you into onboarding.",
-        "No paperwork. No hold music. Just a button.",
+        greeting,
+        "Thank you for starting with CliniqFlow. You are one step away from a calmer pre-visit workflow for your clinic.",
+        "Confirm your email to unlock onboarding, set up your workspace, and begin turning patient intake into review-ready documentation.",
+        "We built CliniqFlow for teams who want less front-desk friction and clearer context before the first hello in the exam room.",
       ];
 
   const { html, text } = emailShell({
-    title: "Confirm it's really you",
+    title: isResend ? "Your new verification link" : "Confirm your email to get started",
+    preheader: isResend
+      ? "A fresh verification link is ready for your CliniqFlow account."
+      : "One quick confirmation and your clinic workspace is ready to set up.",
     lines,
-    ctaLabel: "Verify email",
+    ctaLabel: isResend ? "Verify my email" : "Confirm my email",
     ctaUrl: args.verifyUrl,
-    footer: "Didn't sign up? Ignore this — we won't chase you.",
+    footer: isResend
+      ? "Didn't request this? You can safely ignore this message."
+      : "Didn't create a CliniqFlow account? No action needed — this message can be ignored.",
   });
 
   return { subject, html, text };
 }
 
 export function buildPasswordResetEmail(args: { resetUrl: string }) {
-  const subject = "Password reset (happens to the best of us)";
+  const subject = "Reset your CliniqFlow password";
 
   const { html, text } = emailShell({
-    title: "Reset your password",
+    title: "Create a new password",
+    preheader: "Use this secure link to choose a new password for your CliniqFlow account.",
     lines: [
-      "Someone asked to reset your CliniqFlow password.",
-      "If that was you, hit the button. If not, carry on — this link will expire quietly.",
+      "We received a request to reset the password for your CliniqFlow account.",
+      "If you made this request, use the button below to choose a new password and get back into your clinic workspace.",
+      "For your security, this link will expire after a short time. If it no longer works, you can request a fresh reset link from the sign-in page.",
+      "If you did not request a password reset, you can ignore this email. Your account remains secure.",
     ],
-    ctaLabel: "Choose a new password",
+    ctaLabel: "Reset my password",
     ctaUrl: args.resetUrl,
-    footer: "Didn't request this? Safe to ignore.",
+    footer: "Need help? Reply to your clinic administrator or contact CliniqFlow support.",
   });
 
   return { subject, html, text };
@@ -46,28 +67,24 @@ export function buildPasswordResetEmail(args: { resetUrl: string }) {
 
 export function buildAlreadyRegisteredEmail(args: { loginUrl: string; fullName?: string }) {
   const name = args.fullName?.trim();
-  const subject = "You're already on the list";
+  const greeting = name ? `Hi ${name},` : "Hi there,";
+  const subject = "You already have a CliniqFlow account";
 
-  const lines = name
-    ? [
-        `Hey ${name},`,
-        "Good news: you already have a CliniqFlow account with this email.",
-        "No need to sign up again — just sign in below.",
-      ]
-    : [
-        "Hey,",
-        "Good news: you already have a CliniqFlow account with this email.",
-        "No need to sign up again — just sign in below.",
-      ];
+  const lines = [
+    greeting,
+    "It looks like this email address is already connected to a CliniqFlow account.",
+    "No need to sign up again — simply sign in to return to your clinic workspace, encounters, and intake queue.",
+    "If you were trying to create a new organization, sign in first and start a separate workspace from your account settings.",
+  ];
 
   const { html, text } = emailShell({
-    title: "Already registered",
+    title: "Welcome back",
+    preheader: "Your email is already registered. Sign in to continue to your clinic workspace.",
     lines,
-    ctaLabel: "Sign in",
+    ctaLabel: "Sign in to CliniqFlow",
     ctaUrl: args.loginUrl,
-    footer: "Forgot your password? Use reset on the login page.",
+    footer: "Forgot your password? Choose \"Forgot password\" on the sign-in page to receive a secure reset link.",
   });
 
   return { subject, html, text };
 }
-

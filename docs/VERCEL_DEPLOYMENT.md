@@ -27,7 +27,8 @@ Set these in **Project Settings → Environment Variables** (Production, Preview
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENROUTER_API_KEY` *(optional for build; required for AI features)*
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` *(billing)*
+- `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, `RAZORPAY_WEBHOOK_SECRET` *(billing)*
+- `NEXT_PUBLIC_RAZORPAY_STARTER_PAYMENT_LINK`, `NEXT_PUBLIC_RAZORPAY_GROWTH_PAYMENT_LINK`
 - `INTAKE_TOKEN_SECRET` *(32+ chars in production)*
 - `PLATFORM_ADMIN_EMAILS` *(comma-separated)*
 - `APP_URL` — e.g. `https://clinqflow.vercel.app`

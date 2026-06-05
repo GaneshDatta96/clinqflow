@@ -1,82 +1,77 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState, useTransition } from "react";
-import { CreditCard, LoaderCircle } from "lucide-react";
+import { LEGAL } from "@/lib/legal/site";
+import {
+  isRazorpayBillingConfigured,
+  isRazorpayPaymentLinkConfigured,
+} from "@/lib/billing/razorpay-public";
 
-export function BillingActions({ currentPlan }: { currentPlan: string }) {
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+const RazorpayPaymentLinkButton = dynamic(
+  () =>
+    import("@/components/billing/razorpay-payment-link-button").then(
+      (mod) => mod.RazorpayPaymentLinkButton,
+    ),
+  { ssr: false },
+);
 
-  function startCheckout(plan: string) {
-    startTransition(async () => {
-      setError(null);
-      try {
-        const res = await fetch("/api/billing/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Checkout failed");
-        if (data.url) {
-          window.location.href = data.url;
-        }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Checkout failed");
-      }
-    });
-  }
-
-  function openPortal() {
-    startTransition(async () => {
-      setError(null);
-      try {
-        const res = await fetch("/api/billing/portal", { method: "POST" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Portal failed");
-        if (data.url) window.location.href = data.url;
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Portal failed");
-      }
-    });
-  }
+export function BillingActions({
+  currentPlan,
+  userEmail,
+}: {
+  currentPlan: string;
+  userEmail?: string | null;
+}) {
+  const showStarter =
+    currentPlan === "trial" && isRazorpayPaymentLinkConfigured("starter");
+  const showGrowth = isRazorpayPaymentLinkConfigured("growth");
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-[color:var(--muted)]">
         Current plan: <span className="font-semibold capitalize">{currentPlan}</span>
       </p>
-      <div className="flex flex-wrap gap-3">
-        {currentPlan === "trial" && (
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => startCheckout("starter")}
-            className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-            Upgrade to Starter
-          </button>
-        )}
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => startCheckout("growth")}
-          className="rounded-full border border-[color:var(--line)] px-5 py-2.5 text-sm font-semibold"
-        >
-          Growth plan
-        </button>
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={openPortal}
-          className="rounded-full border border-[color:var(--line)] px-5 py-2.5 text-sm font-semibold"
-        >
-          Manage subscription
-        </button>
-      </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {isRazorpayBillingConfigured() && (showStarter || showGrowth) ? (
+        <div className="space-y-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-muted)] p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[color:var(--muted)]">
+            Subscribe with Razorpay (INR)
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {showStarter ? (
+              <RazorpayPaymentLinkButton
+                plan="starter"
+                label="Subscribe — Starter (monthly)"
+                prefillEmail={userEmail}
+                highlighted
+              />
+            ) : null}
+            {showGrowth ? (
+              <RazorpayPaymentLinkButton
+                plan="growth"
+                label="Subscribe — Growth (monthly)"
+                prefillEmail={userEmail}
+                highlighted={currentPlan !== "growth"}
+              />
+            ) : null}
+          </div>
+          <p className="text-xs text-[color:var(--muted)]">
+            Subscriptions renew monthly via Razorpay. Use the same email as your CliniqFlow
+            account so your workspace activates automatically. To cancel, use the Razorpay
+            subscription email receipts or contact{" "}
+            <a href={`mailto:${LEGAL.supportEmail}`} className="font-semibold text-[color:var(--accent)]">
+              {LEGAL.supportEmail}
+            </a>
+            .
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-[color:var(--muted)]">
+          Billing is not configured. Contact support to upgrade your plan.
+        </p>
+      )}
+
       <p className="text-xs text-[color:var(--muted)]">
         Subscription changes are subject to our{" "}
         <Link href="/cancellation" className="font-semibold text-[color:var(--accent)]">

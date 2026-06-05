@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 
 export default function SignupPage() {
@@ -6,10 +7,12 @@ export default function SignupPage() {
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-16">
       <h1 className="text-3xl font-semibold tracking-tight">Create your account</h1>
       <p className="mt-2 text-[color:var(--muted)]">
-        Start a 14-day trial for your clinic team.
+        Create your clinic workspace, then subscribe to a plan.
       </p>
       <div className="mt-8">
-        <AuthForm mode="signup" />
+        <Suspense fallback={<p className="text-sm text-[color:var(--muted)]">Loading…</p>}>
+          <AuthForm mode="signup" />
+        </Suspense>
       </div>
       <p className="mt-6 text-center text-xs leading-6 text-[color:var(--muted)]">
         By creating an account, you agree to our{" "}

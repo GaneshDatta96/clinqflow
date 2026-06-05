@@ -55,9 +55,9 @@ const transporter = nodemailer.createTransport({
 await transporter.sendMail({
   from: `"CliniqFlow" <${account.email}>`,
   to: email,
-  subject: "Verify your CliniqFlow email",
-  html: `<p><a href="${verifyUrl}">Verify email and continue</a></p>`,
-  text: verifyUrl,
+  subject: "Quick verify — then back to clinic life",
+  html: `<p>Hey — one tap to confirm your email:</p><p><a href="${verifyUrl}">Verify email</a></p><p style="color:#61777d;font-size:13px;">Didn't sign up? Ignore this.</p>`,
+  text: `Confirm your CliniqFlow email:\n${verifyUrl}`,
 });
 
 console.log(`Sent verification email to ${email} from ${account.email}`);

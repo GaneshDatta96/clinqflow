@@ -9,6 +9,7 @@ import {
   signIntakeJwt,
 } from "@/lib/auth/intake-tokens";
 import { env } from "@/lib/env";
+import { assertFeature } from "@/lib/billing/features";
 import { requirePermission, requireClinicAccess } from "@/lib/tenancy/context";
 
 const createLinkSchema = z.object({
@@ -23,6 +24,7 @@ export const POST = createApiHandler({
   handler: async ({ body }) => {
     const { context } = await requirePermission("intake:link:create");
     await requireClinicAccess(body.clinic_id);
+    await assertFeature(context.tenantId, "intake_links");
 
     const admin = getSupabaseAdmin();
     if (!admin) {
@@ -79,7 +81,7 @@ export const POST = createApiHandler({
       .single();
 
     const slug = clinic.data?.slug ?? "intake";
-    const url = `${env.appUrl}/c/${slug}?patientId=${body.patient_id}`;
+    const url = `${env.appUrl}/c/${slug}?patientId=${body.patient_id}&token=${encodeURIComponent(jwt)}`;
 
     return jsonCreated({
       linkId: link.id,
@@ -87,7 +89,7 @@ export const POST = createApiHandler({
       url,
       intakeToken: jwt,
       deliveryNote:
-        "Share the URL and intakeToken separately. Patients must submit the token in the x-intake-token header (or paste it on the intake page).",
+        "Share this single link with the patient. It includes their patient ID and secure access token.",
     });
   },
 });

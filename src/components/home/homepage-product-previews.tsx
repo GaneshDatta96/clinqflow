@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { EncounterDashboardShell } from "@/components/dashboard/encounter-dashboard-shell";
 import { PatientIntakeExperience } from "@/components/intake/patient-intake-experience";
 import { AppWorkspacePreviewShell } from "@/components/home/app-workspace-preview-shell";
@@ -36,17 +37,14 @@ export function HeroOperationalPreview({ className = "" }: PreviewProps) {
       className={className}
       ariaLabel="CliniqFlow practitioner dashboard preview showing patient intake queue and encounter review"
     >
-      <ClientOnly fallback={<PreviewPlaceholder />}>
-        <ScaledAppPreview designWidth={1120} fadeBottom padding={false}>
-          <AppWorkspacePreviewShell>
-            <EncounterDashboardShell
-              cases={proofCases}
-              defaultSelectedId={proofEncounter.id}
-              preview
-            />
-          </AppWorkspacePreviewShell>
-        </ScaledAppPreview>
-      </ClientOnly>
+      <Image
+        src="/marketing/hero-dashboard.webp"
+        alt="CliniqFlow practitioner dashboard with intake queue and draft SOAP review"
+        fill
+        priority
+        sizes="(max-width: 1024px) 100vw, 50vw"
+        className="object-cover object-top"
+      />
     </ProductPreviewFrame>
   );
 }

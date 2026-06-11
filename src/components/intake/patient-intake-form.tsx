@@ -258,11 +258,8 @@ export function PatientIntakeForm(props: {
             />
             <span>
               I consent to the collection and use of my health information for this intake, as
-              described in the clinic&apos;s privacy practices and the{" "}
-              <a href="/privacy" className="font-semibold text-[color:var(--accent)]">
-                CliniqFlow Privacy Policy
-              </a>
-              . This service is not for medical emergencies.
+              described in the clinic&apos;s privacy practices and the CliniqFlow Privacy Policy.
+              This service is not for medical emergencies.
             </span>
           </label>
         )}
@@ -272,9 +269,11 @@ export function PatientIntakeForm(props: {
             <p className="font-semibold text-[color:var(--foreground)]">
               {props.submissionStatus}
             </p>
-            <p>
-              Clinic route: <span className="font-mono">/{props.clinic.slug}</span>
-            </p>
+            {!props.requireConsent && (
+              <p>
+                Clinic route: <span className="font-mono">/{props.clinic.slug}</span>
+              </p>
+            )}
           </div>
 
           <button

@@ -227,6 +227,16 @@ export function HomepageLanding() {
               <span className="section-label">{BRAND.tagline}</span>
             </div>
 
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Link
+                href="/security"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-muted)]/60 px-3 py-1.5 text-xs font-medium text-[color:var(--muted-strong)] transition-colors hover:border-[color:var(--line-strong)] hover:text-[color:var(--foreground)]"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-[color:var(--accent)]" />
+                Clinic data safeguards
+              </Link>
+            </div>
+
             <h1 className="max-w-[20ch] text-balance text-[clamp(2.25rem,4.8vw,3.65rem)] font-semibold leading-[1.02] tracking-[-0.045em] text-[color:var(--foreground)] sm:max-w-none">
               Patient intake and documentation workflow software for clinics
             </h1>

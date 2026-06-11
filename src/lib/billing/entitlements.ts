@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { forbidden, tooManyRequests } from "@/lib/api/errors";
-import { PLAN_LIMITS } from "@/lib/billing/plans";
+import { PLAN_LIMITS, isActiveSubscriptionStatus } from "@/lib/billing/plans";
 
 export async function getTenantSubscription(tenantId: string) {
   const admin = getSupabaseAdmin();
@@ -47,12 +47,12 @@ export async function getSeatCount(tenantId: string) {
 
 export async function assertAiGenerationAllowed(tenantId: string) {
   const sub = await getTenantSubscription(tenantId);
-  const planKey = (sub?.plan_key ?? "trial") as keyof typeof PLAN_LIMITS;
-  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.trial;
+  const planKey = (sub?.plan_key ?? "incomplete") as keyof typeof PLAN_LIMITS;
+  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.incomplete;
   const monthlyLimit = sub?.ai_monthly_limit ?? limits.aiMonthly;
 
-  if (sub?.status === "canceled" || sub?.status === "past_due") {
-    throw forbidden("Subscription inactive. Update billing to continue AI features.");
+  if (!isActiveSubscriptionStatus(sub?.status ?? "incomplete")) {
+    throw forbidden("Active subscription required. Subscribe in Billing to use AI features.");
   }
 
   const used = await getAiUsageThisMonth(tenantId);
@@ -63,10 +63,18 @@ export async function assertAiGenerationAllowed(tenantId: string) {
   }
 }
 
-export async function assertSeatAvailable(tenantId: string) {
+export async function assertActiveSubscription(tenantId: string) {
   const sub = await getTenantSubscription(tenantId);
-  const planKey = (sub?.plan_key ?? "trial") as keyof typeof PLAN_LIMITS;
-  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.trial;
+  if (!isActiveSubscriptionStatus(sub?.status ?? "incomplete")) {
+    throw forbidden("Active subscription required. Subscribe in Billing to continue.");
+  }
+}
+
+export async function assertSeatAvailable(tenantId: string) {
+  await assertActiveSubscription(tenantId);
+  const sub = await getTenantSubscription(tenantId);
+  const planKey = (sub?.plan_key ?? "incomplete") as keyof typeof PLAN_LIMITS;
+  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.incomplete;
   const seatLimit = sub?.seat_limit ?? limits.seats;
   const used = await getSeatCount(tenantId);
 
@@ -79,12 +87,12 @@ export async function assertSeatAvailable(tenantId: string) {
 
 export async function getEntitlementsSummary(tenantId: string) {
   const sub = await getTenantSubscription(tenantId);
-  const planKey = (sub?.plan_key ?? "trial") as keyof typeof PLAN_LIMITS;
-  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.trial;
+  const planKey = (sub?.plan_key ?? "incomplete") as keyof typeof PLAN_LIMITS;
+  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.incomplete;
 
   return {
     planKey,
-    status: sub?.status ?? "trialing",
+    status: sub?.status ?? "incomplete",
     seats: {
       used: await getSeatCount(tenantId),
       limit: sub?.seat_limit ?? limits.seats,

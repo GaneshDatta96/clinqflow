@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { GoogleTag } from "@/components/analytics/google-tag";
 import { sourceSerif } from "@/lib/fonts/display";
 import { AppProviders } from "@/components/providers/app-providers";
 import { GlobalFooter } from "@/components/layout/footer";
@@ -32,6 +33,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} ${sourceSerif.variable} h-full antialiased`}>
+      <head>
+        <GoogleTag />
+      </head>
       <body className="flex min-h-full flex-col text-[15px] text-[color:var(--foreground)]">
         <JsonLd data={[organizationSchema(), websiteSchema()]} />
         <AppProviders>

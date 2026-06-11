@@ -1,5 +1,6 @@
 import { forbidden } from "@/lib/api/errors";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
+import { isActiveSubscriptionStatus } from "@/lib/billing/plans";
 
 export async function assertFeature(
   tenantId: string,
@@ -7,8 +8,8 @@ export async function assertFeature(
 ) {
   const entitlements = await getEntitlementsSummary(tenantId);
 
-  if (entitlements.status === "canceled" || entitlements.status === "past_due") {
-    throw forbidden("Subscription inactive. Update billing to continue.");
+  if (!isActiveSubscriptionStatus(entitlements.status)) {
+    throw forbidden("Active subscription required. Subscribe in Billing to continue.");
   }
 
   if (feature === "ai_generation" && entitlements.aiGenerations.used >= entitlements.aiGenerations.limit) {

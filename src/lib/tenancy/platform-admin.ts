@@ -95,8 +95,38 @@ export async function syncPlatformSupportProfile(user: User) {
 }
 
 export async function syncPlatformRoleProfiles(user: User) {
+  if (!isEmailConfiguredAsPlatformStaff(user.email)) {
+    return;
+  }
+
   await syncPlatformAdminProfile(user);
   await syncPlatformSupportProfile(user);
+}
+
+export async function resolvePlatformRoles(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  userId: string,
+  email?: string | null,
+) {
+  if (isEmailConfiguredAsPlatformAdmin(email)) {
+    return { isPlatformAdmin: true, isPlatformSupport: false };
+  }
+
+  if (isEmailConfiguredAsPlatformSupport(email)) {
+    return { isPlatformAdmin: false, isPlatformSupport: true };
+  }
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("is_platform_admin, is_platform_support")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const isPlatformAdmin = data?.is_platform_admin === true;
+  const isPlatformSupport =
+    !isPlatformAdmin && data?.is_platform_support === true;
+
+  return { isPlatformAdmin, isPlatformSupport };
 }
 
 export async function fetchIsPlatformAdmin(

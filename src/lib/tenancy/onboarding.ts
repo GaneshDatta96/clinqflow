@@ -43,17 +43,14 @@ export async function bootstrapTenantForUser(args: {
     return { tenant, created: false };
   }
 
-  const trialEnds = new Date();
-  trialEnds.setDate(trialEnds.getDate() + 14);
-
   const { data: tenant, error: tenantError } = await admin
     .from("tenants")
     .insert({
       name: args.organizationName.trim(),
       slug: tenantSlug,
-      plan_key: "trial",
-      subscription_status: "trialing",
-      trial_ends_at: trialEnds.toISOString(),
+      plan_key: "starter",
+      subscription_status: "incomplete",
+      trial_ends_at: null,
     })
     .select("id, slug, name")
     .single();
@@ -71,10 +68,10 @@ export async function bootstrapTenantForUser(args: {
 
   await admin.from("subscriptions").insert({
     tenant_id: tenant.id,
-    plan_key: "trial",
-    status: "trialing",
-    seat_limit: 5,
-    ai_monthly_limit: 500,
+    plan_key: "starter",
+    status: "incomplete",
+    seat_limit: 0,
+    ai_monthly_limit: 0,
   });
 
   const clinicSlug = `${baseSlug}-main`;

@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { isPatientIntakePath } from "@/lib/routing/patient-intake-shell";
 
 const STORAGE_KEY = "cliniqflow_cookie_notice_ack";
 
 export function CookieNotice() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -15,7 +18,7 @@ export function CookieNotice() {
     }
   }, []);
 
-  if (!visible) {
+  if (isPatientIntakePath(pathname) || !visible) {
     return null;
   }
 
@@ -27,7 +30,7 @@ export function CookieNotice() {
     >
       <p className="text-sm leading-6 text-[color:var(--muted-strong)]">
         CliniqFlow uses strictly necessary cookies for authentication and workspace
-        context only. See our{" "}
+        context, and Google Analytics on public pages to measure site usage. See our{" "}
         <Link href="/cookies" className="font-semibold text-[color:var(--accent)]">
           Cookie Policy
         </Link>

@@ -240,7 +240,7 @@ Source: [`src/lib/brand/site.ts`](../src/lib/brand/site.ts) positioning and hero
 
 - CliniqFlow is **not** a healthcare provider.
 - CliniqFlow does **not** provide medical advice, diagnosis, or treatment.
-- Use of CliniqFlow does **not** create a doctor-patient relationship with Ganesh Datta / CliniqFlow.
+- Use of CliniqFlow does **not** create a doctor-patient relationship with Prarthana Bhat / CliniqFlow.
 
 ### Do not claim outputs are clinically valid for direct use
 

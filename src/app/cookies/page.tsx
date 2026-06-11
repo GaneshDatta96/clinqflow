@@ -19,8 +19,10 @@ export default function CookiePolicyPage() {
     >
       <h2>1. What we use today</h2>
       <p>
-        {LEGAL.productName} currently uses <strong>strictly necessary cookies</strong> only. We
-        do not use advertising cookies or third-party marketing analytics cookies.
+        {LEGAL.productName} uses <strong>strictly necessary cookies</strong> for authentication
+        and workspace context, and <strong>analytics cookies</strong> through Google Analytics to
+        understand how visitors use our public website. We do not use advertising cookies or
+        third-party marketing analytics cookies beyond Google Analytics.
       </p>
 
       <h2>2. Cookies in use</h2>
@@ -47,6 +49,11 @@ export default function CookiePolicyPage() {
             <td>cliniqflow_acting_tenant_id</td>
             <td>Platform administrator impersonation context</td>
             <td>4 hours (httpOnly)</td>
+          </tr>
+          <tr>
+            <td>_ga, _ga_* (Google Analytics)</td>
+            <td>Website usage measurement on public pages</td>
+            <td>Up to 2 years (Google default)</td>
           </tr>
         </tbody>
       </table>

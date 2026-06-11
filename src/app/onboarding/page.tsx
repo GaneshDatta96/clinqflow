@@ -32,7 +32,7 @@ export default function OnboardingPage() {
         throw new Error(payload.error ?? "Onboarding failed.");
       }
 
-      router.push("/app/dashboard");
+      router.push("/app/billing");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Onboarding failed.");
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
           disabled={pending}
           className="w-full rounded-full bg-[color:var(--accent)] py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
-          {pending ? "Creating workspace…" : "Continue to dashboard"}
+          {pending ? "Creating workspace…" : "Continue to billing"}
         </button>
       </form>
     </div>

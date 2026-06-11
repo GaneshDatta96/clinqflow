@@ -7,6 +7,7 @@ import { BRAND } from "@/lib/brand/site";
 import { BrandLogo } from "@/components/brand/logo";
 import { LEGAL, LEGAL_PAGES } from "@/lib/legal/site";
 import { SEO_LANDING_PAGES } from "@/lib/seo/routes";
+import { isPatientIntakePath } from "@/lib/routing/patient-intake-shell";
 
 const homeFooterLinks = [
   { label: "Product", href: "/#product" },
@@ -19,14 +20,14 @@ const homeFooterLinks = [
 export function GlobalFooter() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/proof")) {
+  if (pathname.startsWith("/proof") || isPatientIntakePath(pathname) || pathname.startsWith("/app")) {
     return null;
   }
 
   return (
     <footer className="w-full border-t border-[color:var(--line)] bg-[color:var(--surface-muted)]/40 px-6 py-14 lg:px-10">
       <div className="mx-auto flex max-w-[1280px] flex-col gap-10">
-        <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div className="flex flex-col items-start gap-3">
             <BrandLogo />
             <p className="max-w-sm text-sm font-medium leading-6 text-[color:var(--foreground)]">
@@ -70,6 +71,21 @@ export function GlobalFooter() {
               ))}
             </nav>
           </div>
+
+          <div>
+            <p className="text-sm font-semibold text-[color:var(--foreground)]">Legal</p>
+            <nav className="mt-3 flex flex-col gap-2">
+              {LEGAL_PAGES.map((page) => (
+                <Link
+                  key={page.href}
+                  href={page.href}
+                  className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--primary)]"
+                >
+                  {page.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
 
         <p className="text-center text-xs leading-6 text-[color:var(--muted)] md:text-left">
@@ -81,21 +97,10 @@ export function GlobalFooter() {
           </Link>
         </p>
 
-        <div className="flex flex-col items-center gap-3 border-t border-[color:var(--line)]/50 pt-8 md:flex-row md:justify-between">
-          <p className="text-xs text-[color:var(--muted)]">
+        <div className="border-t border-[color:var(--line)]/50 pt-8">
+          <p className="text-center text-xs text-[color:var(--muted)] md:text-left">
             © {new Date().getFullYear()} {LEGAL.productName}. All rights reserved.
           </p>
-          <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-            {LEGAL_PAGES.map((page) => (
-              <Link
-                key={page.href}
-                href={page.href}
-                className="text-xs font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--accent)]"
-              >
-                {page.label}
-              </Link>
-            ))}
-          </nav>
         </div>
       </div>
     </footer>

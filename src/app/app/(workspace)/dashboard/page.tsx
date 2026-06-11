@@ -16,11 +16,11 @@ export default async function AppDashboardPage({
   const { q } = await searchParams;
   const { supabase, context } = await requireTenantContextForPage();
 
-  const encounters = await listEncountersForTenant(supabase, context.tenantId, {
-    search: q,
-  });
+  const [encounters, entitlements] = await Promise.all([
+    listEncountersForTenant(supabase, context.tenantId, { search: q }),
+    getEntitlementsSummary(context.tenantId),
+  ]);
   const cases = encounters.map(mapEncounterToDashboardCase);
-  const entitlements = await getEntitlementsSummary(context.tenantId);
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6">

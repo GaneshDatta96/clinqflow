@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { BrandLogo } from "@/components/brand/logo";
 import { BRAND } from "@/lib/brand/site";
 import { SEO_LANDING_PAGES, isMarketingPath } from "@/lib/seo/routes";
+import { isPatientIntakePath } from "@/lib/routing/patient-intake-shell";
 
 const appNavigation = [
   { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -32,7 +33,7 @@ export function GlobalHeader() {
   const isApp = pathname.startsWith("/app");
   const showMarketingShell = !isApp && (isHome || isMarketingPath(pathname));
 
-  if (pathname.startsWith("/proof")) {
+  if (pathname.startsWith("/proof") || isPatientIntakePath(pathname) || pathname.startsWith("/app")) {
     return null;
   }
 

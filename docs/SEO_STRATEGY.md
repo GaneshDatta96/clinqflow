@@ -79,9 +79,8 @@ Validate after deploy: [Google Rich Results Test](https://search.google.com/test
 
 **Realistic traffic:** New domain + niche B2B = low initial organic volume. Primary win is **qualified clinic-intent visitors**, not mass traffic.
 
-## Out of scope (Phase 3+)
+## Phase 3+ (planned)
 
-- Blog or agentic auto-publishing
-- Competitor comparison pages
-- Programmatic local/city pages
-- Full bundle audit and analytics stack
+Phase 1–2 established the foundation. The next layer — measurement, Core Web Vitals, content depth, niche vertical pages, authority, and conversion optimization — is documented in **[SEO_PHASE_3_PLAN.md](./SEO_PHASE_3_PLAN.md)**.
+
+**Recommended first sprint:** GSC setup, privacy-respecting analytics, homepage LCP pass, per-page OG images, legacy route redirects.

@@ -23,6 +23,12 @@ export default async function BillingPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-3xl font-semibold">Billing</h1>
+      {entitlements.status !== "active" ? (
+        <p className="text-sm leading-6 text-[color:var(--muted)]">
+          Subscribe to activate your clinic workspace. CliniqFlow does not include a free trial—choose
+          a plan below after sign-up.
+        </p>
+      ) : null}
       <div className="rounded-2xl border border-[color:var(--line)] bg-white/80 p-6 space-y-4">
         <p className="text-sm text-[color:var(--muted)]">Current plan</p>
         <p className="text-2xl font-semibold capitalize">{entitlements.planKey}</p>

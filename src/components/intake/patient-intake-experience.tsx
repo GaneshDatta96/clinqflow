@@ -48,7 +48,6 @@ export function PatientIntakeExperience(props: {
   const [patient, setPatient] = useState<PatientDetails | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [intakeToken, setIntakeToken] = useState<string | null>(props.intakeToken ?? null);
-  const [tokenInput, setTokenInput] = useState("");
   const [origin, setOrigin] = useState("");
   const [submission, setSubmission] = useState<SubmissionState>({
     isSubmitted: false,
@@ -124,7 +123,7 @@ export function PatientIntakeExperience(props: {
     });
 
     try {
-      const isPublicSubmit = isPublicMode && (intakeToken || tokenInput.trim());
+      const isPublicSubmit = isPublicMode && Boolean(intakeToken);
       const endpoint = isPublicSubmit
         ? "/api/intake/public/submit"
         : "/api/intake/submit";
@@ -133,9 +132,8 @@ export function PatientIntakeExperience(props: {
         "Content-Type": "application/json",
       };
 
-      const activeToken = intakeToken ?? tokenInput.trim();
-      if (isPublicSubmit && activeToken) {
-        headers["x-intake-token"] = activeToken;
+      if (isPublicSubmit && intakeToken) {
+        headers["x-intake-token"] = intakeToken;
       }
 
       const response = await fetch(endpoint, {
@@ -195,7 +193,7 @@ export function PatientIntakeExperience(props: {
             </h1>
             <p className="max-w-3xl leading-7 text-[color:var(--muted)]">
               {needsSecureLink
-                ? `Intake for ${props.clinic.clinicName} requires a patient-specific link from your care team. The link includes your patient ID; your clinic will send the access token separately.`
+                ? `Open the secure intake link your clinic sent you. If you do not have a link, contact ${props.clinic.clinicName} directly.`
                 : "Sign in to your clinic workspace to create a patient and generate a secure intake link from the Patients page."}
             </p>
           </div>
@@ -266,11 +264,35 @@ export function PatientIntakeExperience(props: {
           <p className="text-sm leading-7 text-[color:var(--muted)]">
             <strong className="text-[color:var(--foreground)]">Not for emergencies.</strong>{" "}
             If you need urgent medical care, contact local emergency services
-            immediately.{" "}
-            <a href="/medical-disclaimer" className="font-semibold text-[color:var(--accent)]">
-              Medical disclaimer
-            </a>
+            immediately.
+            {!isPublicMode && (
+              <>
+                {" "}
+                <a href="/medical-disclaimer" className="font-semibold text-[color:var(--accent)]">
+                  Medical disclaimer
+                </a>
+              </>
+            )}
           </p>
+        </section>
+      </div>
+    );
+  }
+
+  if (isPublicMode && activePatientId && !intakeToken) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
+        <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
+          <div className="space-y-3">
+            <p className="section-label">Patient Intake</p>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Link incomplete
+            </h1>
+            <p className="max-w-3xl leading-7 text-[color:var(--muted)]">
+              This intake link is missing required access information. Ask{" "}
+              {props.clinic.clinicName} to send you a new secure intake link.
+            </p>
+          </div>
         </section>
       </div>
     );
@@ -328,27 +350,6 @@ export function PatientIntakeExperience(props: {
               {copiedLink ? "Copied" : "Copy link"}
             </button>
           </div>
-        </section>
-      ) : null}
-
-      {isPublicMode && !intakeToken ? (
-        <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
-          <label className="block text-sm font-medium" htmlFor="intake-access-token">
-            Access token
-          </label>
-          <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Paste the secure token your clinic sent separately. It is not stored in the
-            link URL.
-          </p>
-          <input
-            id="intake-access-token"
-            type="password"
-            autoComplete="off"
-            value={tokenInput}
-            onChange={(event) => setTokenInput(event.target.value)}
-            className="mt-3 w-full rounded-2xl border border-[color:var(--line)] bg-white px-4 py-3 text-sm"
-            placeholder="Paste intake token"
-          />
         </section>
       ) : null}
 

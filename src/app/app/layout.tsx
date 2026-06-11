@@ -8,16 +8,11 @@ import {
   Shield,
 } from "lucide-react";
 import {
-  listUserTenants,
-  requirePlatformAdminContext,
-  tryGetTenantContext,
+  getAppShellData,
 } from "@/lib/tenancy/context";
-import { getActiveTenantIdFromCookies } from "@/lib/tenancy/active-tenant";
 import { TenantSwitcher } from "@/components/settings/tenant-switcher";
 import { hasPermission } from "@/lib/tenancy/permissions";
-import { getActingTenantIdFromCookies } from "@/lib/tenancy/acting-tenant";
 import { getWorkspaceNav } from "@/lib/tenancy/role-routing";
-import type { TenantContext } from "@/lib/tenancy/types";
 import { isAuthConfigured } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -46,34 +41,16 @@ export default async function AppLayout({
     );
   }
 
-  let context: TenantContext;
-  let platformStaffOnly = false;
+  let shell: Awaited<ReturnType<typeof getAppShellData>>;
 
-  const tenantResult = await tryGetTenantContext();
-
-  if (tenantResult) {
-    context = tenantResult.context;
-  } else {
-    try {
-      const staffResult = await requirePlatformAdminContext();
-      context = staffResult.context;
-      platformStaffOnly = true;
-    } catch {
-      redirect("/login");
-    }
+  try {
+    shell = await getAppShellData();
+  } catch {
+    redirect("/login");
   }
 
-  const actingTenantId = await getActingTenantIdFromCookies();
-  const activeTenantId =
-    (await getActiveTenantIdFromCookies()) ?? context.tenantId;
-  let tenantOptions: Awaited<ReturnType<typeof listUserTenants>> = [];
-  if (!platformStaffOnly && context.userId) {
-    try {
-      tenantOptions = await listUserTenants(context.userId);
-    } catch {
-      tenantOptions = [];
-    }
-  }
+  const { context, platformStaffOnly, actingTenantId, activeTenantId, tenantOptions } =
+    shell;
 
   const navItems = getWorkspaceNav({
     role: context.role,
@@ -84,7 +61,7 @@ export default async function AppLayout({
   });
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col pt-20">
+    <div className="flex min-h-screen flex-col pt-6">
       {(context.isPlatformAdmin || context.isPlatformSupport) && (
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950 lg:px-8">
           <span className="inline-flex items-center gap-2 font-semibold">

@@ -5,6 +5,7 @@ import {
 } from "@/lib/api/handler";
 import { badRequest } from "@/lib/api/errors";
 import { createPatientForClinic } from "@/lib/db/repositories/patients";
+import { assertActiveSubscription } from "@/lib/billing/entitlements";
 import { requirePermission, requireClinicAccess } from "@/lib/tenancy/context";
 
 const createPatientSchema = z.object({
@@ -21,6 +22,7 @@ export const POST = createApiHandler({
   schema: createPatientSchema,
   handler: async ({ body }) => {
     const { supabase, context } = await requirePermission("patient:create");
+    await assertActiveSubscription(context.tenantId);
     const { context: clinicContext } = await requireClinicAccess(body.clinic_id);
 
     if (clinicContext.tenantId !== context.tenantId) {

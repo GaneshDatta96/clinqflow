@@ -169,7 +169,7 @@ export default function AppPatientsPage() {
       </ul>
       {selectedClinic && (
         <p className="text-sm text-[color:var(--muted)]">
-          Intake URLs use path /c/{selectedClinic.slug} with signed tokens.
+          Intake URLs use path /c/{selectedClinic.slug} with a single secure link per patient.
         </p>
       )}
     </div>

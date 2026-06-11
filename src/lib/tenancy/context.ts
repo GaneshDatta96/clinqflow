@@ -1,22 +1,21 @@
-import { cookies } from "next/headers";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/db/supabase-server";
 import { forbidden, unauthorized } from "@/lib/api/errors";
 import { hasPermission, type Permission } from "@/lib/tenancy/permissions";
 import { getActiveTenantIdFromCookies } from "@/lib/tenancy/active-tenant";
+import { getActingTenantIdFromCookies } from "@/lib/tenancy/acting-tenant";
 import {
-  ACTING_TENANT_COOKIE,
-  fetchIsPlatformAdmin,
-  fetchIsPlatformStaff,
-  fetchIsPlatformSupport,
+  resolvePlatformRoles,
   syncPlatformRoleProfiles,
 } from "@/lib/tenancy/platform-admin";
 import { type TenantContext, type TenantRole } from "@/lib/tenancy/types";
 import { isAuthConfigured } from "@/lib/env";
+import { isActiveSubscriptionStatus } from "@/lib/billing/plans";
 import { resolveDbClientForContext } from "@/lib/security/platform-staff";
 import { writeAuditLog } from "@/services/audit.service";
 
-export async function requireUser() {
+export const requireUser = cache(async () => {
   if (!isAuthConfigured()) {
     throw unauthorized("Authentication is not configured.");
   }
@@ -36,23 +35,18 @@ export async function requireUser() {
     throw unauthorized();
   }
 
-  if (
-    process.env.NODE_ENV === "production" &&
-    !user.email_confirmed_at
-  ) {
+  if (process.env.NODE_ENV === "production" && !user.email_confirmed_at) {
     throw unauthorized("Email address must be verified.");
   }
 
   await syncPlatformRoleProfiles(user);
 
   return { supabase, user };
-}
+});
 
 async function resolveActingTenantId(explicitTenantId?: string) {
   if (explicitTenantId) return explicitTenantId;
-
-  const cookieStore = await cookies();
-  return cookieStore.get(ACTING_TENANT_COOKIE)?.value ?? null;
+  return getActingTenantIdFromCookies();
 }
 
 async function resolveActiveTenantId(explicitTenantId?: string) {
@@ -167,22 +161,14 @@ function buildTenantContext(args: {
   };
 }
 
-export async function requireTenantContext(tenantId?: string): Promise<{
-  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>;
-  context: TenantContext;
-}> {
+export const requireTenantContext = cache(async (tenantId?: string) => {
   const { supabase, user } = await requireUser();
-  const isPlatformAdmin = await fetchIsPlatformAdmin(
+  const { isPlatformAdmin, isPlatformSupport } = await resolvePlatformRoles(
     supabase,
     user.id,
     user.email,
   );
-  const isPlatformStaff = isPlatformAdmin
-    ? true
-    : await fetchIsPlatformStaff(supabase, user.id, user.email);
-  const isPlatformSupport =
-    !isPlatformAdmin &&
-    (await fetchIsPlatformSupport(supabase, user.id, user.email));
+  const isPlatformStaff = isPlatformAdmin || isPlatformSupport;
   const actingTenantId = await resolveActingTenantId(tenantId);
 
   if (isPlatformStaff && actingTenantId) {
@@ -227,19 +213,16 @@ export async function requireTenantContext(tenantId?: string): Promise<{
       role: membership.role,
     }),
   };
-}
+});
 
 /** Tenant context for platform staff without requiring an acting tenant (support console). */
 export async function requirePlatformAdminContext() {
   const { supabase, user } = await requireUser();
-  const isPlatformAdmin = await fetchIsPlatformAdmin(
+  const { isPlatformAdmin, isPlatformSupport } = await resolvePlatformRoles(
     supabase,
     user.id,
     user.email,
   );
-  const isPlatformSupport =
-    !isPlatformAdmin &&
-    (await fetchIsPlatformSupport(supabase, user.id, user.email));
 
   if (!isPlatformAdmin && !isPlatformSupport) {
     throw forbidden("Platform staff access required.");
@@ -273,7 +256,7 @@ export async function requireGodModeContext() {
   return { supabase, user, context };
 }
 
-export async function listUserTenants(userId: string) {
+export const listUserTenants = cache(async (userId: string) => {
   const { supabase } = await requireUser();
 
   const { data, error } = await supabase
@@ -308,6 +291,53 @@ export async function listUserTenants(userId: string) {
       };
     })
     .filter((row): row is NonNullable<typeof row> => row !== null);
+});
+
+/** Cached shell data for /app layout — one auth pass per request. */
+export const getAppShellData = cache(async () => {
+  const tenantResult = await tryGetTenantContext();
+
+  if (tenantResult) {
+    const { context } = tenantResult;
+    const [actingTenantId, activeTenantId, tenantOptions] = await Promise.all([
+      getActingTenantIdFromCookies(),
+      getActiveTenantIdFromCookies(),
+      listUserTenants(context.userId),
+    ]);
+
+    return {
+      context,
+      platformStaffOnly: false,
+      actingTenantId,
+      activeTenantId: activeTenantId ?? context.tenantId,
+      tenantOptions,
+    };
+  }
+
+  const staffResult = await requirePlatformAdminContext();
+  const [actingTenantId, activeTenantId] = await Promise.all([
+    getActingTenantIdFromCookies(),
+    getActiveTenantIdFromCookies(),
+  ]);
+
+  return {
+    context: staffResult.context,
+    platformStaffOnly: true,
+    actingTenantId,
+    activeTenantId: activeTenantId ?? "",
+    tenantOptions: [] as Awaited<ReturnType<typeof listUserTenants>>,
+  };
+});
+
+/** Redirect unpaid workspaces to billing (sign up → subscribe, no silent free trial). */
+export function requireActiveSubscriptionForPage(context: TenantContext) {
+  if (context.isPlatformAdmin || context.isPlatformSupport) {
+    return;
+  }
+
+  if (!isActiveSubscriptionStatus(context.subscriptionStatus)) {
+    redirect("/app/billing");
+  }
 }
 
 /** Tenant workspace pages — redirects platform staff and guests instead of throwing. */

@@ -1,7 +1,7 @@
 export const LEGAL = {
   productName: "CliniqFlow",
   tradeName: "CliniqFlow",
-  legalName: "Ganesh Datta",
+  legalName: "Prarthana Bhat",
   entityDescription:
     "an individual sole proprietor operating under the trade name CliniqFlow",
   jurisdiction: "India",
@@ -13,7 +13,7 @@ export const LEGAL = {
   securityEmail: "security@cliniqflow.com",
   legalEmail: "support@cliniqflow.com",
   lastUpdated: "May 30, 2026",
-  trialDays: 14,
+  trialDays: 0,
   arbitrationVenues: "India or Singapore",
   arbitrationInstitution: "[Arbitration institution — e.g., SIAC or DIAC]",
   dataDeletionSlaDays: 30,

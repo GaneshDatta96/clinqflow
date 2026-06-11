@@ -24,7 +24,8 @@ export function BillingActions({
   userEmail?: string | null;
 }) {
   const showStarter =
-    currentPlan === "trial" && isRazorpayPaymentLinkConfigured("starter");
+    (currentPlan === "incomplete" || currentPlan === "trial") &&
+    isRazorpayPaymentLinkConfigured("starter");
   const showGrowth = isRazorpayPaymentLinkConfigured("growth");
 
   return (

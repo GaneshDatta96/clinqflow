@@ -15,10 +15,10 @@ Build Log Initialized.
 - Aligned the API schema in /api/intake/submit/route.ts to use subjectiveNoteSchema.
 - Added a temporary data transformation in lib/intake/workflow.ts to map the new subjectiveNoteSchema back to the old IntakeFormInput format, ensuring compatibility with the existing processing pipeline.
 
-[2026-04-18] - feat: Widen dashboard and add Ganesh footer
+[2026-04-18] - feat: Widen dashboard and add creator footer
 - Expanded the practitioner dashboard layout to use the full available screen width for large displays.
 - Refreshed dashboard typography and panel styling with a cleaner clinical look using Plus Jakarta Sans and updated spacing.
-- Added a shared footer across the app that reads "created by Ganesh" and links to https://ganeshdatta.me.
+- Added a shared footer across the app that reads "created by Prarthana Bhat" and links to the creator site.
 - Verified with npm run lint, npx tsc --noEmit, and npm run build.
 
 [2026-04-18] - chore: Simplify homepage CTA and hide Create Demo nav item
@@ -105,7 +105,7 @@ documentation workflow platform (NOT an EHR, telehealth, prescription, insurance
 treatment-management, or appointment-scheduling system).
 
 Contracting party documented everywhere:
-  Ganesh Datta, sole proprietor operating under trade name CliniqFlow (India).
+  Prarthana Bhat, sole proprietor operating under trade name CliniqFlow (India).
 Placeholders still require manual fill before counsel sign-off:
   [Registration Number], [Registered Business Address], [Arbitration institution]
 
@@ -502,4 +502,17 @@ END legal-compliance-v1
 - Added landing pages: /how-patient-intake-works, /ai-documentation, /clinic-workflows, /security, /faq with MarketingPageShell.
 - Extended header/footer marketing nav and Product links; refactored 13 legal pages to buildPageMetadata; noindex on auth/intake routes.
 - Added docs/SEO_KEYWORDS.md, SEO_STRATEGY.md, CONTENT_MAP.md.
-- Fixed invite/accept Suspense boundary for production build; verified with npm run typecheck and npm run build.
+- Fixed silent 14-day free trial: new signups start as incomplete until Razorpay subscription; app routes redirect to /app/billing.
+- Patient intake links now include the access token in the URL; removed manual token paste field from the patient form.
+- Patient intake routes (/c/*) hide site header, footer, and cookie notice; removed outbound links from the public intake form.
+- Fix slow /app navigation: cache auth/tenant context per request, remove middleware subscription DB query, skip platform profile sync for clinic users, consolidate platform role lookup, parallelize layout and dashboard fetches, hide duplicate marketing header on /app, add workspace loading state.
+
+[2026-06-11] - feat: Google Analytics, legal entity update, subscription gating, and workspace performance
+- Updated legal operator name from Ganesh Datta to Prarthana Bhat in src/lib/legal/site.ts, public/llms.txt, docs/MARKETING_NOT_TO_DO_MANUSCRIPT.md, and build.txt history.
+- Added Google Analytics 4 tag (G-YJHPBWZQBD) via src/components/analytics/google-tag.tsx in root layout <head>; updated Cookie Policy and cookie notice for GA analytics cookies.
+- Moved clinic workspace routes under src/app/app/(workspace)/ with a subscription gate (requireActiveSubscriptionForPage); billing and onboarding remain accessible without an active plan.
+- Removed silent free-trial behavior: new tenants start incomplete until Razorpay subscription; API routes assert active subscription for patient create and intake link creation; billing page explains subscribe-after-signup.
+- Intake links now embed the access token in the URL (?token=); removed manual token paste from patient intake form; added src/app/c/layout.tsx and src/lib/routing/patient-intake-shell.ts to hide marketing header, footer, and cookie notice on /c/*.
+- Improved /app navigation performance: getAppShellData() consolidates layout auth/tenant fetches; React cache() on tenant context; marketing GlobalHeader hidden on /app; added src/app/app/loading.tsx.
+- Added docs/SEO_PHASE_3_PLAN.md, updated docs/SEO_STRATEGY.md Phase 3 pointer, and public/llms.txt for LLM/crawler context.
+- Verified with npm run typecheck.

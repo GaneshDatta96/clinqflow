@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  COOKIE_NOTICE_STORAGE_KEY,
+  grantAnalyticsConsent,
+  hasAnalyticsConsentAck,
+} from "@/lib/analytics/consent";
 import { isPatientIntakePath } from "@/lib/routing/patient-intake-shell";
-
-const STORAGE_KEY = "cliniqflow_cookie_notice_ack";
 
 export function CookieNotice() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!window.localStorage.getItem(STORAGE_KEY)) {
+    if (!hasAnalyticsConsentAck()) {
       setVisible(true);
     }
   }, []);
@@ -39,7 +41,8 @@ export function CookieNotice() {
       <button
         type="button"
         onClick={() => {
-          window.localStorage.setItem(STORAGE_KEY, "1");
+          window.localStorage.setItem(COOKIE_NOTICE_STORAGE_KEY, "1");
+          grantAnalyticsConsent();
           setVisible(false);
         }}
         className="mt-3 rounded-full bg-[color:var(--foreground)] px-4 py-2 text-xs font-semibold text-white"

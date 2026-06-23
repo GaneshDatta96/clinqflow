@@ -516,3 +516,7 @@ END legal-compliance-v1
 - Improved /app navigation performance: getAppShellData() consolidates layout auth/tenant fetches; React cache() on tenant context; marketing GlobalHeader hidden on /app; added src/app/app/loading.tsx.
 - Added docs/SEO_PHASE_3_PLAN.md, updated docs/SEO_STRATEGY.md Phase 3 pointer, and public/llms.txt for LLM/crawler context.
 - Verified with npm run typecheck.
+
+[2026-06-11] - fix: Allow Google Analytics in Content Security Policy
+- Updated next.config.ts script-src to include https://www.googletagmanager.com for gtag.js.
+- Updated connect-src for GA4 measurement endpoints (google-analytics.com, googletagmanager.com).

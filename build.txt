@@ -552,7 +552,7 @@ Password strength and intake hardening
 
 Platform MFA and CSP
 - TOTP MFA for platform staff (src/lib/auth/mfa.ts, /app/mfa/setup and /app/mfa/verify).
-- Content Security Policy via src/middleware.ts and src/lib/security/csp.ts; GA allowed in connect-src/script-src.
+- Content Security Policy via src/proxy.ts and src/lib/security/csp.ts; GA allowed in connect-src/script-src.
 
 Business contact and branding
 - Business phone (541) 730-3827 in LEGAL config, footer, /contact page, legal shell, Terms, Organization schema, llms.txt.
@@ -563,3 +563,8 @@ Other
 - Client bundle secret scan scripts (scripts/scan-client-secrets.mjs, scan-client-secret-values.mjs).
 - docs/PHASE2_SECURITY_BACKLOG.md, PEN_TEST_SCHEDULE.md, and marketing manuscript contact updates.
 - Verified with npm run typecheck.
+
+[2026-06-23] - fix: Next.js 16 proxy-only edge layer (Vercel build)
+- Removed src/middleware.ts; merged CSP nonce, Content-Security-Policy, and Cache-Control into src/proxy.ts (Next.js 16 allows proxy.ts or middleware.ts, not both).
+- Added /contact and SEO landing paths to proxy PUBLIC_PATHS.
+- Verified with npm run build.

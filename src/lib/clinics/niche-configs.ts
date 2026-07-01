@@ -47,6 +47,13 @@ export type QuestionnaireField = z.infer<typeof questionnaireFieldSchema>;
 export type NicheConfig = z.infer<typeof nicheConfigSchema>;
 export type NicheKey = keyof typeof nicheConfigs;
 
+export function getNicheOptions(): Array<{ niche: NicheKey; label: string }> {
+  return Object.entries(nicheConfigs).map(([niche, config]) => ({
+    niche: niche as NicheKey,
+    label: config.label,
+  }));
+}
+
 export const clinicCatalog = [
   {
     slug: "functional-medicine",

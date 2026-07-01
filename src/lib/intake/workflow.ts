@@ -1,4 +1,9 @@
-import { generateSoapDraft } from "@/lib/ai/generate-soap";
+import { buildFallbackSoap } from "@/lib/ai/generate-soap";
+import {
+  enqueueSoapEnhancementJob,
+  SOAP_FALLBACK_MODEL,
+  SOAP_FALLBACK_PROMPT_VERSION,
+} from "@/lib/ai/soap-jobs";
 import { scorePatterns } from "@/lib/assessment/score-patterns";
 import { badRequest, notFound } from "@/lib/api/errors";
 import { getClinicByNiche, type ClinicDefinition } from "@/lib/clinics/niche-configs";
@@ -29,6 +34,7 @@ export type ProcessedEncounter = {
   model: string;
   usedFallback: boolean;
   supportsAppointments: boolean;
+  soapStatus: "processing" | "ready";
 };
 
 async function resolvePatient(
@@ -97,12 +103,12 @@ export async function processAuthenticatedIntakeSubmission(
   const normalizedIntake = transformed.normalizedIntake;
   const assessmentResults = scorePatterns(normalizedIntake);
   await assertAiGenerationAllowed(context.tenantId);
-  const generated = await generateSoapDraft({
-    intake: normalizedIntake,
+  const fallbackSoap = buildFallbackSoap(
+    normalizedIntake,
     assessmentResults,
     clinic,
-    soapContext: transformed.soapContext,
-  });
+    transformed.soapContext,
+  );
 
   const encounterId = await persistEncounterPipeline({
     supabase: context.supabase,
@@ -113,26 +119,19 @@ export async function processAuthenticatedIntakeSubmission(
     normalizedIntake,
     rawInput: input,
     assessmentResults,
-    soap: generated.soap,
-    promptVersion: generated.promptVersion,
-    model: generated.model,
+    soap: fallbackSoap,
+    promptVersion: SOAP_FALLBACK_PROMPT_VERSION,
+    model: SOAP_FALLBACK_MODEL,
   });
 
-  await Promise.all([
-    context.supabase.from("ai_generations").insert({
-      tenant_id: context.tenantId,
-      encounter_id: encounterId,
-      prompt_version: generated.promptVersion,
-      model: generated.model,
-      used_fallback: generated.usedFallback,
-      created_by: context.userId,
-    }),
-    context.supabase.from("usage_tracking").insert({
-      tenant_id: context.tenantId,
-      metric_key: "ai_soap_generation",
-      quantity: 1,
-    }),
-  ]);
+  await enqueueSoapEnhancementJob(context.supabase, {
+    tenantId: context.tenantId,
+    encounterId,
+    payload: {
+      kind: "intake_soap_enhance",
+      createdBy: context.userId,
+    },
+  });
 
   return {
     encounterId,
@@ -141,11 +140,12 @@ export async function processAuthenticatedIntakeSubmission(
     clinicId: clinic.id,
     normalizedIntake,
     assessmentResults,
-    soap: generated.soap,
-    promptVersion: generated.promptVersion,
-    model: generated.model,
-    usedFallback: generated.usedFallback,
+    soap: fallbackSoap,
+    promptVersion: SOAP_FALLBACK_PROMPT_VERSION,
+    model: SOAP_FALLBACK_MODEL,
+    usedFallback: true,
     supportsAppointments: false,
+    soapStatus: "processing",
   };
 }
 
@@ -205,12 +205,12 @@ export async function processPublicIntakeSubmission(
   const normalizedIntake = transformed.normalizedIntake;
   const assessmentResults = scorePatterns(normalizedIntake);
   await assertAiGenerationAllowed(claims.tenantId);
-  const generated = await generateSoapDraft({
-    intake: normalizedIntake,
+  const fallbackSoap = buildFallbackSoap(
+    normalizedIntake,
     assessmentResults,
     clinic,
-    soapContext: transformed.soapContext,
-  });
+    transformed.soapContext,
+  );
 
   const encounterId = await persistEncounterPipeline({
     supabase: admin,
@@ -220,9 +220,9 @@ export async function processPublicIntakeSubmission(
     normalizedIntake,
     rawInput: input,
     assessmentResults,
-    soap: generated.soap,
-    promptVersion: generated.promptVersion,
-    model: generated.model,
+    soap: fallbackSoap,
+    promptVersion: SOAP_FALLBACK_PROMPT_VERSION,
+    model: SOAP_FALLBACK_MODEL,
   });
 
   await admin
@@ -230,20 +230,11 @@ export async function processPublicIntakeSubmission(
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("id", claims.linkId);
 
-  await Promise.all([
-    admin.from("ai_generations").insert({
-      tenant_id: claims.tenantId,
-      encounter_id: encounterId,
-      prompt_version: generated.promptVersion,
-      model: generated.model,
-      used_fallback: generated.usedFallback,
-    }),
-    admin.from("usage_tracking").insert({
-      tenant_id: claims.tenantId,
-      metric_key: "ai_soap_generation",
-      quantity: 1,
-    }),
-  ]);
+  await enqueueSoapEnhancementJob(admin, {
+    tenantId: claims.tenantId,
+    encounterId,
+    payload: { kind: "intake_soap_enhance" },
+  });
 
   const { recordConsent } = await import("@/services/consent.service");
   await recordConsent({
@@ -261,11 +252,12 @@ export async function processPublicIntakeSubmission(
     clinicId: clinic.id,
     normalizedIntake,
     assessmentResults,
-    soap: generated.soap,
-    promptVersion: generated.promptVersion,
-    model: generated.model,
-    usedFallback: generated.usedFallback,
+    soap: fallbackSoap,
+    promptVersion: SOAP_FALLBACK_PROMPT_VERSION,
+    model: SOAP_FALLBACK_MODEL,
+    usedFallback: true,
     supportsAppointments: false,
+    soapStatus: "processing",
   };
 }
 

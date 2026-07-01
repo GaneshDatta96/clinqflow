@@ -11,14 +11,26 @@ const zohoAccountSchema = z.object({
 export type ZohoAccount = z.infer<typeof zohoAccountSchema>;
 
 let accountIndex = 0;
+let cachedAccountsRaw: string | null | undefined;
+let cachedAccounts: ZohoAccount[] | null = null;
 
 export function parseZohoAccountsJson(raw: string | null | undefined): ZohoAccount[] {
-  if (!raw?.trim()) {
-    return [];
+  const normalized = raw?.trim() ?? "";
+  if (cachedAccounts && cachedAccountsRaw === normalized) {
+    return cachedAccounts;
   }
 
-  const parsed = JSON.parse(raw) as unknown;
-  return z.array(zohoAccountSchema).parse(parsed);
+  if (!normalized) {
+    cachedAccountsRaw = normalized;
+    cachedAccounts = [];
+    return cachedAccounts;
+  }
+
+  const parsed = JSON.parse(normalized) as unknown;
+  const accounts = z.array(zohoAccountSchema).parse(parsed);
+  cachedAccountsRaw = normalized;
+  cachedAccounts = accounts;
+  return accounts;
 }
 
 /** Round-robin pick; returns start index for retry rotation. */

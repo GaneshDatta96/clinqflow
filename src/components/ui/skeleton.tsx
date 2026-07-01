@@ -108,3 +108,21 @@ export function SkeletonInvitePanel() {
     </section>
   );
 }
+
+export function SkeletonEncounterSearch() {
+  return (
+    <div className="flex gap-2" aria-busy aria-label="Loading search">
+      <Skeleton className="h-10 max-w-md flex-1 rounded-full" />
+      <Skeleton className="h-10 w-24 rounded-full" />
+    </div>
+  );
+}
+
+export function SkeletonRazorpayButton({ className = "" }: { className?: string }) {
+  return (
+    <Skeleton
+      className={`h-11 min-w-[9rem] rounded-full ${className}`}
+      aria-label="Loading payment button"
+    />
+  );
+}

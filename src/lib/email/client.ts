@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import type Mail from "nodemailer/lib/mailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { env } from "@/lib/env";
 import {
   nextZohoSendSlot,
@@ -65,6 +67,26 @@ async function sendViaZoho(input: SendEmailInput) {
 }
 
 async function sendWithZohoAccount(account: ZohoAccount, input: SendEmailInput) {
+  const transporter = getZohoTransporter(account);
+
+  await transporter.sendMail({
+    from: formatFromAddress(account.email),
+    to: input.to,
+    subject: input.subject,
+    html: input.html,
+    text: input.text ?? stripHtml(input.html),
+  });
+}
+
+const zohoTransporterCache = new Map<string, Mail<SMTPTransport.SentMessageInfo>>();
+
+function getZohoTransporter(account: ZohoAccount) {
+  const cacheKey = `${account.email}|${account.smtp}|${account.port}`;
+  const cached = zohoTransporterCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const transporter = nodemailer.createTransport({
     host: account.smtp,
     port: account.port,
@@ -75,13 +97,8 @@ async function sendWithZohoAccount(account: ZohoAccount, input: SendEmailInput) 
     },
   });
 
-  await transporter.sendMail({
-    from: formatFromAddress(account.email),
-    to: input.to,
-    subject: input.subject,
-    html: input.html,
-    text: input.text ?? stripHtml(input.html),
-  });
+  zohoTransporterCache.set(cacheKey, transporter);
+  return transporter;
 }
 
 function formatFromAddress(accountEmail: string) {

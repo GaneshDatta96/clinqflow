@@ -8,7 +8,7 @@ import {
   recordPublicIntakeSubmission,
 } from "@/lib/security/public-intake-guard";
 import {
-  buildNicheIntakeSubmissionSchema,
+  getNicheIntakeSubmissionSchema,
   nicheIntakeBaseSchema,
 } from "@/lib/schemas/niche-intake";
 
@@ -39,7 +39,7 @@ export const POST = createApiHandler({
       throw badRequest("Unknown clinic configuration.");
     }
 
-    const input = buildNicheIntakeSubmissionSchema(clinic.config).parse(body);
+    const input = getNicheIntakeSubmissionSchema(clinic.config).parse(body);
 
     if (!input.consent_accepted) {
       throw badRequest("Consent is required before submitting intake.");

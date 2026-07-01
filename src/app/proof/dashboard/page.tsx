@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { EncounterDashboardShell } from "@/components/dashboard/encounter-dashboard-shell";
 import { EncounterSearch } from "@/components/dashboard/encounter-search";
 import { ProofScreenShell } from "@/components/home/proof-screen-shell";
+import { SkeletonEncounterSearch } from "@/components/ui/skeleton";
 import { proofCases, proofDashboardMeta } from "@/lib/marketing/proof-data";
 
 export const metadata = {
@@ -26,7 +27,7 @@ export default function ProofDashboardPage() {
               {proofCases.length} encounters
             </p>
             <div className="mt-4">
-              <Suspense fallback={null}>
+              <Suspense fallback={<SkeletonEncounterSearch />}>
                 <EncounterSearch />
               </Suspense>
             </div>

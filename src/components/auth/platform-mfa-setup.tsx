@@ -3,6 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/db/supabase-browser";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function MfaSetupSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-md space-y-4" aria-busy aria-label="Preparing MFA setup">
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-11/12" />
+      <Skeleton className="mx-auto h-[232px] w-[232px] rounded-2xl" />
+      <Skeleton className="h-11 w-full rounded-xl" />
+      <Skeleton className="h-12 w-full rounded-full" />
+    </div>
+  );
+}
 
 export function PlatformMfaSetup() {
   const router = useRouter();
@@ -77,7 +90,7 @@ export function PlatformMfaSetup() {
   }
 
   if (loading) {
-    return <p className="text-sm text-[color:var(--muted-strong)]">Preparing MFA setup…</p>;
+    return <MfaSetupSkeleton />;
   }
 
   return (
@@ -88,12 +101,19 @@ export function PlatformMfaSetup() {
         app, then enter the 6-digit code.
       </p>
 
-      {qrCode ? (
-        <div
-          className="mx-auto w-fit rounded-2xl border border-[color:var(--line)] bg-white p-4"
-          dangerouslySetInnerHTML={{ __html: qrCode }}
-        />
-      ) : null}
+      <div
+        className="mx-auto flex h-[232px] w-[232px] items-center justify-center rounded-2xl border border-[color:var(--line)] bg-white p-4"
+        aria-label="Authenticator QR code"
+      >
+        {qrCode ? (
+          <div
+            className="flex h-[200px] w-[200px] items-center justify-center [&_svg]:h-full [&_svg]:w-full"
+            dangerouslySetInnerHTML={{ __html: qrCode }}
+          />
+        ) : (
+          <Skeleton className="h-[200px] w-[200px] rounded-xl" />
+        )}
+      </div>
 
       <form onSubmit={handleVerify} className="space-y-3">
         <label className="block">

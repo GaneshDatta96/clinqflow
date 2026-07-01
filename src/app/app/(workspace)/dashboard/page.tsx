@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { EncounterDashboardShell } from "@/components/dashboard/encounter-dashboard-shell";
 import { EncounterSearch } from "@/components/dashboard/encounter-search";
+import { SkeletonEncounterSearch } from "@/components/ui/skeleton";
 import {
   getCachedEncountersForTenant,
   getCachedEntitlementsSummary,
@@ -36,7 +37,7 @@ export default async function AppDashboardPage({
           this month · {cases.length} encounter{cases.length === 1 ? "" : "s"}
         </p>
         <div className="mt-4">
-          <Suspense fallback={null}>
+          <Suspense fallback={<SkeletonEncounterSearch />}>
             <EncounterSearch />
           </Suspense>
         </div>

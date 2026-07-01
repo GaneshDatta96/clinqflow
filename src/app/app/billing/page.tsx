@@ -2,9 +2,21 @@ import { redirect } from "next/navigation";
 import { requireTenantContextForPage } from "@/lib/tenancy/context";
 import { hasPermission } from "@/lib/tenancy/permissions";
 import { getEntitlementsSummary } from "@/lib/billing/entitlements";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { BillingActions } from "@/components/settings/billing-actions";
 
 export const dynamic = "force-dynamic";
+
+type EntitlementsSummary = Awaited<ReturnType<typeof getEntitlementsSummary>>;
+
+function defaultEntitlements(): EntitlementsSummary {
+  return {
+    planKey: "incomplete",
+    status: "incomplete",
+    seats: { used: 1, limit: PLAN_LIMITS.incomplete.seats },
+    aiGenerations: { used: 0, limit: PLAN_LIMITS.incomplete.aiMonthly },
+  };
+}
 
 export default async function BillingPage({
   searchParams,
@@ -23,7 +35,12 @@ export default async function BillingPage({
     redirect("/app/dashboard");
   }
 
-  const entitlements = await getEntitlementsSummary(context.tenantId);
+  let entitlements: EntitlementsSummary = defaultEntitlements();
+  try {
+    entitlements = await getEntitlementsSummary(context.tenantId);
+  } catch {
+    // Billing UI should still render when usage queries fail transiently.
+  }
 
   return (
     <div className="max-w-2xl space-y-6">

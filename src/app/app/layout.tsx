@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "@/lib/navigation/redirect-error";
 import {
   LayoutDashboard,
   Settings,
@@ -45,8 +46,15 @@ export default async function AppLayout({
 
   try {
     shell = await getAppShellData();
-  } catch {
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
     redirect("/login");
+  }
+
+  if (!shell) {
+    redirect("/onboarding");
   }
 
   const { context, platformStaffOnly, actingTenantId, activeTenantId, tenantOptions } =

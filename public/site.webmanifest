@@ -1,0 +1,23 @@
+{
+  "name": "CliniqFlow",
+  "short_name": "CliniqFlow",
+  "description": "Patient intake and documentation workflow software for clinics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#0B1020",
+  "icons": [
+    {
+      "src": "/brand/cliniqflow-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

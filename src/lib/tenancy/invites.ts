@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { after } from "next/server";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { badRequest, forbidden, notFound } from "@/lib/api/errors";
 import { assertSeatAvailable } from "@/lib/billing/entitlements";
@@ -69,17 +70,19 @@ export async function createTenantInvite(args: {
   const { sendInviteEmail } = await import("@/lib/email/send-invite");
   const inviterEmail = inviterProfileResult.data?.email ?? undefined;
 
-  try {
-    await sendInviteEmail({
-      tenantId: args.tenantId,
-      email,
-      role: args.role,
-      acceptUrl,
-      inviterEmail,
-    });
-  } catch (emailError) {
-    console.error("[invite] email failed", emailError);
-  }
+  after(async () => {
+    try {
+      await sendInviteEmail({
+        tenantId: args.tenantId,
+        email,
+        role: args.role,
+        acceptUrl,
+        inviterEmail,
+      });
+    } catch (emailError) {
+      console.error("[invite] email failed", emailError);
+    }
+  });
 
   return { invite: data, acceptUrl, rawToken };
 }

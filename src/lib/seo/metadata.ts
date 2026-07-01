@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND_ASSETS } from "@/lib/brand/site";
 import {
   DEFAULT_DESCRIPTION,
   OG_IMAGE_ALT,
@@ -76,6 +77,15 @@ export function buildRootMetadata(): Metadata {
       template: `%s | ${SITE_NAME}`,
     },
     description: DEFAULT_DESCRIPTION,
+    icons: {
+      icon: [
+        { url: BRAND_ASSETS.mark, type: "image/svg+xml" },
+        { url: "/icon", sizes: "32x32", type: "image/png" },
+      ],
+      apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+      shortcut: "/icon",
+    },
+    manifest: "/site.webmanifest",
     openGraph: {
       type: "website",
       url: SITE_URL,

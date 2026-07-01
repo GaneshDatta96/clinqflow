@@ -81,6 +81,35 @@ export function buildNicheIntakeSubmissionSchema(config: NicheConfig) {
   });
 }
 
+const submissionSchemaCache = new Map<string, ReturnType<typeof buildNicheIntakeSubmissionSchema>>();
+
+function nicheSchemaCacheKey(config: NicheConfig) {
+  return JSON.stringify({
+    label: config.label,
+    questionnaire: config.questionnaire.map((field) => ({
+      key: field.key,
+      type: field.type,
+      options:
+        field.type === "select" || field.type === "multi" ? field.options : undefined,
+      min: field.type === "scale" ? field.min : undefined,
+      max: field.type === "scale" ? field.max : undefined,
+    })),
+  });
+}
+
+/** Cached Zod schema — rebuilt only when niche questionnaire shape changes. */
+export function getNicheIntakeSubmissionSchema(config: NicheConfig) {
+  const cacheKey = nicheSchemaCacheKey(config);
+  const cached = submissionSchemaCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const schema = buildNicheIntakeSubmissionSchema(config);
+  submissionSchemaCache.set(cacheKey, schema);
+  return schema;
+}
+
 export function getDefaultAnswerValue(question: QuestionnaireField) {
   switch (question.type) {
     case "multi":

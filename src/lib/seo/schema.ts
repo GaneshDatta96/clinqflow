@@ -1,4 +1,4 @@
-import { BRAND } from "@/lib/brand/site";
+import { BRAND, BRAND_ASSETS } from "@/lib/brand/site";
 import { LEGAL } from "@/lib/legal/site";
 import type { HomeFaq } from "@/lib/seo/home-faqs";
 import { SITE_NAME, SITE_URL } from "@/lib/seo/site";
@@ -9,7 +9,7 @@ export function organizationSchema() {
     "@type": "Organization",
     name: SITE_NAME,
     url: SITE_URL,
-    logo: new URL("/brand/cliniqflow-logo.png", SITE_URL).toString(),
+    logo: new URL(BRAND_ASSETS.logo, SITE_URL).toString(),
     description: BRAND.positioning,
     email: LEGAL.supportEmail,
     telephone: LEGAL.supportPhoneTel,

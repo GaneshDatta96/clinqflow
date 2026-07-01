@@ -1,8 +1,12 @@
+import { SITE_URL } from "@/lib/seo/site";
+
 const accent = "#0e7c7b";
 const foreground = "#0b1020";
 const muted = "#61777d";
 const background = "#fafaf7";
 const line = "#e8ece9";
+
+const emailLogoUrl = new URL("/apple-icon", SITE_URL).toString();
 
 export function emailShell(args: {
   title: string;
@@ -11,6 +15,7 @@ export function emailShell(args: {
   ctaLabel: string;
   ctaUrl: string;
   footer: string;
+  logoUrl?: string;
 }) {
   const bodyHtml = args.lines
     .map(
@@ -23,13 +28,16 @@ export function emailShell(args: {
     ? `<div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent; mso-hide: all;">${args.preheader}</div>`
     : "";
 
+  const logoUrl = args.logoUrl ?? emailLogoUrl;
+  const logoHtml = `<img src="${logoUrl}" alt="CliniqFlow" width="44" height="44" style="display: block; border-radius: 11px; margin: 0 0 20px;" />`;
+
   const html = `
     ${preheaderHtml}
     <div style="margin: 0; padding: 32px 16px; background: ${background}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
       <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border: 1px solid ${line}; border-radius: 20px; overflow: hidden; box-shadow: 0 18px 48px rgba(11, 16, 32, 0.06);">
         <div style="height: 4px; background: linear-gradient(90deg, ${accent}, #14a39f);"></div>
         <div style="padding: 32px 28px 28px;">
-          <p style="margin: 0 0 20px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: ${muted}; font-weight: 600;">CliniqFlow</p>
+          ${logoHtml}
           <h1 style="margin: 0 0 18px; font-size: 26px; line-height: 1.25; font-weight: 600; color: ${foreground}; letter-spacing: -0.02em;">${args.title}</h1>
           ${bodyHtml}
           <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 28px 0 8px;">

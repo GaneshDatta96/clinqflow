@@ -10,7 +10,7 @@ import { processAuthenticatedIntakeSubmission } from "@/lib/intake/workflow";
 import { logInfo } from "@/lib/logging/logger";
 import { requirePermission } from "@/lib/tenancy/context";
 import {
-  buildNicheIntakeSubmissionSchema,
+  getNicheIntakeSubmissionSchema,
   nicheIntakeBaseSchema,
 } from "@/lib/schemas/niche-intake";
 
@@ -33,7 +33,7 @@ export const POST = createApiHandler({
       throw new Error("Unknown clinic configuration.");
     }
 
-    const input = buildNicheIntakeSubmissionSchema(clinic.config).parse(body);
+    const input = getNicheIntakeSubmissionSchema(clinic.config).parse(body);
     const processed = await processAuthenticatedIntakeSubmission(input, {
       supabase,
       tenantId: context.tenantId,
@@ -62,6 +62,7 @@ export const POST = createApiHandler({
       encounterId: processed.encounterId,
       assessmentResults: processed.assessmentResults,
       soap: processed.soap,
+      soapStatus: processed.soapStatus,
       bookingEnabled: processed.supportsAppointments,
     });
   },

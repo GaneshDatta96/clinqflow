@@ -51,3 +51,8 @@ export const BRAND = {
       "Structured patient communication, practitioner-review-first drafting, and clearer operational visibility before the visit starts.",
   },
 } as const;
+
+export const BRAND_ASSETS = {
+  logo: "/brand/cliniqflow-logo.svg",
+  mark: "/brand/cliniqflow-mark.svg",
+} as const;

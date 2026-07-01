@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { SkeletonRazorpayButton } from "@/components/ui/skeleton";
 import {
   isRazorpayPaymentLinkConfigured,
   type RazorpayBillablePlan,
@@ -12,7 +13,7 @@ const RazorpayPaymentLinkButton = dynamic(
     import("@/components/billing/razorpay-payment-link-button").then(
       (mod) => mod.RazorpayPaymentLinkButton,
     ),
-  { ssr: false },
+  { ssr: false, loading: () => <SkeletonRazorpayButton /> },
 );
 
 type PricingPlanActionsProps = {

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none" role="img" aria-label="CliniqFlow">
+  <rect x="0" y="8" width="48" height="48" rx="12" fill="#0B1020"/>
+  <path d="M10 38C16 32 18 26 24 24" stroke="#7C3AED" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M13 42C21 34 22 28 30 26" stroke="#A78BFA" stroke-width="2.6" stroke-linecap="round" opacity="0.85"/>
+  <path d="M16 46C26 36 27 30 36 28" stroke="#EC4899" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
+  <circle cx="24" cy="24" r="3" fill="#7C3AED"/>
+  <text x="60" y="40" fill="#0B1020" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="26" font-weight="700" letter-spacing="-0.04em">CliniqFlow</text>
+</svg>

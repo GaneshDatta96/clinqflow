@@ -586,3 +586,23 @@ Other
 - Fallback tenant resolution when active-tenant cookie is stale; getAppShellData no longer throws for new clinic users.
 - Billing welcome banner after onboarding; improved workspace error recovery links.
 - Starter subscription row uses correct seat/AI limits on bootstrap.
+
+[2026-06-23] - feat: CliniqFlow brand assets (favicon, logo, OG)
+- Added public/brand/cliniqflow-mark.svg and cliniqflow-logo.svg; removed unused create-next-app public SVGs.
+- Generated favicon (src/app/icon.tsx), apple touch icon, and opengraph-image via next/og ImageResponse.
+- Wired icons + site.webmanifest in buildRootMetadata; OG path points to /opengraph-image.
+- BrandLogo, JSON-LD organization logo, and auth/invite emails now use the real mark (PNG in email via /apple-icon).
+
+[2026-06-23] - perf: CLS, caching, code splitting, and background AI jobs
+- CLS: font adjustFontFallback, MFA QR reserved space, skeleton fallbacks for dashboard search/Razorpay/app loading, logo aspect-ratio.
+- Cached Zoho account JSON parse + nodemailer transporters; memoized niche intake Zod schemas.
+- Homepage: dynamic chunks for live product previews and below-fold Aceternity sections; lucide modularizeImports.
+- Intake: instant fallback SOAP on submit, AI enhancement enqueued to ai_jobs; cron processor runs generateSoapDraft.
+- Invite emails deferred via after(); onboarding imports getNicheOptions from niche-configs (not store).
+
+[2026-06-23] - fix: Workspace routing, billing resilience, Razorpay CSP
+- redirect-error helper; app layout rethrows Next.js redirects instead of misrouting to login.
+- Billing page renders with default entitlements when usage queries fail; billing/error.tsx recovery UI.
+- CSP allows Razorpay checkout script, API connect, and payment frames.
+
+[2026-06-23] - release: pushed to origin/main (brand + perf + workspace fixes)

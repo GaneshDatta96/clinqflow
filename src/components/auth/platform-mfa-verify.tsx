@@ -3,6 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/db/supabase-browser";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function MfaVerifySkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-md space-y-4" aria-busy aria-label="Loading MFA verification">
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-11 w-full rounded-xl" />
+      <Skeleton className="h-12 w-full rounded-full" />
+    </div>
+  );
+}
 
 export function PlatformMfaVerify() {
   const router = useRouter();
@@ -80,7 +91,7 @@ export function PlatformMfaVerify() {
   }
 
   if (loading) {
-    return <p className="text-sm text-[color:var(--muted-strong)]">Loading MFA verification…</p>;
+    return <MfaVerifySkeleton />;
   }
 
   return (

@@ -5,6 +5,7 @@ import {
   getClinicBySlug,
   getClinicByNiche,
   getClinicHeadline,
+  getNicheOptions,
   isSupportedNiche,
   nicheConfigSchema,
   nicheConfigs,
@@ -159,9 +160,4 @@ export async function listClinicsForTenant(tenantId: string) {
     .filter((c): c is ClinicDefinition => c !== null);
 }
 
-export function getNicheOptions(): Array<{ niche: NicheKey; label: string }> {
-  return Object.entries(nicheConfigs).map(([niche, config]) => ({
-    niche: niche as NicheKey,
-    label: config.label,
-  }));
-}
+export { getNicheOptions };

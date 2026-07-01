@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { LoaderCircle, Send } from "lucide-react";
 import { type ClinicDefinition } from "@/lib/clinics/niche-configs";
 import {
-  buildNicheIntakeSubmissionSchema,
+  getNicheIntakeSubmissionSchema,
   getDefaultAnswerValue,
   type NicheIntakePayload,
 } from "@/lib/schemas/niche-intake";
@@ -25,7 +25,7 @@ export function PatientIntakeForm(props: {
   requireConsent?: boolean;
   submitDisabled?: boolean;
 }) {
-  const formSchema = buildNicheIntakeSubmissionSchema(props.clinic.config);
+  const formSchema = getNicheIntakeSubmissionSchema(props.clinic.config);
   type FormInput = z.input<typeof formSchema>;
   const defaultAnswers = Object.fromEntries(
     props.clinic.config.questionnaire.map((question) => [

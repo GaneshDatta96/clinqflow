@@ -6,6 +6,7 @@ export const googleSans = Google_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  adjustFontFallback: true,
 });
 
 /** Long-form serif — prose, citations, elegant emphasis (Regular + Italic). */
@@ -23,6 +24,7 @@ export const funnelDisplay = Funnel_Display({
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
   display: "swap",
+  adjustFontFallback: true,
 });
 
 export const fontVariables = [

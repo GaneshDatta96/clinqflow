@@ -297,8 +297,45 @@ export const listUserTenants = cache(async (userId: string) => {
     .filter((row): row is NonNullable<typeof row> => row !== null);
 });
 
+export type AppShellData = {
+  context: TenantContext;
+  platformStaffOnly: boolean;
+  actingTenantId: string | null;
+  activeTenantId: string;
+  tenantOptions: Awaited<ReturnType<typeof listUserTenants>>;
+};
+
+/** Resolve tenant from memberships when the active-tenant cookie is missing or stale. */
+async function resolveTenantContextFromMemberships(): Promise<{
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>;
+  context: TenantContext;
+} | null> {
+  const { supabase, user } = await requireUser();
+  const tenantOptions = await listUserTenants(user.id);
+
+  if (tenantOptions.length === 0) {
+    return null;
+  }
+
+  const primary = tenantOptions[0]!;
+  const tenant = await loadTenantById(supabase, primary.tenantId);
+
+  if (!tenant) {
+    return null;
+  }
+
+  return {
+    supabase,
+    context: buildTenantContext({
+      tenant,
+      userId: user.id,
+      role: primary.role,
+    }),
+  };
+}
+
 /** Cached shell data for /app layout — one auth pass per request. */
-export const getAppShellData = cache(async () => {
+export const getAppShellData = cache(async (): Promise<AppShellData | null> => {
   const tenantResult = await tryGetTenantContext();
 
   if (tenantResult) {
@@ -333,29 +370,18 @@ export const getAppShellData = cache(async () => {
       tenantOptions: [] as Awaited<ReturnType<typeof listUserTenants>>,
     };
   } catch {
-    const { supabase, user } = await requireUser();
-    const tenantOptions = await listUserTenants(user.id);
-
-    if (tenantOptions.length === 0) {
-      redirect("/onboarding");
+    const resolved = await resolveTenantContextFromMemberships();
+    if (!resolved) {
+      return null;
     }
 
-    const primary = tenantOptions[0]!;
-    const tenant = await loadTenantById(supabase, primary.tenantId);
-
-    if (!tenant) {
-      redirect("/onboarding");
-    }
+    const tenantOptions = await listUserTenants(resolved.context.userId);
 
     return {
-      context: buildTenantContext({
-        tenant,
-        userId: user.id,
-        role: primary.role,
-      }),
+      context: resolved.context,
       platformStaffOnly: false,
       actingTenantId: null,
-      activeTenantId: primary.tenantId,
+      activeTenantId: resolved.context.tenantId,
       tenantOptions,
     };
   }
@@ -383,7 +409,11 @@ export async function requireTenantContextForPage(): Promise<{
     try {
       await requirePlatformAdminContext();
     } catch {
-      redirect("/onboarding");
+      const resolved = await resolveTenantContextFromMemberships();
+      if (!resolved) {
+        redirect("/onboarding");
+      }
+      return resolved;
     }
     redirect("/app/admin");
   }

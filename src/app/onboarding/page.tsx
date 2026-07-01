@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { MultiStepLoader } from "@/components/ui/aceternity";
-import { getNicheOptions } from "@/lib/clinics/store";
+import { getNicheOptions } from "@/lib/clinics/niche-configs";
 import { getErrorMessage, readApiError } from "@/lib/api/client";
 
 type OnboardingPhase = "form" | "redirecting";

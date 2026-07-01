@@ -1,16 +1,41 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import {
   applyPrivateNoStoreHeaders,
   shouldApplyPrivateNoStore,
 } from "@/lib/http/cache-control";
+import {
+  buildContentSecurityPolicy,
+  CSP_NONCE_HEADER,
+  generateCspNonce,
+} from "@/lib/security/csp";
 
-function jsonResponse(body: object, status: number, pathname: string) {
-  const headers = new Headers({ "Content-Type": "application/json" });
+function finalizeResponse(
+  response: NextResponse,
+  pathname: string,
+  nonce: string,
+) {
+  const production = process.env.NODE_ENV === "production";
+  response.headers.set(
+    "Content-Security-Policy",
+    buildContentSecurityPolicy(nonce, production),
+  );
+
   if (shouldApplyPrivateNoStore(pathname)) {
-    applyPrivateNoStoreHeaders(headers);
+    applyPrivateNoStoreHeaders(response.headers);
   }
-  return NextResponse.json(body, { status, headers });
+
+  return response;
+}
+
+function jsonResponse(
+  body: object,
+  status: number,
+  pathname: string,
+  nonce: string,
+) {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  return finalizeResponse(NextResponse.json(body, { status, headers }), pathname, nonce);
 }
 
 function isPlatformStaffEmail(email: string | undefined) {
@@ -38,6 +63,12 @@ const PUBLIC_PATHS = [
   "/auth/confirm",
   "/onboarding",
   "/invite",
+  "/contact",
+  "/faq",
+  "/how-patient-intake-works",
+  "/ai-documentation",
+  "/clinic-workflows",
+  "/security",
   "/api/health",
   "/api/webhooks",
   "/api/cron",
@@ -87,7 +118,12 @@ function isAppPath(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  let response = NextResponse.next({ request });
+  const nonce = generateCspNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(CSP_NONCE_HEADER, nonce);
+  const enrichedRequest = new NextRequest(request, { headers: requestHeaders });
+
+  let response = NextResponse.next({ request: enrichedRequest });
 
   const supabaseUrl =
     process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -99,15 +135,16 @@ export async function proxy(request: NextRequest) {
         { error: "Service unavailable", code: "auth_not_configured" },
         503,
         pathname,
+        nonce,
       );
     }
     if (isAppPath(pathname) && !pathname.startsWith("/app/onboarding")) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("error", "auth_not_configured");
-      return NextResponse.redirect(url);
+      return finalizeResponse(NextResponse.redirect(url), pathname, nonce);
     }
-    return response;
+    return finalizeResponse(response, pathname, nonce);
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -119,7 +156,7 @@ export async function proxy(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: enrichedRequest });
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });
@@ -140,9 +177,10 @@ export async function proxy(request: NextRequest) {
         { error: "Service unavailable", code: "auth_unavailable" },
         503,
         pathname,
+        nonce,
       );
     }
-    return response;
+    return finalizeResponse(response, pathname, nonce);
   }
 
   if (user && AUTH_PATHS.includes(pathname)) {
@@ -150,20 +188,20 @@ export async function proxy(request: NextRequest) {
     url.pathname = isPlatformStaffEmail(user.email)
       ? "/app/admin"
       : "/app/dashboard";
-    return NextResponse.redirect(url);
+    return finalizeResponse(NextResponse.redirect(url), pathname, nonce);
   }
 
   if (user && pathname === "/onboarding" && isPlatformStaffEmail(user.email)) {
     const url = request.nextUrl.clone();
     url.pathname = "/app/admin";
-    return NextResponse.redirect(url);
+    return finalizeResponse(NextResponse.redirect(url), pathname, nonce);
   }
 
   if (!user && isAppPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    return finalizeResponse(NextResponse.redirect(url), pathname, nonce);
   }
 
   if (!user && pathname.startsWith("/api/") && !isPublicPath(pathname)) {
@@ -171,14 +209,15 @@ export async function proxy(request: NextRequest) {
       { error: "Unauthorized", code: "unauthorized" },
       401,
       pathname,
+      nonce,
     );
   }
 
   if (user && pathname.startsWith("/api/admin")) {
-    return response;
+    return finalizeResponse(response, pathname, nonce);
   }
 
-  return response;
+  return finalizeResponse(response, pathname, nonce);
 }
 
 export const config = {

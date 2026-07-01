@@ -105,12 +105,10 @@ export async function assertRateLimit(bucket: RateLimitBucket, identifier: strin
   const limiter = getLimiter(bucket);
 
   if (!limiter) {
-    if (process.env.NODE_ENV === "production") {
-      const { serviceUnavailable } = await import("@/lib/api/errors");
-      throw serviceUnavailable(
-        "Rate limiting is temporarily unavailable. Try again shortly.",
-      );
-    }
+    logWarn({
+      message: "rate_limit.skipped",
+      metadata: { bucket, reason: "not_configured" },
+    });
     return;
   }
 
@@ -127,13 +125,6 @@ export async function assertRateLimit(bucket: RateLimitBucket, identifier: strin
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
-    }
-
-    if (process.env.NODE_ENV === "production") {
-      const { serviceUnavailable } = await import("@/lib/api/errors");
-      throw serviceUnavailable(
-        "Rate limiting is temporarily unavailable. Try again shortly.",
-      );
     }
 
     logWarn({

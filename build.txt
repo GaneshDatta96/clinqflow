@@ -568,3 +568,6 @@ Other
 - Removed src/middleware.ts; merged CSP nonce, Content-Security-Policy, and Cache-Control into src/proxy.ts (Next.js 16 allows proxy.ts or middleware.ts, not both).
 - Added /contact and SEO landing paths to proxy PUBLIC_PATHS.
 - Verified with npm run build.
+
+[2026-06-23] - fix: Fail-open rate limiting when Upstash is missing or errors
+- assertRateLimit no longer returns 503 in production when Redis is unconfigured or unreachable; logs rate_limit.skipped / rate_limit.unavailable and allows the request (fixes signup 503 on first attempt).

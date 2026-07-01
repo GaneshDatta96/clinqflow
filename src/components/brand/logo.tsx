@@ -10,11 +10,11 @@ export function BrandLogo({ className = "" }: { className?: string }) {
     >
       <img
         src={BRAND_ASSETS.logo}
-        alt="CliniqFlow"
-        width={220}
-        height={56}
-        style={{ aspectRatio: "220 / 56" }}
-        className="h-10 w-auto sm:h-11"
+        alt="CliniqFlow — intake, insight, better care"
+        width={240}
+        height={120}
+        style={{ aspectRatio: "2 / 1" }}
+        className="h-11 w-auto sm:h-12"
       />
     </Link>
   );

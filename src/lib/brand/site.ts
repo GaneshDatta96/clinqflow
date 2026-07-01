@@ -53,6 +53,6 @@ export const BRAND = {
 } as const;
 
 export const BRAND_ASSETS = {
-  logo: "/brand/cliniqflow-logo.svg",
-  mark: "/brand/cliniqflow-mark.svg",
+  logo: "/brand/cliniqflow-logo.png",
+  mark: "/brand/cliniqflow-mark.png",
 } as const;

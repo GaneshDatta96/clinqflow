@@ -614,3 +614,12 @@ Other
 [2026-06-23] - fix: Homepage compare slider blank CliniqFlow side
 - Replaced broken generic Compare (after prop failed across RSC boundary) with IntakeCompareSection client component.
 - Both sides now render with check/X icons, violet gradient on CliniqFlow side, and working drag divider.
+
+[2026-07-01] - feat: New CliniqFlow brand logo (PNG)
+- Added public/brand/cliniqflow-logo.png (full wordmark with tagline) and cliniqflow-mark.png (spiral icon crop for favicon/PWA).
+- Replaced legacy SVG logo assets; updated BrandLogo, favicon (icon.tsx), apple-icon, opengraph-image, site.webmanifest, JSON-LD logo path, and email templates.
+- Synced root Cliniqflow.png with the new artwork; removed programmatic BrandMarkImage helper.
+
+[2026-07-01] - fix: Homepage compare slider layout and UX
+- Anchored paper vs CliniqFlow lists to left/right panes so the digital side is visible at all slider positions.
+- Replaced bottom range bar with centered vertical drag handle and pointer drag on the card.

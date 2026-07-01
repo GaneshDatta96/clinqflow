@@ -8,9 +8,9 @@
   "theme_color": "#0B1020",
   "icons": [
     {
-      "src": "/brand/cliniqflow-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/brand/cliniqflow-mark.png",
+      "sizes": "471x471",
+      "type": "image/png",
       "purpose": "any"
     },
     {

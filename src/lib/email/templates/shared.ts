@@ -1,3 +1,4 @@
+import { BRAND_ASSETS } from "@/lib/brand/site";
 import { SITE_URL } from "@/lib/seo/site";
 
 const accent = "#0e7c7b";
@@ -6,7 +7,7 @@ const muted = "#61777d";
 const background = "#fafaf7";
 const line = "#e8ece9";
 
-const emailLogoUrl = new URL("/apple-icon", SITE_URL).toString();
+const emailLogoUrl = new URL(BRAND_ASSETS.logo, SITE_URL).toString();
 
 export function emailShell(args: {
   title: string;
@@ -29,7 +30,7 @@ export function emailShell(args: {
     : "";
 
   const logoUrl = args.logoUrl ?? emailLogoUrl;
-  const logoHtml = `<img src="${logoUrl}" alt="CliniqFlow" width="44" height="44" style="display: block; border-radius: 11px; margin: 0 0 20px;" />`;
+  const logoHtml = `<img src="${logoUrl}" alt="CliniqFlow" width="200" height="100" style="display: block; margin: 0 0 20px; height: auto; max-width: 200px;" />`;
 
   const html = `
     ${preheaderHtml}

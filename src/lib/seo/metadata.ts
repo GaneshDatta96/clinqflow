@@ -79,7 +79,7 @@ export function buildRootMetadata(): Metadata {
     description: DEFAULT_DESCRIPTION,
     icons: {
       icon: [
-        { url: BRAND_ASSETS.mark, type: "image/svg+xml" },
+        { url: BRAND_ASSETS.mark, type: "image/png" },
         { url: "/icon", sizes: "32x32", type: "image/png" },
       ],
       apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],

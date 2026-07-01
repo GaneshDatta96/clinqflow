@@ -7,13 +7,13 @@ import { HOME_FAQS } from "@/lib/seo/home-faqs";
 import { faqPageSchema, softwareApplicationSchema } from "@/lib/seo/schema";
 import {
   AnimatedTestimonials,
-  Compare,
   DashboardProductPreview,
   EncounterProductPreview,
   IntakeProductPreview,
   StickyScrollReveal,
   Timeline,
 } from "@/components/home/homepage-dynamic-imports";
+import { IntakeCompareSection } from "@/components/home/intake-compare-section";
 import { HeroOperationalPreview } from "@/components/home/homepage-product-previews";
 import { GradientRule, PetalAccent } from "@/components/home/petal-accent";
 import { PricingPlanActions } from "@/components/home/pricing-plan-actions";
@@ -368,24 +368,7 @@ export function HomepageLanding() {
           className="max-w-3xl"
         />
         <div className="mt-10">
-          <Compare
-            beforeLabel="Paper & inbox chaos"
-            afterLabel="CliniqFlow"
-            before={
-              <div className="space-y-2 font-serif text-sm text-[color:var(--muted-strong)]">
-                <p>Clipboards in the waiting room</p>
-                <p>Staff re-typing patient history</p>
-                <p>Practitioner starts cold every visit</p>
-              </div>
-            }
-            after={
-              <div className="space-y-2 font-serif text-sm text-[color:var(--foreground)]">
-                <p>Signed link before the appointment</p>
-                <p>Structured specialty questionnaires</p>
-                <p>Review-ready draft documentation</p>
-              </div>
-            }
-          />
+          <IntakeCompareSection />
         </div>
       </PageSection>
 

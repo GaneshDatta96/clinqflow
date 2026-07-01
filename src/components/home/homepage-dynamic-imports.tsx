@@ -79,18 +79,6 @@ export const StickyScrollReveal = dynamic(
   },
 );
 
-export const Compare = dynamic(
-  () => import("@/components/ui/aceternity/compare").then((mod) => mod.Compare),
-  {
-    loading: () => (
-      <div
-        className="min-h-[20rem] animate-pulse rounded-[2rem] bg-[color:var(--line)]/40"
-        aria-hidden
-      />
-    ),
-  },
-);
-
 export const Timeline = dynamic(
   () => import("@/components/ui/aceternity/timeline").then((mod) => mod.Timeline),
   {

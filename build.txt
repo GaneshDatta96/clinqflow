@@ -610,3 +610,7 @@ Other
 [2026-06-23] - fix: Turbopack build — dynamic imports in client boundary
 - Moved homepage dynamic() imports with ssr:false into homepage-dynamic-imports.tsx (use client).
 - homepage-landing.tsx stays a Server Component; verified with npm run build.
+
+[2026-06-23] - fix: Homepage compare slider blank CliniqFlow side
+- Replaced broken generic Compare (after prop failed across RSC boundary) with IntakeCompareSection client component.
+- Both sides now render with check/X icons, violet gradient on CliniqFlow side, and working drag divider.

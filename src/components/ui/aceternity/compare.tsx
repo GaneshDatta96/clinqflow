@@ -4,14 +4,14 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function Compare({
-  before,
-  after,
+  beforePanel,
+  afterPanel,
   beforeLabel = "Before",
   afterLabel = "After",
   className,
 }: {
-  before: React.ReactNode;
-  after: React.ReactNode;
+  beforePanel: React.ReactNode;
+  afterPanel: React.ReactNode;
   beforeLabel?: string;
   afterLabel?: string;
   className?: string;
@@ -26,12 +26,12 @@ export function Compare({
       )}
     >
       <div className="relative min-h-[14rem]">
-        <div className="absolute inset-0 p-6">{after}</div>
+        <div className="absolute inset-0 z-0 p-6">{afterPanel}</div>
         <div
-          className="absolute inset-0 overflow-hidden border-r border-[color:var(--accent)]/40 bg-[color:var(--surface-muted)] p-6"
+          className="absolute inset-y-0 left-0 z-[1] overflow-hidden border-r-2 border-[color:var(--accent)]/40 bg-[color:var(--surface-muted)] p-6"
           style={{ width: `${position}%` }}
         >
-          {before}
+          {beforePanel}
         </div>
         <input
           type="range"
@@ -40,7 +40,7 @@ export function Compare({
           value={position}
           onChange={(e) => setPosition(Number(e.target.value))}
           aria-label="Compare before and after"
-          className="absolute inset-x-4 bottom-4 z-10 w-[calc(100%-2rem)] accent-[color:var(--accent)]"
+          className="absolute inset-x-4 bottom-4 z-[2] w-[calc(100%-2rem)] accent-[color:var(--accent)]"
         />
       </div>
       <div className="flex justify-between border-t border-[color:var(--line)] px-4 py-2 text-xs font-medium text-[color:var(--muted)]">

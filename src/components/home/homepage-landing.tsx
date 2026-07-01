@@ -309,6 +309,9 @@ export function HomepageLanding() {
                 Sign up
                 <ArrowRight className="h-4 w-4" />
               </Link>
+              <Link href={BRAND.loginHref} className="btn-secondary">
+                Log in
+              </Link>
               <a href="#product" className="btn-secondary">
                 View product demo
               </a>

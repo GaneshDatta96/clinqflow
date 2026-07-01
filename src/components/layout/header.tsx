@@ -78,10 +78,18 @@ export function GlobalHeader() {
               )}
             </nav>
 
-            <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
-              Sign up
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Link
+                href={BRAND.loginHref}
+                className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--foreground)]"
+              >
+                Log in
+              </Link>
+              <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
+                Sign up
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
           </>
         ) : (
           <nav className="flex flex-wrap items-center justify-end gap-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-1">

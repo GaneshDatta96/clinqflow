@@ -620,7 +620,10 @@ Other
 - Replaced legacy SVG logo assets; updated BrandLogo, favicon (icon.tsx), apple-icon, opengraph-image, site.webmanifest, JSON-LD logo path, and email templates.
 - Synced root Cliniqflow.png with the new artwork; removed programmatic BrandMarkImage helper.
 
-[2026-07-01] - fix: Static favicon from new brand mark
+[2026-07-01] - feat: Log in on homepage and marketing header
+- Added Log in link beside Sign up in the global marketing header.
+- Added Log in CTA button in the homepage hero alongside Sign up and product demo.
+
 - Replaced broken dynamic icon.tsx/apple-icon.tsx (ImageResponse did not render the PNG mark) with static src/app/favicon.ico, icon.png, and apple-icon.png generated from cliniqflow-mark.png.
 - Added public/favicon.ico for direct browser requests; Next.js file metadata now serves the spiral emblem in tabs and bookmarks.
 

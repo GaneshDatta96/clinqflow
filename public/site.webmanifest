@@ -8,16 +8,22 @@
   "theme_color": "#0B1020",
   "icons": [
     {
-      "src": "/brand/cliniqflow-mark.png",
-      "sizes": "471x471",
-      "type": "image/png",
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/apple-icon",
+      "src": "/apple-icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/brand/cliniqflow-mark.png",
+      "sizes": "450x450",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

@@ -2,10 +2,10 @@ import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "@/lib/analytics/site";
 import { COOKIE_NOTICE_STORAGE_KEY } from "@/lib/analytics/consent";
 
-export function GoogleTag() {
+export function GoogleTag({ nonce }: { nonce?: string }) {
   return (
     <>
-      <Script id="google-consent-default" strategy="beforeInteractive">
+      <Script id="google-consent-default" strategy="beforeInteractive" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
@@ -27,8 +27,9 @@ export function GoogleTag() {
         async
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         strategy="afterInteractive"
+        nonce={nonce}
       />
-      <Script id="google-tag" strategy="afterInteractive">
+      <Script id="google-tag" strategy="afterInteractive" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

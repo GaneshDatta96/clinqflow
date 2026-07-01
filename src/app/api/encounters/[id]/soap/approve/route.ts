@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import { createApiHandler, invalidateTenantCache, jsonOk } from "@/lib/api/handler";
 import { notFound } from "@/lib/api/errors";
 import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
 import { requirePermission } from "@/lib/tenancy/context";
@@ -11,6 +11,7 @@ const schema = z.object({
 export const POST = createApiHandler({
   route: "/api/encounters/[id]/soap/approve",
   step: "soap_approve",
+  rateLimit: "write",
   schema,
   handler: async ({ body, request }) => {
     const id = request.url.split("/encounters/")[1]?.split("/")[0];
@@ -36,6 +37,8 @@ export const POST = createApiHandler({
       resource_id: id,
       metadata: { review_status: body.review_status },
     });
+
+    invalidateTenantCache(context.tenantId, ["encounters"]);
 
     return jsonOk({ review_status: body.review_status });
   },

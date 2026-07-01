@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import { GoogleTag } from "@/components/analytics/google-tag";
 import { sourceSerif } from "@/lib/fonts/display";
@@ -7,6 +8,7 @@ import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
 import { CookieNotice } from "@/components/legal/cookie-notice";
 import { JsonLd } from "@/components/seo/json-ld";
+import { CSP_NONCE_HEADER } from "@/lib/security/csp";
 import { buildRootMetadata } from "@/lib/seo/metadata";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import "./globals.css";
@@ -26,18 +28,20 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = buildRootMetadata();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get(CSP_NONCE_HEADER) ?? undefined;
+
   return (
     <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} ${sourceSerif.variable} h-full antialiased`}>
       <head>
-        <GoogleTag />
+        <GoogleTag nonce={nonce} />
       </head>
       <body className="flex min-h-full flex-col text-[15px] text-[color:var(--foreground)]">
-        <JsonLd data={[organizationSchema(), websiteSchema()]} />
+        <JsonLd nonce={nonce} data={[organizationSchema(), websiteSchema()]} />
         <AppProviders>
           <GlobalHeader />
           <main className="flex flex-1 flex-col">{children}</main>

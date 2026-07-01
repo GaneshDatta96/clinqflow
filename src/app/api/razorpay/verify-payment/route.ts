@@ -19,6 +19,7 @@ const schema = z.object({
 export const POST = createApiHandler({
   route: "/api/razorpay/verify-payment",
   step: "razorpay_verify_payment",
+  rateLimit: "billing",
   schema,
   handler: async ({ body }) => {
     if (!isRazorpayConfigured()) {

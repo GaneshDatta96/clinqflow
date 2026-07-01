@@ -2,6 +2,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import type { createSupabaseServerClient } from "@/lib/db/supabase-server";
 import type { TenantContext } from "@/lib/tenancy/types";
+import {
+  assertPlatformStaffMfa,
+  isMfaStepUpRequired,
+  resolvePlatformStaffMfaRedirect,
+} from "@/lib/auth/mfa";
+
+export {
+  assertPlatformStaffMfa,
+  isMfaStepUpRequired,
+  resolvePlatformStaffMfaRedirect,
+};
 
 /**
  * Platform support has no patient/clinical record access (RLS). When impersonating
@@ -20,9 +31,4 @@ export function resolveDbClientForContext(
   }
 
   return userClient;
-}
-
-export function isMfaStepUpRequired(_context: TenantContext): boolean {
-  // Phase 2: enforce Supabase MFA for platform staff before impersonation.
-  return false;
 }

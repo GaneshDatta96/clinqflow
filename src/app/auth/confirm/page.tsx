@@ -32,8 +32,11 @@ export default function AuthConfirmPage() {
           }
 
           const roleRes = await fetch("/api/auth/session-role");
-          const roleData = (await roleRes.json()) as { path?: string };
-          router.replace(roleData.path ?? "/app/dashboard");
+          const roleData = (await roleRes.json()) as {
+            path?: string;
+            mfaRedirect?: string | null;
+          };
+          router.replace(roleData.mfaRedirect ?? roleData.path ?? "/app/dashboard");
           router.refresh();
           return;
         }

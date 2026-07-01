@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useCallback, useState, useTransition } from "react";
 import { CreditCard, LoaderCircle } from "lucide-react";
 import { isRazorpayCheckoutConfigured } from "@/lib/billing/razorpay-public";
+import { getErrorMessage, readApiError } from "@/lib/api/client";
 
 type RazorpayCheckoutButtonProps = {
   plan: "starter" | "growth";
@@ -52,11 +53,11 @@ export function RazorpayCheckoutButton({
           body: JSON.stringify({ plan, currency: "INR" }),
         });
 
-        const orderData = (await orderRes.json()) as CreateOrderResponse;
-
         if (!orderRes.ok) {
-          throw new Error(orderData.error ?? "Unable to create payment order.");
+          throw await readApiError(orderRes);
         }
+
+        const orderData = (await orderRes.json()) as CreateOrderResponse;
 
         const options = {
           key: orderData.key_id,
@@ -83,6 +84,9 @@ export function RazorpayCheckoutButton({
               };
 
               if (!verifyRes.ok || !verifyData.success) {
+                if (!verifyRes.ok) {
+                  throw await readApiError(verifyRes);
+                }
                 throw new Error(verifyData.error ?? "Payment verification failed.");
               }
 
@@ -119,11 +123,7 @@ export function RazorpayCheckoutButton({
         });
         rzp.open();
       } catch (checkoutError) {
-        setError(
-          checkoutError instanceof Error
-            ? checkoutError.message
-            : "Unable to start checkout.",
-        );
+        setError(getErrorMessage(checkoutError, "Unable to start checkout."));
       }
     });
   }, [onSuccess, plan, scriptReady]);

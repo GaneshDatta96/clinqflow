@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Shield, Headphones } from "lucide-react";
+import { resolvePlatformStaffMfaRedirect } from "@/lib/security/platform-staff";
 import { requirePlatformAdminContext } from "@/lib/tenancy/context";
 import { getActingTenantIdFromCookies } from "@/lib/tenancy/acting-tenant";
 import { isAuthConfigured } from "@/lib/env";
@@ -17,10 +18,17 @@ export default async function AdminLayout({
   }
 
   let context;
+  let user;
+  let supabase;
   try {
-    ({ context } = await requirePlatformAdminContext());
+    ({ context, user, supabase } = await requirePlatformAdminContext());
   } catch {
     redirect("/login");
+  }
+
+  const mfaRedirect = await resolvePlatformStaffMfaRedirect(supabase, user.email);
+  if (mfaRedirect) {
+    redirect(`${mfaRedirect}?next=${encodeURIComponent("/app/admin")}`);
   }
 
   const actingTenantId = await getActingTenantIdFromCookies();

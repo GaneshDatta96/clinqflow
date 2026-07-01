@@ -7,6 +7,9 @@ import {
 } from "@/lib/billing/paypal-server";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { env } from "@/lib/env";
+import { ApiError } from "@/lib/api/errors";
+import { apiErrorResponse } from "@/lib/api/error-response";
+import { assertIpRateLimit } from "@/lib/api/upstash-rate-limit";
 import { logError, logInfo, logWarn } from "@/lib/logging/logger";
 
 export const runtime = "nodejs";
@@ -143,6 +146,15 @@ async function setTenantSubscriptionStatus(
 }
 
 export async function POST(request: Request) {
+  try {
+    await assertIpRateLimit(request, "webhook", "/api/webhooks/paypal");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return apiErrorResponse(error);
+    }
+    throw error;
+  }
+
   if (!env.paypalClientId || !env.paypalClientSecret || !env.paypalWebhookId) {
     return Response.json({ error: "PayPal webhook not configured" }, { status: 503 });
   }

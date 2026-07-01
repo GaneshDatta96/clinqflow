@@ -33,18 +33,23 @@ export async function createTenantInvite(args: {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + INVITE_TTL_DAYS);
 
-  const { data, error } = await admin
-    .from("tenant_invites")
-    .insert({
-      tenant_id: args.tenantId,
-      email,
-      role: args.role,
-      token_hash: hashInviteToken(rawToken),
-      invited_by: args.invitedBy,
-      expires_at: expiresAt.toISOString(),
-    })
-    .select("id, email, role, expires_at")
-    .single();
+  const [insertResult, inviterProfileResult] = await Promise.all([
+    admin
+      .from("tenant_invites")
+      .insert({
+        tenant_id: args.tenantId,
+        email,
+        role: args.role,
+        token_hash: hashInviteToken(rawToken),
+        invited_by: args.invitedBy,
+        expires_at: expiresAt.toISOString(),
+      })
+      .select("id, email, role, expires_at")
+      .single(),
+    admin.from("profiles").select("email").eq("id", args.invitedBy).maybeSingle(),
+  ]);
+
+  const { data, error } = insertResult;
 
   if (error || !data) {
     throw error ?? badRequest("Unable to create invite.");
@@ -62,13 +67,7 @@ export async function createTenantInvite(args: {
   });
 
   const { sendInviteEmail } = await import("@/lib/email/send-invite");
-  let inviterEmail: string | undefined;
-  const { data: inviterProfile } = await admin
-    .from("profiles")
-    .select("email")
-    .eq("id", args.invitedBy)
-    .maybeSingle();
-  inviterEmail = inviterProfile?.email ?? undefined;
+  const inviterEmail = inviterProfileResult.data?.email ?? undefined;
 
   try {
     await sendInviteEmail({

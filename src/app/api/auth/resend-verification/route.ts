@@ -9,7 +9,7 @@ const resendSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/auth/resend-verification",
   step: "auth_resend_verification",
-  rateLimit: false,
+  rateLimit: "auth_sensitive",
   schema: resendSchema,
   handler: async ({ body }) => {
     const result = await resendSignupVerificationEmail({ email: body.email });

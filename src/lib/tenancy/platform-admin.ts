@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import type { createSupabaseServerClient } from "@/lib/db/supabase-server";
+import { assertPlatformStaffMfa } from "@/lib/auth/mfa";
 import { env } from "@/lib/env";
 
 export const ACTING_TENANT_COOKIE = "cliniqflow_acting_tenant_id";
@@ -99,8 +100,10 @@ export async function syncPlatformRoleProfiles(user: User) {
     return;
   }
 
-  await syncPlatformAdminProfile(user);
-  await syncPlatformSupportProfile(user);
+  await Promise.all([
+    syncPlatformAdminProfile(user),
+    syncPlatformSupportProfile(user),
+  ]);
 }
 
 export async function resolvePlatformRoles(
@@ -174,9 +177,8 @@ export async function fetchIsPlatformStaff(
   userId: string,
   email?: string | null,
 ) {
-  const isAdmin = await fetchIsPlatformAdmin(supabase, userId, email);
-  if (isAdmin) return true;
-  return fetchIsPlatformSupport(supabase, userId, email);
+  const roles = await resolvePlatformRoles(supabase, userId, email);
+  return roles.isPlatformAdmin || roles.isPlatformSupport;
 }
 
 export async function requirePlatformAdmin() {
@@ -184,12 +186,14 @@ export async function requirePlatformAdmin() {
   const { supabase, user } = await requireUser();
   await syncPlatformRoleProfiles(user);
 
-  const isAdmin = await fetchIsPlatformAdmin(supabase, user.id, user.email);
+  const roles = await resolvePlatformRoles(supabase, user.id, user.email);
 
-  if (!isAdmin) {
+  if (!roles.isPlatformAdmin) {
     const { forbidden } = await import("@/lib/api/errors");
     throw forbidden("Platform admin (God mode) access required.");
   }
+
+  await assertPlatformStaffMfa(supabase, user.email);
 
   return { supabase, user, isPlatformAdmin: true as const, isPlatformSupport: false as const };
 }
@@ -199,20 +203,19 @@ export async function requirePlatformStaff() {
   const { supabase, user } = await requireUser();
   await syncPlatformRoleProfiles(user);
 
-  const isAdmin = await fetchIsPlatformAdmin(supabase, user.id, user.email);
-  const isSupport = isAdmin
-    ? false
-    : await fetchIsPlatformSupport(supabase, user.id, user.email);
+  const roles = await resolvePlatformRoles(supabase, user.id, user.email);
 
-  if (!isAdmin && !isSupport) {
+  if (!roles.isPlatformAdmin && !roles.isPlatformSupport) {
     const { forbidden } = await import("@/lib/api/errors");
     throw forbidden("Platform staff access required.");
   }
 
+  await assertPlatformStaffMfa(supabase, user.email);
+
   return {
     supabase,
     user,
-    isPlatformAdmin: isAdmin,
-    isPlatformSupport: isSupport,
+    isPlatformAdmin: roles.isPlatformAdmin,
+    isPlatformSupport: roles.isPlatformSupport,
   };
 }

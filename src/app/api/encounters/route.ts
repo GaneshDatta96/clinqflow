@@ -5,6 +5,7 @@ import { logPhiAccessIfPlatformStaff, requirePermission } from "@/lib/tenancy/co
 export const GET = createApiHandler({
   route: "/api/encounters",
   step: "encounters_list",
+  rateLimit: "api_read",
   handler: async ({ request }) => {
     const { supabase, context } = await requirePermission("encounter:read");
     const url = new URL(request.url);

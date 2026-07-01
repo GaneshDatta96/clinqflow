@@ -14,6 +14,7 @@ const setSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/admin/acting-tenant",
   step: "admin_set_acting_tenant",
+  rateLimit: "admin",
   schema: setSchema,
   handler: async ({ body }) => {
     const { supabase, user } = await requirePlatformStaff();
@@ -59,6 +60,7 @@ export const POST = createApiHandler({
 export const DELETE = createApiHandler({
   route: "/api/admin/acting-tenant",
   step: "admin_clear_acting_tenant",
+  rateLimit: "admin",
   handler: async () => {
     await requirePlatformStaff();
 

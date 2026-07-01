@@ -4,6 +4,7 @@ import { requirePlatformStaff } from "@/lib/tenancy/platform-admin";
 export const GET = createApiHandler({
   route: "/api/admin/tenants",
   step: "admin_list_tenants",
+  rateLimit: "admin",
   handler: async () => {
     const { supabase } = await requirePlatformStaff();
 

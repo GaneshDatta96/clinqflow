@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LoaderCircle } from "lucide-react";
+import { getErrorMessage, readApiError } from "@/lib/api/client";
 
 function AcceptInviteContent() {
   const router = useRouter();
@@ -25,15 +26,15 @@ function AcceptInviteContent() {
       body: JSON.stringify({ token }),
     })
       .then(async (res) => {
-        const data = await res.json();
         if (res.status === 401) {
           setStatus("auth");
           setMessage("Sign in with the invited email to accept.");
           return;
         }
         if (!res.ok) {
-          throw new Error(data.error ?? "Unable to accept invite.");
+          throw await readApiError(res);
         }
+        const data = await res.json();
         setStatus("ok");
         setMessage(data.message ?? "Invite accepted.");
         router.push("/app/dashboard");
@@ -41,7 +42,7 @@ function AcceptInviteContent() {
       })
       .catch((e) => {
         setStatus("error");
-        setMessage(e instanceof Error ? e.message : "Request failed.");
+        setMessage(getErrorMessage(e, "Request failed."));
       });
   }, [token, router]);
 

@@ -21,7 +21,10 @@ export function LegalPageShell({ title, description, children }: LegalPageShellP
         </p>
         <p className="mt-2 text-xs leading-6 text-[color:var(--muted)]">
           Service provider: {LEGAL.legalName}, {LEGAL.entityDescription} (
-          {LEGAL.jurisdiction}).
+          {LEGAL.jurisdiction}). Support:{" "}
+          <a href={`tel:${LEGAL.supportPhoneTel}`}>{LEGAL.supportPhoneDisplay}</a>
+          {" · "}
+          <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a>
         </p>
         <article className="legal-prose mt-10">{children}</article>
       </section>

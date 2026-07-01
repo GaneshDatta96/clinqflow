@@ -10,6 +10,7 @@ const schema = z.object({
 export const POST = createApiHandler({
   route: "/api/invites/accept",
   step: "invites_accept",
+  rateLimit: "auth_sensitive",
   schema,
   handler: async ({ body }) => {
     const { user } = await requireUser();

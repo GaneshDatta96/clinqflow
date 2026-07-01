@@ -12,6 +12,15 @@ export function organizationSchema() {
     logo: new URL("/brand/cliniqflow-logo.png", SITE_URL).toString(),
     description: BRAND.positioning,
     email: LEGAL.supportEmail,
+    telephone: LEGAL.supportPhoneTel,
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: LEGAL.supportPhoneTel,
+      contactType: "customer support",
+      email: LEGAL.supportEmail,
+      areaServed: "Worldwide",
+      availableLanguage: ["English"],
+    },
   };
 }
 

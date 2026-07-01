@@ -23,6 +23,7 @@ const schema = z
 export const POST = createApiHandler({
   route: "/api/razorpay/create-order",
   step: "razorpay_create_order",
+  rateLimit: "billing",
   schema,
   handler: async ({ body }) => {
     if (!isRazorpayConfigured()) {

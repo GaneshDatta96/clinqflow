@@ -1,10 +1,15 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { ZodError, type ZodSchema } from "zod";
 import { ApiError } from "@/lib/api/errors";
+import {
+  tenantCacheTag,
+  type TenantCacheResource,
+} from "@/lib/cache/tenant-cache";
+import { apiErrorResponse } from "@/lib/api/error-response";
+import { PRIVATE_NO_STORE } from "@/lib/http/cache-control";
 import { createRequestLog, logError, logInfo } from "@/lib/logging/logger";
 import {
-  assertRateLimit,
-  rateLimitIdentifier,
+  assertRouteRateLimit,
   type RateLimitBucket,
 } from "@/lib/api/upstash-rate-limit";
 import { requireUser } from "@/lib/tenancy/context";
@@ -42,7 +47,7 @@ export function createApiHandler<TBody = unknown>(
     try {
       if (options.rateLimit !== false) {
         const bucket = options.rateLimit ?? "api_default";
-        await assertRateLimit(bucket, rateLimitIdentifier(request, options.route));
+        await assertRouteRateLimit(request, bucket, options.route);
       }
 
       if (options.requireAuth) {
@@ -74,10 +79,7 @@ export function createApiHandler<TBody = unknown>(
           metadata: { code: error.code },
         });
 
-        return Response.json(
-          { error: error.message, code: error.code, details: error.details },
-          { status: error.status },
-        );
+        return apiErrorResponse(error);
       }
 
       if (error instanceof ZodError) {
@@ -87,7 +89,10 @@ export function createApiHandler<TBody = unknown>(
             code: "validation_error",
             details: error.flatten(),
           },
-          { status: 400 },
+          {
+            status: 400,
+            headers: { "Cache-Control": PRIVATE_NO_STORE },
+          },
         );
       }
 
@@ -102,21 +107,42 @@ export function createApiHandler<TBody = unknown>(
 
       return Response.json(
         { error: "Internal server error.", code: "internal_error" },
-        { status: 500 },
+        {
+          status: 500,
+          headers: { "Cache-Control": PRIVATE_NO_STORE },
+        },
       );
     }
   };
 }
 
+function withPrivateNoStore(init?: ResponseInit): ResponseInit {
+  const headers = new Headers(init?.headers);
+  headers.set("Cache-Control", PRIVATE_NO_STORE);
+  return { ...init, headers };
+}
+
 export function jsonOk<T>(payload: T, init?: ResponseInit) {
-  return Response.json(payload, { status: 200, ...init });
+  return Response.json(payload, withPrivateNoStore({ status: 200, ...init }));
 }
 
 export function jsonCreated<T>(payload: T) {
-  return Response.json(payload, { status: 201 });
+  return Response.json(payload, withPrivateNoStore({ status: 201 }));
 }
 
-export function revalidateDashboard() {
+export function invalidateTenantCache(
+  tenantId: string,
+  resources: TenantCacheResource[] = ["encounters", "entitlements"],
+) {
+  for (const resource of resources) {
+    revalidateTag(tenantCacheTag(tenantId, resource), { expire: 0 });
+  }
+}
+
+export function revalidateDashboard(tenantId?: string) {
   revalidatePath("/app/dashboard");
   revalidatePath("/dashboard");
+  if (tenantId) {
+    invalidateTenantCache(tenantId);
+  }
 }

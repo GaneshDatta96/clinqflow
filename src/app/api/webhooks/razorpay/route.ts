@@ -10,6 +10,9 @@ import {
 } from "@/lib/billing/razorpay-server";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { env } from "@/lib/env";
+import { ApiError } from "@/lib/api/errors";
+import { apiErrorResponse } from "@/lib/api/error-response";
+import { assertIpRateLimit } from "@/lib/api/upstash-rate-limit";
 import { logError, logInfo, logWarn } from "@/lib/logging/logger";
 
 export const runtime = "nodejs";
@@ -119,6 +122,15 @@ async function resolveTenantId(event: RazorpayWebhookEvent) {
 }
 
 export async function POST(request: Request) {
+  try {
+    await assertIpRateLimit(request, "webhook", "/api/webhooks/razorpay");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return apiErrorResponse(error);
+    }
+    throw error;
+  }
+
   if (!env.razorpayWebhookSecret) {
     return Response.json({ error: "Razorpay webhook not configured" }, { status: 503 });
   }

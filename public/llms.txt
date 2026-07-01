@@ -127,10 +127,11 @@ CliniqFlow organizes the work **before and around** the clinical visit: signed p
 
 ## Contact URL
 
+- **Phone:** tel:+15417303827 — (541) 730-3827
 - **Support email:** mailto:support@cliniqflow.com
 - **Privacy email:** mailto:privacy@cliniqflow.com
 - **Security email:** mailto:security@cliniqflow.com
-- [Contact page](https://cliniqflow.app/contact): [CREATE THIS PAGE]
+- [Contact page](https://cliniqflow.app/contact)
 - [About CliniqFlow](https://cliniqflow.app/about): [CREATE THIS PAGE]
 
 ---

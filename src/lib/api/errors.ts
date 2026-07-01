@@ -30,8 +30,20 @@ export function conflict(message: string) {
   return new ApiError(message, 409, "conflict");
 }
 
-export function tooManyRequests(message = "Rate limit exceeded") {
-  return new ApiError(message, 429, "rate_limited");
+export function tooManyRequests(
+  message = "Rate limit exceeded",
+  retryAfter?: number,
+) {
+  return new ApiError(
+    message,
+    429,
+    "rate_limited",
+    retryAfter !== undefined ? { retryAfter } : undefined,
+  );
+}
+
+export function serviceUnavailable(message = "Service temporarily unavailable") {
+  return new ApiError(message, 503, "service_unavailable");
 }
 
 export function internal(message = "Internal server error") {

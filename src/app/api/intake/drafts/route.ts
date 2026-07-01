@@ -14,6 +14,7 @@ const saveSchema = z.object({
 export const GET = createApiHandler({
   route: "/api/intake/drafts",
   step: "intake_draft_get",
+  rateLimit: "api_read",
   handler: async ({ request }) => {
     const { supabase, context } = await requirePermission("encounter:write");
     const url = new URL(request.url);
@@ -50,6 +51,7 @@ export const GET = createApiHandler({
 export const PUT = createApiHandler({
   route: "/api/intake/drafts",
   step: "intake_draft_save",
+  rateLimit: "write",
   schema: saveSchema,
   handler: async ({ body }) => {
     const { supabase, context } = await requirePermission("encounter:write");

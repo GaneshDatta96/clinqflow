@@ -1,8 +1,9 @@
+import { cache } from "react";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { forbidden, tooManyRequests } from "@/lib/api/errors";
 import { PLAN_LIMITS, isActiveSubscriptionStatus } from "@/lib/billing/plans";
 
-export async function getTenantSubscription(tenantId: string) {
+export const getTenantSubscription = cache(async (tenantId: string) => {
   const admin = getSupabaseAdmin();
   if (!admin) return null;
 
@@ -13,7 +14,7 @@ export async function getTenantSubscription(tenantId: string) {
     .maybeSingle();
 
   return data;
-}
+});
 
 export async function getAiUsageThisMonth(tenantId: string) {
   const admin = getSupabaseAdmin();
@@ -46,19 +47,16 @@ export async function getSeatCount(tenantId: string) {
 }
 
 export async function assertAiGenerationAllowed(tenantId: string) {
-  const sub = await getTenantSubscription(tenantId);
-  const planKey = (sub?.plan_key ?? "incomplete") as keyof typeof PLAN_LIMITS;
-  const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.incomplete;
-  const monthlyLimit = sub?.ai_monthly_limit ?? limits.aiMonthly;
+  const summary = await getEntitlementsSummary(tenantId);
 
-  if (!isActiveSubscriptionStatus(sub?.status ?? "incomplete")) {
+  if (!isActiveSubscriptionStatus(summary.status)) {
     throw forbidden("Active subscription required. Subscribe in Billing to use AI features.");
   }
 
-  const used = await getAiUsageThisMonth(tenantId);
-  if (used >= monthlyLimit) {
+  const { used, limit } = summary.aiGenerations;
+  if (used >= limit) {
     throw tooManyRequests(
-      `AI generation limit reached (${used}/${monthlyLimit} this month). Upgrade your plan.`,
+      `AI generation limit reached (${used}/${limit} this month). Upgrade your plan.`,
     );
   }
 }
@@ -71,12 +69,18 @@ export async function assertActiveSubscription(tenantId: string) {
 }
 
 export async function assertSeatAvailable(tenantId: string) {
-  await assertActiveSubscription(tenantId);
-  const sub = await getTenantSubscription(tenantId);
+  const [sub, used] = await Promise.all([
+    getTenantSubscription(tenantId),
+    getSeatCount(tenantId),
+  ]);
+
+  if (!isActiveSubscriptionStatus(sub?.status ?? "incomplete")) {
+    throw forbidden("Active subscription required. Subscribe in Billing to continue.");
+  }
+
   const planKey = (sub?.plan_key ?? "incomplete") as keyof typeof PLAN_LIMITS;
   const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.incomplete;
   const seatLimit = sub?.seat_limit ?? limits.seats;
-  const used = await getSeatCount(tenantId);
 
   if (used >= seatLimit) {
     throw forbidden(
@@ -85,21 +89,28 @@ export async function assertSeatAvailable(tenantId: string) {
   }
 }
 
-export async function getEntitlementsSummary(tenantId: string) {
+async function computeEntitlementsSummary(tenantId: string) {
   const sub = await getTenantSubscription(tenantId);
   const planKey = (sub?.plan_key ?? "incomplete") as keyof typeof PLAN_LIMITS;
   const limits = PLAN_LIMITS[planKey] ?? PLAN_LIMITS.incomplete;
+
+  const [seatCount, aiUsage] = await Promise.all([
+    getSeatCount(tenantId),
+    getAiUsageThisMonth(tenantId),
+  ]);
 
   return {
     planKey,
     status: sub?.status ?? "incomplete",
     seats: {
-      used: await getSeatCount(tenantId),
+      used: seatCount,
       limit: sub?.seat_limit ?? limits.seats,
     },
     aiGenerations: {
-      used: await getAiUsageThisMonth(tenantId),
+      used: aiUsage,
       limit: sub?.ai_monthly_limit ?? limits.aiMonthly,
     },
   };
 }
+
+export const getEntitlementsSummary = cache(computeEntitlementsSummary);

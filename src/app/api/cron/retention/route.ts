@@ -33,29 +33,33 @@ export const GET = createApiHandler({
     const usageCutoff = new Date();
     usageCutoff.setDate(usageCutoff.getDate() - DEFAULT_RETENTION_DAYS);
 
-    const { count: auditDeleted } = await admin
-      .from("audit_logs")
-      .delete({ count: "exact" })
-      .lt("created_at", cutoffIso);
-
-    const { count: usageDeleted } = await admin
-      .from("usage_tracking")
-      .delete({ count: "exact" })
-      .lt("recorded_at", usageCutoff.toISOString());
-
-    const { count: expiredInvites } = await admin
-      .from("tenant_invites")
-      .delete({ count: "exact" })
-      .is("accepted_at", null)
-      .lt("expires_at", new Date().toISOString());
-
     const draftCutoff = new Date();
     draftCutoff.setDate(draftCutoff.getDate() - INTAKE_DRAFT_RETENTION_DAYS);
 
-    const { count: draftsDeleted } = await admin
-      .from("intake_drafts")
-      .delete({ count: "exact" })
-      .lt("updated_at", draftCutoff.toISOString());
+    const [
+      { count: auditDeleted },
+      { count: usageDeleted },
+      { count: expiredInvites },
+      { count: draftsDeleted },
+    ] = await Promise.all([
+      admin
+        .from("audit_logs")
+        .delete({ count: "exact" })
+        .lt("created_at", cutoffIso),
+      admin
+        .from("usage_tracking")
+        .delete({ count: "exact" })
+        .lt("recorded_at", usageCutoff.toISOString()),
+      admin
+        .from("tenant_invites")
+        .delete({ count: "exact" })
+        .is("accepted_at", null)
+        .lt("expires_at", new Date().toISOString()),
+      admin
+        .from("intake_drafts")
+        .delete({ count: "exact" })
+        .lt("updated_at", draftCutoff.toISOString()),
+    ]);
 
     return jsonOk({
       auditLogsDeleted: auditDeleted ?? 0,

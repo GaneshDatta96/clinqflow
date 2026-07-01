@@ -2,9 +2,23 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { ApiError } from "@/lib/api/errors";
+import { assertIpRateLimit } from "@/lib/api/upstash-rate-limit";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
+
+  try {
+    await assertIpRateLimit(request, "auth_sensitive", "/auth/verify");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.redirect(
+        `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      );
+    }
+    throw error;
+  }
+
   const tokenHash = searchParams.get("token");
   const type = (searchParams.get("type") ?? "magiclink") as EmailOtpType;
 

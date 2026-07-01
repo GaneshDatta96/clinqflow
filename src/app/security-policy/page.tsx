@@ -29,13 +29,17 @@ export default function SecurityPolicyPage() {
         <li>HTTPS/TLS encryption for data in transit.</li>
         <li>Cloud-hosted database and authentication via Supabase.</li>
         <li>Application hosting via Vercel.</li>
-        <li>Rate limiting via Upstash Redis in production.</li>
+        <li>Rate limiting via Upstash Redis in production (auth, signup, and password reset).</li>
+        <li>Multi-factor authentication (TOTP) required for platform staff in production.</li>
+        <li>Content Security Policy with per-request nonces in production (no unsafe-eval).</li>
         <li>Error monitoring via Sentry (purpose-limited; no patient content in logs).</li>
       </ul>
 
       <h2>3. Authentication and access control</h2>
       <ul>
         <li>Email and password authentication with email verification in production.</li>
+        <li>Rate-limited login, signup, and password reset endpoints.</li>
+        <li>Multi-factor authentication for platform administrators and support staff.</li>
         <li>Multi-tenant isolation via row-level security and application permissions.</li>
         <li>Role-based access within clinic workspaces.</li>
         <li>

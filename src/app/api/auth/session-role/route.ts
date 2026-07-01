@@ -1,10 +1,16 @@
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import {
+  buildMfaRedirectPath,
+  getPlatformStaffMfaStatus,
+  isPlatformStaffMfaEnforced,
+} from "@/lib/auth/mfa";
 import { resolveAuthRedirect } from "@/lib/auth/post-login";
 import { createSupabaseServerClient } from "@/lib/db/supabase-server";
 import { ROLE_LABELS, roleToPersona } from "@/lib/tenancy/role-routing";
 import {
   fetchIsPlatformAdmin,
   fetchIsPlatformSupport,
+  isEmailConfiguredAsPlatformStaff,
 } from "@/lib/tenancy/platform-admin";
 import type { TenantRole } from "@/lib/tenancy/types";
 
@@ -27,6 +33,17 @@ export const GET = createApiHandler({
     }
 
     const path = await resolveAuthRedirect(supabase, user);
+
+    let mfaRedirect: string | null = null;
+    if (
+      isPlatformStaffMfaEnforced() &&
+      isEmailConfiguredAsPlatformStaff(user.email)
+    ) {
+      const mfaStatus = await getPlatformStaffMfaStatus(supabase);
+      if (mfaStatus !== "ok") {
+        mfaRedirect = buildMfaRedirectPath(mfaStatus, path);
+      }
+    }
 
     const isPlatformAdmin = await fetchIsPlatformAdmin(
       supabase,
@@ -64,6 +81,7 @@ export const GET = createApiHandler({
 
     return jsonOk({
       path,
+      mfaRedirect,
       role: role ?? null,
       roleLabel,
       isPlatformAdmin,

@@ -12,7 +12,7 @@ const onboardingSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/auth/onboarding",
   step: "onboarding",
-  rateLimit: "auth",
+  rateLimit: "auth_sensitive",
   requireAuth: true,
   schema: onboardingSchema,
   handler: async ({ body }) => {

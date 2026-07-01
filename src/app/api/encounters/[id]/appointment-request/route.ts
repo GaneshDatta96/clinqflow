@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import { createApiHandler, invalidateTenantCache, jsonOk } from "@/lib/api/handler";
 import { notFound } from "@/lib/api/errors";
 import { getEncounterForTenant } from "@/lib/db/repositories/encounters";
 import { storeAppointmentRequest } from "@/lib/intake/workflow";
@@ -11,6 +11,7 @@ const bodySchema = appointmentRequestSchema;
 export const POST = createApiHandler({
   route: "/api/encounters/[id]/appointment-request",
   step: "appointment_request",
+  rateLimit: "write",
   schema: bodySchema,
   handler: async ({ body, request }) => {
     const id = request.url.split("/encounters/")[1]?.split("/")[0];
@@ -26,7 +27,10 @@ export const POST = createApiHandler({
       context.tenantId,
       id,
       body,
+      { ownershipVerified: true },
     );
+
+    invalidateTenantCache(context.tenantId, ["encounters"]);
 
     return jsonOk(result);
   },

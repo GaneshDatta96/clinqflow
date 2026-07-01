@@ -11,6 +11,7 @@ import {
   Send,
 } from "lucide-react";
 import { PatientIntakeForm } from "@/components/intake/patient-intake-form";
+import { TurnstileWidget } from "@/components/intake/turnstile-widget";
 import { type ClinicDefinition } from "@/lib/clinics/niche-configs";
 import {
   appointmentRequestSchema,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/schemas/intake";
 import { type NicheIntakePayload } from "@/lib/schemas/niche-intake";
 import { type SoapDraft } from "@/lib/schemas/soap";
+import { ClientApiError, getErrorMessage, readApiError } from "@/lib/api/client";
 import Link from "next/link";
 import { type PatientDetails } from "./patient-creation-form";
 
@@ -64,6 +66,9 @@ export function PatientIntakeExperience(props: {
     submitted: false,
     skipped: false,
   });
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaSiteKey, setCaptchaSiteKey] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const activePatientId = patient?.id ?? props.initialPatientId ?? null;
   const isPublicMode = props.mode === "public";
@@ -93,6 +98,33 @@ export function PatientIntakeExperience(props: {
       );
     }
   }, []);
+
+  useEffect(() => {
+    if (!isPublicMode) {
+      return;
+    }
+
+    async function loadCaptchaStatus() {
+      try {
+        const response = await fetch("/api/intake/public/captcha-status");
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          required?: boolean;
+          siteKey?: string | null;
+        };
+
+        setCaptchaRequired(Boolean(payload.required));
+        setCaptchaSiteKey(payload.siteKey ?? null);
+      } catch {
+        // Non-blocking — server enforces CAPTCHA when configured.
+      }
+    }
+
+    void loadCaptchaStatus();
+  }, [isPublicMode]);
 
   async function handleCopyLink() {
     if (!patientPath || typeof navigator === "undefined" || !navigator.clipboard) {
@@ -136,22 +168,41 @@ export function PatientIntakeExperience(props: {
         headers["x-intake-token"] = intakeToken;
       }
 
+      if (isPublicSubmit && captchaToken) {
+        headers["x-captcha-token"] = captchaToken;
+      }
+
+      const requestBody =
+        isPublicSubmit && captchaToken
+          ? { ...values, captcha_token: captchaToken }
+          : values;
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers,
-        body: JSON.stringify(values),
+        body: JSON.stringify(requestBody),
       });
+
+      if (!response.ok) {
+        const apiError = await readApiError(response);
+        if (
+          apiError instanceof ClientApiError &&
+          apiError.details?.code === "captcha_required"
+        ) {
+          setCaptchaRequired(true);
+          if (typeof apiError.details.siteKey === "string") {
+            setCaptchaSiteKey(apiError.details.siteKey);
+          }
+          setCaptchaToken(null);
+        }
+        throw apiError;
+      }
 
       const payload = (await response.json()) as {
         encounterId?: string;
-        error?: string;
         bookingEnabled?: boolean;
         soap?: SoapDraft;
       };
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Submission failed.");
-      }
 
       if (!isPublicSubmit && !payload.soap) {
         throw new Error("Submission failed.");
@@ -170,8 +221,7 @@ export function PatientIntakeExperience(props: {
       setSubmission({
         isSubmitted: false,
         pending: false,
-        error:
-          error instanceof Error ? error.message : "An unexpected error occurred.",
+        error: getErrorMessage(error, "An unexpected error occurred."),
         status: "Submission failed",
         encounterId: null,
         bookingEnabled: false,
@@ -354,6 +404,18 @@ export function PatientIntakeExperience(props: {
       ) : null}
 
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
+        {isPublicMode && captchaRequired && captchaSiteKey ? (
+          <div className="mb-6 rounded-[1.25rem] border border-[color:var(--line)] bg-[color:var(--surface-strong)] p-4">
+            <p className="mb-2 text-sm text-[color:var(--muted)]">
+              Complete the security check below before submitting.
+            </p>
+            <TurnstileWidget
+              siteKey={captchaSiteKey}
+              onToken={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+            />
+          </div>
+        ) : null}
         <PatientIntakeForm
           patientId={activePatientId}
           clinic={props.clinic}
@@ -362,6 +424,7 @@ export function PatientIntakeExperience(props: {
           submissionStatus={submission.status}
           submissionError={submission.error}
           requireConsent={isPublicMode}
+          submitDisabled={captchaRequired && !captchaToken}
         />
       </section>
     </div>

@@ -14,6 +14,7 @@ const createSchema = z.object({
 export const GET = createApiHandler({
   route: "/api/invites",
   step: "invites_list",
+  rateLimit: "api_read",
   handler: async () => {
     const { context } = await requirePermission("members:invite");
     const admin = getSupabaseAdmin();

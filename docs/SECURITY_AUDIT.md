@@ -18,7 +18,7 @@ This document tracks every finding from the full 30-section security audit and r
 | Upstash + cron hardening live | Fixed — required in prod; cron rate limit + `CRON_SECRET` ≥32 |
 | Next.js patched + security headers | Fixed — next@16.2.6+; headers in `next.config.ts` |
 | RLS viewer-write fixed (H-04) | Fixed — child table write policies use `can_write_tenant()` |
-| Third-party pen test clean | Open — schedule before PHI launch |
+| Third-party pen test clean | Open — schedule before PHI launch | See [PEN_TEST_SCHEDULE.md](./PEN_TEST_SCHEDULE.md) |
 
 ---
 
@@ -50,7 +50,7 @@ This document tracks every finding from the full 30-section security audit and r
 | AUTH-01 | Email verify client-only | Fixed | `requireUser()` checks `email_confirmed_at` |
 | AUTH-02 | Env email = instant god mode | Documented | DB flags + env allowlist; manual provisioning |
 | AUTH-03 | Admin flag never revoked | Fixed | Sync clears flags when email removed |
-| AUTH-04 | No MFA for platform staff | Phase 2 | See `docs/PHASE2_SECURITY_BACKLOG.md` |
+| AUTH-04 | No MFA for platform staff | Partial | TOTP MFA enforced in production for platform staff (`/app/mfa/*`, AAL2) |
 | AUTH-05 | No session rotation on impersonation | Partial | Acting cookie TTL 4h |
 
 ## Multi-tenant

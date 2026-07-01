@@ -23,7 +23,7 @@ Build Log Initialized.
 
 [2026-04-18] - chore: Simplify homepage CTA and hide Create Demo nav item
 - Reduced the homepage "Next Step" section to a single Request custom version button.
-- Pointed the Request custom version CTA to https://cal.com/ganesh-datta-bygktk/sales-throughput-session.
+- Pointed the Request custom version CTA to the business phone line (541) 730-3827.
 - Removed the Create Demo item from the shared header navigation while keeping the route available.
 
 [2026-04-18] - feat: Personalize clinic demo routes for faster sales conversion
@@ -526,3 +526,40 @@ END legal-compliance-v1
 - Replaced slow listUsers email lookup with profiles + getUserById; create-first path for new accounts.
 - Redesigned /signup page (glass card, desktop value props); added SignupSuccessPanel replacing plain green text.
 - Auth form shows spinner during signup and dedicated post-signup steps (verify email, resend, sign in).
+
+[2026-06-23] - feat: Security hardening, caching, rate limits, N+1 fixes, password policy, and business contact
+Performance and caching
+- Added Cache-Control: private, no-store on API/auth responses (src/lib/http/cache-control.ts, middleware, handler).
+- Dashboard encounters and entitlements use unstable_cache with tenant-scoped tags and invalidation on mutations (src/lib/cache/tenant-cache.ts).
+- Parallelized entitlements summary (Promise.all + React cache); admin analytics counts in parallel.
+
+Rate limiting and API client
+- Expanded Upstash buckets (api_read, write, read_heavy, billing, admin, webhook, health, tenant_intake, etc.).
+- User-aware rate limit identifiers (IP:userId:route); Retry-After on 429 responses.
+- Assigned explicit buckets to API routes, webhooks, health, and auth callbacks.
+- Added src/lib/api/client.ts (readApiError, fetchApi, ClientApiError) and updated frontend fetch call sites for 429 handling.
+
+N+1 query fixes
+- getEncounterSoapContext: single nested query for SOAP generate/assess (was 5+ queries).
+- Parallelized persistEncounterPipeline inserts, retention cron deletes, invite profile fetch, workflow ai_generations + usage_tracking.
+- Batch niche_configs fetch in listClinicsForTenant; cached getTenantSubscription; resolvePlatformRoles once for platform staff.
+- Pass pre-resolved clinic into intake submit workflow; skip duplicate encounter check on appointment-request.
+
+Password strength and intake hardening
+- Rules-based password checker (src/lib/auth/password.ts) on signup API, signup/reset UI with strength meter.
+- Per-tenant intake rate limit (120/hour); Cloudflare Turnstile CAPTCHA on public intake after 3 submissions/IP/hour.
+- Turnstile env vars in .env.example; captcha-status endpoint and widget on public intake form.
+
+Platform MFA and CSP
+- TOTP MFA for platform staff (src/lib/auth/mfa.ts, /app/mfa/setup and /app/mfa/verify).
+- Content Security Policy via src/middleware.ts and src/lib/security/csp.ts; GA allowed in connect-src/script-src.
+
+Business contact and branding
+- Business phone (541) 730-3827 in LEGAL config, footer, /contact page, legal shell, Terms, Organization schema, llms.txt.
+- Sales CTA uses tel:+15417303827 (removed cal.com/ganesh-datta link); operator remains Prarthana Bhat.
+- Added src/components/legal/support-contact.tsx and src/app/contact/page.tsx.
+
+Other
+- Client bundle secret scan scripts (scripts/scan-client-secrets.mjs, scan-client-secret-values.mjs).
+- docs/PHASE2_SECURITY_BACKLOG.md, PEN_TEST_SCHEDULE.md, and marketing manuscript contact updates.
+- Verified with npm run typecheck.

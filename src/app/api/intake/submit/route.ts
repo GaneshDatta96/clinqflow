@@ -5,6 +5,7 @@ import {
   jsonOk,
   revalidateDashboard,
 } from "@/lib/api/handler";
+import { assertTenantIntakeRateLimit } from "@/lib/api/upstash-rate-limit";
 import { processAuthenticatedIntakeSubmission } from "@/lib/intake/workflow";
 import { logInfo } from "@/lib/logging/logger";
 import { requirePermission } from "@/lib/tenancy/context";
@@ -16,10 +17,13 @@ import {
 export const POST = createApiHandler({
   route: "/api/intake/submit",
   step: "intake_pipeline",
+  rateLimit: "write",
   handler: async ({ request, requestLog, startedAt }) => {
     const body = await request.json();
     const baseInput = nicheIntakeBaseSchema.parse(body);
     const { supabase, context } = await requirePermission("encounter:write");
+
+    await assertTenantIntakeRateLimit(context.tenantId);
 
     const clinic =
       (await getClinicForSlug(baseInput.clinic_slug, context.tenantId)) ??
@@ -34,9 +38,10 @@ export const POST = createApiHandler({
       supabase,
       tenantId: context.tenantId,
       userId: context.userId,
+      clinic: clinic?.id ? clinic : undefined,
     });
 
-    revalidateDashboard();
+    revalidateDashboard(context.tenantId);
 
     logInfo({
       ...requestLog,

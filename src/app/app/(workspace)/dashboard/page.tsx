@@ -1,9 +1,11 @@
 import { Suspense } from "react";
 import { EncounterDashboardShell } from "@/components/dashboard/encounter-dashboard-shell";
 import { EncounterSearch } from "@/components/dashboard/encounter-search";
+import {
+  getCachedEncountersForTenant,
+  getCachedEntitlementsSummary,
+} from "@/lib/cache/tenant-cache";
 import { mapEncounterToDashboardCase } from "@/lib/dashboard/encounter-view";
-import { listEncountersForTenant } from "@/lib/db/repositories/encounters";
-import { getEntitlementsSummary } from "@/lib/billing/entitlements";
 import { requireTenantContextForPage } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +16,11 @@ export default async function AppDashboardPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const { supabase, context } = await requireTenantContextForPage();
+  const { context } = await requireTenantContextForPage();
 
   const [encounters, entitlements] = await Promise.all([
-    listEncountersForTenant(supabase, context.tenantId, { search: q }),
-    getEntitlementsSummary(context.tenantId),
+    getCachedEncountersForTenant(context.tenantId, { search: q }),
+    getCachedEntitlementsSummary(context.tenantId),
   ]);
   const cases = encounters.map(mapEncounterToDashboardCase);
 

@@ -7,17 +7,22 @@ export default async function AdminAnalyticsPage() {
   await requireGodModeContextForPage();
   const admin = getSupabaseAdmin();
 
-  const tenantCount = admin
-    ? await admin.from("tenants").select("id", { count: "exact", head: true }).is("deleted_at", null)
-    : { count: 0 };
-
-  const encounterCount = admin
-    ? await admin.from("encounters").select("id", { count: "exact", head: true }).is("deleted_at", null)
-    : { count: 0 };
-
-  const aiUsage = admin
-    ? await admin.from("usage_tracking").select("id", { count: "exact", head: true }).eq("metric_key", "ai_soap_generation")
-    : { count: 0 };
+  const [tenantCount, encounterCount, aiUsage] = admin
+    ? await Promise.all([
+        admin
+          .from("tenants")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null),
+        admin
+          .from("encounters")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null),
+        admin
+          .from("usage_tracking")
+          .select("id", { count: "exact", head: true })
+          .eq("metric_key", "ai_soap_generation"),
+      ])
+    : [{ count: 0 }, { count: 0 }, { count: 0 }];
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-12">

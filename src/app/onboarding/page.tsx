@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getNicheOptions } from "@/lib/clinics/store";
+import { getErrorMessage, readApiError } from "@/lib/api/client";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -28,14 +29,13 @@ export default function OnboardingPage() {
       });
 
       if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.error ?? "Onboarding failed.");
+        throw await readApiError(response);
       }
 
       router.push("/app/billing");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Onboarding failed.");
+      setError(getErrorMessage(err, "Onboarding failed."));
     } finally {
       setPending(false);
     }

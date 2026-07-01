@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Copy, CheckCircle, LoaderCircle } from "lucide-react";
+import { fetchApi, getErrorMessage, readApiError } from "@/lib/api/client";
 
 const patientSchema = z.object({
   first_name: z.string().min(1),
@@ -34,14 +35,9 @@ export default function AppPatientsPage() {
   });
 
   useEffect(() => {
-    fetch("/api/clinics")
-      .then((r) => r.json())
+    fetchApi<{ clinics: Clinic[] }>("/api/clinics")
       .then((data) => {
-        const list = (data.clinics ?? []) as Array<{
-          id?: string;
-          slug: string;
-          clinicName: string;
-        }>;
+        const list = data.clinics ?? [];
         setClinics(
           list
             .filter((c) => c.id)
@@ -55,7 +51,7 @@ export default function AppPatientsPage() {
           form.setValue("clinic_id", list[0].id!);
         }
       })
-      .catch(() => setError("Unable to load clinics."));
+      .catch((err) => setError(getErrorMessage(err, "Unable to load clinics.")));
   }, [form]);
 
   const onSubmit = (values: z.infer<typeof patientSchema>) => {
@@ -67,7 +63,7 @@ export default function AppPatientsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
-        if (!res.ok) throw new Error("Failed to create patient");
+        if (!res.ok) throw await readApiError(res);
         const patient = (await res.json()) as Patient;
         setPatients((p) => [patient, ...p]);
 
@@ -86,7 +82,7 @@ export default function AppPatientsPage() {
         }
         form.reset({ ...values, first_name: "", last_name: "", email: "" });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Error creating patient");
+        setError(getErrorMessage(e, "Error creating patient"));
       }
     });
   };

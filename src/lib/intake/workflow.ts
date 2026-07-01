@@ -1,7 +1,7 @@
 import { generateSoapDraft } from "@/lib/ai/generate-soap";
 import { scorePatterns } from "@/lib/assessment/score-patterns";
 import { badRequest, notFound } from "@/lib/api/errors";
-import { getClinicByNiche } from "@/lib/clinics/niche-configs";
+import { getClinicByNiche, type ClinicDefinition } from "@/lib/clinics/niche-configs";
 import { getClinicForSlug } from "@/lib/clinics/store";
 import { persistEncounterPipeline } from "@/lib/db/repositories/encounters";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
@@ -59,9 +59,11 @@ export async function processAuthenticatedIntakeSubmission(
     supabase: SupabaseClient;
     tenantId: string;
     userId: string;
+    clinic?: ClinicDefinition;
   },
 ): Promise<ProcessedEncounter> {
   const clinic =
+    context.clinic ??
     (await getClinicForSlug(input.clinic_slug, context.tenantId)) ??
     getClinicByNiche(input.niche);
 
@@ -116,20 +118,21 @@ export async function processAuthenticatedIntakeSubmission(
     model: generated.model,
   });
 
-  await context.supabase.from("ai_generations").insert({
-    tenant_id: context.tenantId,
-    encounter_id: encounterId,
-    prompt_version: generated.promptVersion,
-    model: generated.model,
-    used_fallback: generated.usedFallback,
-    created_by: context.userId,
-  });
-
-  await context.supabase.from("usage_tracking").insert({
-    tenant_id: context.tenantId,
-    metric_key: "ai_soap_generation",
-    quantity: 1,
-  });
+  await Promise.all([
+    context.supabase.from("ai_generations").insert({
+      tenant_id: context.tenantId,
+      encounter_id: encounterId,
+      prompt_version: generated.promptVersion,
+      model: generated.model,
+      used_fallback: generated.usedFallback,
+      created_by: context.userId,
+    }),
+    context.supabase.from("usage_tracking").insert({
+      tenant_id: context.tenantId,
+      metric_key: "ai_soap_generation",
+      quantity: 1,
+    }),
+  ]);
 
   return {
     encounterId,
@@ -227,19 +230,20 @@ export async function processPublicIntakeSubmission(
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("id", claims.linkId);
 
-  await admin.from("ai_generations").insert({
-    tenant_id: claims.tenantId,
-    encounter_id: encounterId,
-    prompt_version: generated.promptVersion,
-    model: generated.model,
-    used_fallback: generated.usedFallback,
-  });
-
-  await admin.from("usage_tracking").insert({
-    tenant_id: claims.tenantId,
-    metric_key: "ai_soap_generation",
-    quantity: 1,
-  });
+  await Promise.all([
+    admin.from("ai_generations").insert({
+      tenant_id: claims.tenantId,
+      encounter_id: encounterId,
+      prompt_version: generated.promptVersion,
+      model: generated.model,
+      used_fallback: generated.usedFallback,
+    }),
+    admin.from("usage_tracking").insert({
+      tenant_id: claims.tenantId,
+      metric_key: "ai_soap_generation",
+      quantity: 1,
+    }),
+  ]);
 
   const { recordConsent } = await import("@/services/consent.service");
   await recordConsent({
@@ -270,16 +274,19 @@ export async function storeAppointmentRequest(
   tenantId: string,
   encounterId: string,
   input: AppointmentRequestInput,
+  options?: { ownershipVerified?: boolean },
 ) {
-  const encounter = await supabase
-    .from("encounters")
-    .select("id")
-    .eq("id", encounterId)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
+  if (!options?.ownershipVerified) {
+    const encounter = await supabase
+      .from("encounters")
+      .select("id")
+      .eq("id", encounterId)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
 
-  if (!encounter.data) {
-    throw notFound("Encounter not found.");
+    if (!encounter.data) {
+      throw notFound("Encounter not found.");
+    }
   }
 
   const insert = await supabase.from("appointment_requests").upsert(

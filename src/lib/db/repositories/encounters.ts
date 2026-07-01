@@ -305,47 +305,47 @@ export async function persistEncounterPipeline(args: {
     throw encounterInsert.error;
   }
 
-  const intakeInsert = await args.supabase.from("intake_submissions").insert({
-    encounter_id: encounterId,
-    schema_version: args.normalizedIntake.schema_version,
-    raw_json: args.rawInput,
-    normalized_json: args.normalizedIntake,
-  });
+  const [intakeInsert, assessmentInsert, soapInsert] = await Promise.all([
+    args.supabase.from("intake_submissions").insert({
+      encounter_id: encounterId,
+      schema_version: args.normalizedIntake.schema_version,
+      raw_json: args.rawInput,
+      normalized_json: args.normalizedIntake,
+    }),
+    args.supabase.from("assessment_results").insert(
+      args.assessmentResults.map((item) => ({
+        encounter_id: encounterId,
+        pattern_key: item.pattern_key,
+        confidence: item.confidence,
+        evidence: item.evidence,
+        data_gaps: item.data_gaps,
+        risk_level: item.risk_level,
+        rank: item.rank,
+      })),
+    ),
+    args.supabase.from("soap_notes").upsert(
+      {
+        encounter_id: encounterId,
+        subjective: args.soap.subjective,
+        objective: args.soap.objective,
+        assessment: args.soap.assessment,
+        plan: args.soap.plan_draft,
+        soap_json: args.soap,
+        prompt_version: args.promptVersion,
+        model: args.model,
+        review_status: "draft",
+      },
+      { onConflict: "encounter_id" },
+    ),
+  ]);
 
   if (intakeInsert.error) {
     throw intakeInsert.error;
   }
 
-  const assessmentInsert = await args.supabase.from("assessment_results").insert(
-    args.assessmentResults.map((item) => ({
-      encounter_id: encounterId,
-      pattern_key: item.pattern_key,
-      confidence: item.confidence,
-      evidence: item.evidence,
-      data_gaps: item.data_gaps,
-      risk_level: item.risk_level,
-      rank: item.rank,
-    })),
-  );
-
   if (assessmentInsert.error) {
     throw assessmentInsert.error;
   }
-
-  const soapInsert = await args.supabase.from("soap_notes").upsert(
-    {
-      encounter_id: encounterId,
-      subjective: args.soap.subjective,
-      objective: args.soap.objective,
-      assessment: args.soap.assessment,
-      plan: args.soap.plan_draft,
-      soap_json: args.soap,
-      prompt_version: args.promptVersion,
-      model: args.model,
-      review_status: "draft",
-    },
-    { onConflict: "encounter_id" },
-  );
 
   if (soapInsert.error) {
     throw soapInsert.error;

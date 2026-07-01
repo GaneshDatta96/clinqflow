@@ -1,8 +1,12 @@
 import { getClinicByNiche } from "@/lib/clinics/niche-configs";
 import { getClinicForSlug } from "@/lib/clinics/store";
-import { createApiHandler, jsonOk } from "@/lib/api/handler";
+import { createApiHandler, jsonOk, revalidateDashboard } from "@/lib/api/handler";
 import { badRequest } from "@/lib/api/errors";
 import { processPublicIntakeSubmission } from "@/lib/intake/workflow";
+import {
+  assertPublicIntakeCaptchaIfRequired,
+  recordPublicIntakeSubmission,
+} from "@/lib/security/public-intake-guard";
 import {
   buildNicheIntakeSubmissionSchema,
   nicheIntakeBaseSchema,
@@ -19,7 +23,13 @@ export const POST = createApiHandler({
       throw badRequest("Missing intake token.");
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as Record<string, unknown>;
+    const captchaToken =
+      (typeof body.captcha_token === "string" ? body.captcha_token : null) ??
+      request.headers.get("x-captcha-token");
+
+    await assertPublicIntakeCaptchaIfRequired(request, captchaToken);
+
     const baseInput = nicheIntakeBaseSchema.parse(body);
     const clinic =
       (await getClinicForSlug(baseInput.clinic_slug)) ??
@@ -43,6 +53,10 @@ export const POST = createApiHandler({
         userAgent: request.headers.get("user-agent"),
       },
     );
+
+    await recordPublicIntakeSubmission(request);
+
+    revalidateDashboard(processed.tenantId);
 
     return jsonOk({
       encounterId: processed.encounterId,

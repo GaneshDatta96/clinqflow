@@ -3,6 +3,7 @@
 import { LoaderCircle, Mail } from "lucide-react";
 import { useState } from "react";
 import { ROLE_LABELS } from "@/lib/tenancy/role-routing";
+import { getErrorMessage } from "@/lib/api/client";
 import { useInvites, useSendInvite } from "@/lib/query/hooks";
 
 export function TeamInvitesPanel() {
@@ -31,7 +32,7 @@ export function TeamInvitesPanel() {
           setEmail("");
         },
         onError: (e) => {
-          setError(e instanceof Error ? e.message : "Request failed");
+          setError(getErrorMessage(e, "Request failed"));
         },
       },
     );

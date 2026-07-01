@@ -104,10 +104,10 @@ const pricingPlans = [
       "Dedicated onboarding",
       "Priority support",
     ],
-    cta: "Talk to sales",
+    cta: "Call sales",
     href: BRAND.salesUrl,
     highlighted: false,
-    external: true,
+    external: false,
   },
 ];
 

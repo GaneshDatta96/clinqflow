@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SupportContact } from "@/components/legal/support-contact";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import {
   ARBITRATION_CLAUSE,
@@ -180,9 +181,8 @@ export default function TermsOfServicePage() {
 
       <h2>17. Contact</h2>
       <p>
-        Billing and account:{" "}
-        <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a>. Legal notices:
-        same address with subject line &quot;Legal Notice.&quot;
+        Billing and account: <SupportContact />. Legal notices: same address with subject
+        line &quot;Legal Notice.&quot;
       </p>
     </LegalPageShell>
   );

@@ -10,6 +10,7 @@ const schema = z.object({
 export const POST = createApiHandler({
   route: "/api/intake/links/revoke",
   step: "intake_link_revoke",
+  rateLimit: "write",
   schema,
   handler: async ({ body }) => {
     const { context } = await requirePermission("intake:link:create");

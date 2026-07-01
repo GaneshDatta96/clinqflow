@@ -19,6 +19,7 @@ const createPatientSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/patients/create",
   step: "patient_create",
+  rateLimit: "write",
   schema: createPatientSchema,
   handler: async ({ body }) => {
     const { supabase, context } = await requirePermission("patient:create");

@@ -10,6 +10,7 @@ const schema = z.object({
 export const POST = createApiHandler({
   route: "/api/tenancy/switch",
   step: "tenancy_switch",
+  rateLimit: "write",
   schema,
   handler: async ({ body }) => {
     const { user } = await requireUser();

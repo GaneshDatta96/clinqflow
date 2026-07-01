@@ -7,6 +7,7 @@ export type SitemapEntry = {
 };
 
 export const SEO_LANDING_PAGES = [
+  { path: "/contact", label: "Contact" },
   { path: "/how-patient-intake-works", label: "How intake works" },
   { path: "/ai-documentation", label: "AI documentation" },
   { path: "/clinic-workflows", label: "Clinic workflows" },

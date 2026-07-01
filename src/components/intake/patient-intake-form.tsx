@@ -23,6 +23,7 @@ export function PatientIntakeForm(props: {
   submissionStatus: string;
   submissionError: string | null;
   requireConsent?: boolean;
+  submitDisabled?: boolean;
 }) {
   const formSchema = buildNicheIntakeSubmissionSchema(props.clinic.config);
   type FormInput = z.input<typeof formSchema>;
@@ -278,7 +279,11 @@ export function PatientIntakeForm(props: {
 
           <button
             type="submit"
-            disabled={props.isSubmitting || (props.requireConsent && !consentAccepted)}
+            disabled={
+              props.isSubmitting ||
+              props.submitDisabled ||
+              (props.requireConsent && !consentAccepted)
+            }
             className="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
           >
             {props.isSubmitting ? (

@@ -5,6 +5,7 @@ import { requireTenantContext } from "@/lib/tenancy/context";
 export const GET = createApiHandler({
   route: "/api/clinics",
   step: "clinics_list",
+  rateLimit: "api_read",
   handler: async () => {
     const { context } = await requireTenantContext();
     const clinics = await listClinicsForTenant(context.tenantId);

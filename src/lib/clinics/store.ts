@@ -31,28 +31,43 @@ function getLocalConfig(niche: string) {
   return isSupportedNiche(niche) ? nicheConfigs[niche] : null;
 }
 
-async function getConfigForNiche(niche: string): Promise<NicheConfig | null> {
-  const supabase = getSupabaseAdmin();
+async function getConfigsForNiches(niches: string[]) {
+  const configs = new Map<string, NicheConfig>();
 
-  if (!supabase) {
-    return getLocalConfig(niche);
+  for (const niche of niches) {
+    const local = getLocalConfig(niche);
+    if (local) {
+      configs.set(niche, local);
+    }
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase || niches.length === 0) {
+    return configs;
   }
 
   const { data, error } = await supabase
     .from("niche_configs")
-    .select("config")
-    .eq("niche", niche)
-    .maybeSingle();
+    .select("niche, config")
+    .in("niche", niches);
 
-  if (!error && data?.config) {
-    try {
-      return nicheConfigSchema.parse(data.config);
-    } catch {
-      return getLocalConfig(niche);
+  if (!error && data) {
+    for (const row of data) {
+      try {
+        configs.set(row.niche, nicheConfigSchema.parse(row.config));
+      } catch {
+        const local = getLocalConfig(row.niche);
+        if (local) configs.set(row.niche, local);
+      }
     }
   }
 
-  return getLocalConfig(niche);
+  return configs;
+}
+
+async function getConfigForNiche(niche: string): Promise<NicheConfig | null> {
+  const configs = await getConfigsForNiches([niche]);
+  return configs.get(niche) ?? null;
 }
 
 function buildFromRow(row: ClinicRow, config: NicheConfig): ClinicDefinition {
@@ -134,15 +149,7 @@ export async function listClinicsForTenant(tenantId: string) {
     return [];
   }
 
-  const configs = new Map<string, NicheConfig>();
-  const niches = Array.from(new Set(data.map((c) => c.niche)));
-
-  await Promise.all(
-    niches.map(async (niche) => {
-      const config = await getConfigForNiche(niche);
-      if (config) configs.set(niche, config);
-    }),
-  );
+  const configs = await getConfigsForNiches(Array.from(new Set(data.map((c) => c.niche))));
 
   return data
     .map((row) => {

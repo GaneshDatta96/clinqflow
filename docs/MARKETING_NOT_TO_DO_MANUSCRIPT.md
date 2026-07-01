@@ -650,9 +650,10 @@ If any answer is uncertain → **do not publish** until reviewed.
 
 **Legal / product review contacts (from live config):**
 
-- General / legal notices: support@cliniqflow.com  
-- Privacy: privacy@cliniqflow.com  
-- Security: security@cliniqflow.com  
+- General / legal notices: support@cliniqflow.com
+- Phone: (541) 730-3827
+- Privacy: privacy@cliniqflow.com
+- Security: security@cliniqflow.com
 
 **Public policy index:** [cliniqflow.app/privacy](https://cliniqflow.app/privacy) and footer links to all 13 policy routes.
 

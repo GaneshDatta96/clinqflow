@@ -3,57 +3,16 @@ import { patternLibrary } from "@/lib/assessment/pattern-library";
 import { normalizedIntakeSchema, type NormalizedIntake } from "@/lib/schemas/intake";
 import { assessmentResultSchema, type AssessmentResult } from "@/lib/schemas/soap";
 
-export async function getEncounterIntakeSubmission(
-  supabase: SupabaseClient,
-  tenantId: string,
-  encounterId: string,
-): Promise<NormalizedIntake | null> {
-  const { data: encounter } = await supabase
-    .from("encounters")
-    .select("id")
-    .eq("id", encounterId)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!encounter) {
-    return null;
-  }
-
-  const { data: submission } = await supabase
-    .from("intake_submissions")
-    .select("normalized_json")
-    .eq("encounter_id", encounterId)
-    .maybeSingle();
-
-  if (!submission?.normalized_json) {
-    return null;
-  }
-
-  return normalizedIntakeSchema.parse(submission.normalized_json);
-}
-
-export async function getEncounterAssessmentResults(
-  supabase: SupabaseClient,
-  tenantId: string,
-  encounterId: string,
-): Promise<AssessmentResult[]> {
-  const { data: encounter } = await supabase
-    .from("encounters")
-    .select("id")
-    .eq("id", encounterId)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!encounter) {
-    return [];
-  }
-
-  const { data: rows } = await supabase
-    .from("assessment_results")
-    .select("pattern_key, confidence, evidence, data_gaps, risk_level, rank")
-    .eq("encounter_id", encounterId)
-    .order("rank", { ascending: true });
-
+function parseAssessmentRows(
+  rows: Array<{
+    pattern_key: string;
+    confidence: number;
+    evidence: string[] | null;
+    data_gaps: string[] | null;
+    risk_level: string;
+    rank: number;
+  }> | null | undefined,
+): AssessmentResult[] {
   if (!rows?.length) {
     return [];
   }
@@ -71,6 +30,138 @@ export async function getEncounterAssessmentResults(
       rank: row.rank,
     });
   });
+}
+
+function parseIntakeSubmission(
+  submission: { normalized_json: unknown } | Array<{ normalized_json: unknown }> | null | undefined,
+): NormalizedIntake | null {
+  const row = Array.isArray(submission) ? submission[0] : submission;
+  if (!row?.normalized_json) {
+    return null;
+  }
+
+  return normalizedIntakeSchema.parse(row.normalized_json);
+}
+
+export type EncounterSoapContext = {
+  encounterId: string;
+  intake: NormalizedIntake | null;
+  assessmentResults: AssessmentResult[];
+};
+
+/** Single query for SOAP generation — avoids repeated encounter ownership checks. */
+export async function getEncounterSoapContext(
+  supabase: SupabaseClient,
+  tenantId: string,
+  encounterId: string,
+): Promise<EncounterSoapContext | null> {
+  const { data, error } = await supabase
+    .from("encounters")
+    .select(
+      `
+      id,
+      intake_submissions (
+        normalized_json
+      ),
+      assessment_results (
+        pattern_key,
+        confidence,
+        evidence,
+        data_gaps,
+        risk_level,
+        rank
+      )
+    `,
+    )
+    .eq("id", encounterId)
+    .eq("tenant_id", tenantId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    encounterId: data.id,
+    intake: parseIntakeSubmission(data.intake_submissions),
+    assessmentResults: parseAssessmentRows(data.assessment_results).sort(
+      (a, b) => (a.rank ?? 0) - (b.rank ?? 0),
+    ),
+  };
+}
+
+export async function getEncounterIntakeSubmission(
+  supabase: SupabaseClient,
+  tenantId: string,
+  encounterId: string,
+): Promise<NormalizedIntake | null> {
+  const { data, error } = await supabase
+    .from("encounters")
+    .select(
+      `
+      id,
+      intake_submissions (
+        normalized_json
+      )
+    `,
+    )
+    .eq("id", encounterId)
+    .eq("tenant_id", tenantId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return parseIntakeSubmission(data.intake_submissions);
+}
+
+export async function getEncounterAssessmentResults(
+  supabase: SupabaseClient,
+  tenantId: string,
+  encounterId: string,
+): Promise<AssessmentResult[]> {
+  const { data, error } = await supabase
+    .from("encounters")
+    .select(
+      `
+      id,
+      assessment_results (
+        pattern_key,
+        confidence,
+        evidence,
+        data_gaps,
+        risk_level,
+        rank
+      )
+    `,
+    )
+    .eq("id", encounterId)
+    .eq("tenant_id", tenantId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  return parseAssessmentRows(data.assessment_results).sort(
+    (a, b) => (a.rank ?? 0) - (b.rank ?? 0),
+  );
 }
 
 export async function assertPatientInTenantClinic(args: {

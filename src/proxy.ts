@@ -1,5 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  applyPrivateNoStoreHeaders,
+  shouldApplyPrivateNoStore,
+} from "@/lib/http/cache-control";
+
+function jsonResponse(body: object, status: number, pathname: string) {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  if (shouldApplyPrivateNoStore(pathname)) {
+    applyPrivateNoStoreHeaders(headers);
+  }
+  return NextResponse.json(body, { status, headers });
+}
 
 function isPlatformStaffEmail(email: string | undefined) {
   if (!email) return false;
@@ -30,6 +42,7 @@ const PUBLIC_PATHS = [
   "/api/webhooks",
   "/api/cron",
   "/api/auth/signup",
+  "/api/auth/login",
   "/api/auth/session-role",
   "/api/auth/resend-verification",
   "/api/auth/forgot-password",
@@ -82,9 +95,10 @@ export async function proxy(request: NextRequest) {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     if (pathname.startsWith("/api/") && !isPublicPath(pathname)) {
-      return NextResponse.json(
+      return jsonResponse(
         { error: "Service unavailable", code: "auth_not_configured" },
-        { status: 503 },
+        503,
+        pathname,
       );
     }
     if (isAppPath(pathname) && !pathname.startsWith("/app/onboarding")) {
@@ -122,9 +136,10 @@ export async function proxy(request: NextRequest) {
     user = result.data.user;
   } catch {
     if (pathname.startsWith("/api/") && !isPublicPath(pathname)) {
-      return NextResponse.json(
+      return jsonResponse(
         { error: "Service unavailable", code: "auth_unavailable" },
-        { status: 503 },
+        503,
+        pathname,
       );
     }
     return response;
@@ -152,9 +167,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!user && pathname.startsWith("/api/") && !isPublicPath(pathname)) {
-    return NextResponse.json(
+    return jsonResponse(
       { error: "Unauthorized", code: "unauthorized" },
-      { status: 401 },
+      401,
+      pathname,
     );
   }
 

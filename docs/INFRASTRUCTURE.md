@@ -16,7 +16,7 @@ Invites call `sendInviteEmail` after the DB row is created. If keys are missing,
 
 Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. When unset, rate limits are skipped (DB intake limits still apply for public intake).
 
-Buckets: `auth`, `invite`, `ai_generate`, `public_intake`, `api_default`.
+Buckets: `auth`, `auth_sensitive`, `invite`, `ai_generate`, `public_intake`, `api_default`, `api_read`, `write`, `read_heavy`, `billing`, `admin`, `webhook`, `health`, `cron`.
 
 ## Sentry
 

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { SignupSuccessPanel } from "@/components/auth/signup-success-panel";
+import { PasswordField } from "@/components/auth/password-field";
+import { validatePassword } from "@/lib/auth/password";
 import { createSupabaseBrowserClient } from "@/lib/db/supabase-browser";
 import { getErrorMessage, readApiError } from "@/lib/api/client";
 
@@ -25,6 +27,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [signupComplete, setSignupComplete] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [resetSessionReady, setResetSessionReady] = useState(mode !== "reset");
+  const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
     const urlError = searchParams.get("error");
@@ -48,6 +51,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         return;
       }
 
+      setResetEmail(user.email ?? "");
       setResetSessionReady(true);
     }
 
@@ -102,6 +106,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           throw new Error("Passwords do not match.");
         }
 
+        const passwordCheck = validatePassword(password, { email: resetEmail });
+        if (!passwordCheck.valid) {
+          throw new Error(passwordCheck.errors[0] ?? "Password is too weak.");
+        }
+
         const supabase = createSupabaseBrowserClient();
         const { error: updateError } = await supabase.auth.updateUser({
           password,
@@ -131,6 +140,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       }
 
       if (mode === "signup") {
+        const passwordCheck = validatePassword(password, { email });
+        if (!passwordCheck.valid) {
+          throw new Error(passwordCheck.errors[0] ?? "Password is too weak.");
+        }
+
         const response = await fetch("/api/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -271,34 +285,25 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         </label>
       )}
       {mode === "signup" && (
-        <label className="block">
-          <span className="text-sm font-semibold">Password</span>
-          <input
-            type="password"
-            className="mt-1.5 w-full rounded-xl border border-[color:var(--line)] bg-white px-4 py-3 outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent)]/15"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-            minLength={8}
-          />
-          <p className="mt-1.5 text-xs text-[color:var(--muted)]">
-            At least 8 characters.
-          </p>
-        </label>
+        <PasswordField
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          email={email}
+          showStrength
+          hint="At least 8 characters with upper & lower case, a number, and good complexity."
+        />
       )}
       {mode === "reset" && resetSessionReady && (
-        <label className="block">
-          <span className="text-sm font-semibold">New password</span>
-          <input
-            type="password"
-            className="mt-1 w-full rounded-xl border border-[color:var(--line)] px-4 py-3"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-          />
-        </label>
+        <PasswordField
+          label="New password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          email={resetEmail}
+          showStrength
+        />
       )}
       {mode === "reset" && resetSessionReady && (
         <label className="block">

@@ -20,6 +20,7 @@ const createLinkSchema = z.object({
 export const POST = createApiHandler({
   route: "/api/intake/links",
   step: "intake_link_create",
+  rateLimit: "write",
   schema: createLinkSchema,
   handler: async ({ body }) => {
     const { context } = await requirePermission("intake:link:create");

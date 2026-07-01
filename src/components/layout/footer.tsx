@@ -40,6 +40,21 @@ export function GlobalFooter() {
               Sign up
               <ArrowUpRight className="h-4 w-4" />
             </Link>
+            <p className="text-sm text-[color:var(--muted)]">
+              <a
+                href={`tel:${LEGAL.supportPhoneTel}`}
+                className="font-medium text-[color:var(--foreground)] transition hover:text-[color:var(--accent)]"
+              >
+                {LEGAL.supportPhoneDisplay}
+              </a>
+              {" · "}
+              <a
+                href={`mailto:${LEGAL.supportEmail}`}
+                className="font-medium text-[color:var(--foreground)] transition hover:text-[color:var(--accent)]"
+              >
+                {LEGAL.supportEmail}
+              </a>
+            </p>
           </div>
 
           <div>

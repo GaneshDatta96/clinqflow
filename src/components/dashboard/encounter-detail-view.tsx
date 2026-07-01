@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { LoaderCircle, RefreshCw } from "lucide-react";
+import { getErrorMessage, readApiError } from "@/lib/api/client";
 import { type EncounterDashboardCase } from "@/lib/dashboard/encounter-view";
 import { SoapApproveButton } from "@/components/dashboard/soap-approve-button";
 
@@ -20,11 +21,10 @@ export function EncounterDetailView({ encounter }: { encounter: EncounterDashboa
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Regeneration failed");
+        if (!res.ok) throw await readApiError(res);
         router.refresh();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Regeneration failed");
+        setError(getErrorMessage(e, "Regeneration failed"));
       }
     });
   }

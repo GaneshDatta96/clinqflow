@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { SkeletonAuthForm } from "@/components/ui/skeleton";
+import { GridBackground } from "@/components/ui/aceternity";
 import { buildPageMetadata, NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -28,6 +30,7 @@ const highlights = [
 
 export default function SignupPage() {
   return (
+    <GridBackground containerClassName="flex-1">
     <div className="relative flex flex-1 flex-col overflow-hidden">
       <div
         aria-hidden
@@ -37,10 +40,10 @@ export default function SignupPage() {
       <div className="relative mx-auto grid w-full max-w-6xl flex-1 items-center gap-10 px-6 py-12 lg:grid-cols-[1fr_28rem] lg:gap-16 lg:py-20">
         <section className="hidden lg:block">
           <p className="section-label">CliniqFlow for clinics</p>
-          <h1 className="mt-3 max-w-xl text-4xl font-semibold tracking-tight text-[color:var(--foreground)]">
+          <h1 className="display-font mt-3 max-w-xl text-4xl tracking-tight text-[color:var(--foreground)]">
             A calmer way to prepare for every appointment.
           </h1>
-          <p className="mt-4 max-w-lg leading-7 text-[color:var(--muted)]">
+          <p className="mt-4 max-w-lg font-serif leading-7 text-[color:var(--muted)]">
             Create your account in under a minute, verify your email, and finish
             onboarding to start sending intake links to patients.
           </p>
@@ -66,29 +69,25 @@ export default function SignupPage() {
           <div className="glass-panel rounded-[2rem] p-6 sm:p-8">
             <div className="mb-8 space-y-2 lg:hidden">
               <p className="section-label">Get started</p>
-              <h1 className="text-3xl font-semibold tracking-tight">
+              <h1 className="display-font text-3xl tracking-tight">
                 Create your account
               </h1>
-              <p className="text-sm leading-6 text-[color:var(--muted)]">
+              <p className="font-serif text-sm leading-6 text-[color:var(--muted)]">
                 Create your clinic workspace, then subscribe to a plan.
               </p>
             </div>
 
             <div className="mb-8 hidden space-y-2 lg:block">
               <p className="section-label">Get started</p>
-              <h1 className="text-3xl font-semibold tracking-tight">
+              <h1 className="display-font text-3xl tracking-tight">
                 Create your account
               </h1>
-              <p className="text-sm leading-6 text-[color:var(--muted)]">
+              <p className="font-serif text-sm leading-6 text-[color:var(--muted)]">
                 We will email you a quick verification link to unlock onboarding.
               </p>
             </div>
 
-            <Suspense
-              fallback={
-                <p className="text-sm text-[color:var(--muted)]">Loading…</p>
-              }
-            >
+            <Suspense fallback={<SkeletonAuthForm />}>
               <AuthForm mode="signup" />
             </Suspense>
           </div>
@@ -134,5 +133,6 @@ export default function SignupPage() {
         </section>
       </div>
     </div>
+    </GridBackground>
   );
 }

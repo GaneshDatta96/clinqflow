@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
+import { GridBackground, LampHeader, TracingBeam } from "@/components/ui/aceternity";
 import { BRAND } from "@/lib/brand/site";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 
@@ -34,49 +35,52 @@ export function MarketingPageShell({
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-16 pt-28 xl:px-10">
-      <JsonLd data={breadcrumbSchema(breadcrumbs)} />
+    <GridBackground containerClassName="flex-1">
+      <div className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-16 pt-28 xl:px-10">
+        <JsonLd data={breadcrumbSchema(breadcrumbs)} />
 
-      <nav aria-label="Breadcrumb" className="text-sm text-[color:var(--muted)]">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link href="/" className="font-medium hover:text-[color:var(--foreground)]">
-              Home
+        <nav aria-label="Breadcrumb" className="text-sm text-[color:var(--muted)]">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li>
+              <Link href="/" className="font-medium hover:text-[color:var(--foreground)]">
+                Home
+              </Link>
+            </li>
+            <li aria-hidden>/</li>
+            <li className="font-medium text-[color:var(--foreground)]">{breadcrumbLabel}</li>
+          </ol>
+        </nav>
+
+        <section className="glass-panel rounded-[2rem] p-6 sm:p-10">
+          <LampHeader className="items-start">
+            <p className="section-label">{label}</p>
+            <h1 className="display-font mt-2 text-3xl tracking-tight sm:text-4xl">{title}</h1>
+            <p className="mt-4 max-w-3xl font-serif text-base leading-7 text-[color:var(--muted-strong)]">
+              {description}
+            </p>
+          </LampHeader>
+
+          <div className="mt-8">
+            <Link href={BRAND.signupHref} className="btn-primary inline-flex items-center gap-2">
+              Sign up
+              <ArrowUpRight className="h-4 w-4" />
             </Link>
-          </li>
-          <li aria-hidden>/</li>
-          <li className="font-medium text-[color:var(--foreground)]">{breadcrumbLabel}</li>
-        </ol>
-      </nav>
-
-      <section className="glass-panel rounded-[2rem] p-6 sm:p-10">
-        <p className="section-label">{label}</p>
-        <h1 className="display-font mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-          {title}
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-[color:var(--muted-strong)]">
-          {description}
-        </p>
-
-        <div className="mt-8">
-          <Link href={BRAND.signupHref} className="btn-primary inline-flex items-center gap-2">
-            Sign up
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
-
-      {sections.map((section) => (
-        <section
-          key={section.title}
-          className="rounded-[1.75rem] border border-[color:var(--line)] bg-white/70 p-6 sm:p-8"
-        >
-          <h2 className="text-2xl font-semibold tracking-tight">{section.title}</h2>
-          <div className="prose-clinic mt-4 space-y-4 text-sm leading-7 text-[color:var(--muted-strong)]">
-            {section.content}
           </div>
         </section>
-      ))}
+
+        <TracingBeam>
+          {sections.map((section) => (
+            <section
+              key={section.title}
+              className="mb-8 rounded-[1.75rem] border border-[color:var(--line)] bg-white/70 p-6 sm:p-8"
+            >
+              <h2 className="display-font text-2xl tracking-tight">{section.title}</h2>
+              <div className="prose-clinic mt-4 space-y-4 font-serif text-sm leading-7 text-[color:var(--muted-strong)]">
+                {section.content}
+              </div>
+            </section>
+          ))}
+        </TracingBeam>
 
       {relatedLinks.length > 0 && (
         <section className="rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-muted)]/50 px-6 py-5">
@@ -118,6 +122,7 @@ export function MarketingPageShell({
           Medical disclaimer
         </Link>
       </p>
-    </div>
+      </div>
+    </GridBackground>
   );
 }

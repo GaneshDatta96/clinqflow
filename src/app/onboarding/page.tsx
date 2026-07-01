@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
+import { MultiStepLoader } from "@/components/ui/aceternity";
 import { getNicheOptions } from "@/lib/clinics/store";
 import { getErrorMessage, readApiError } from "@/lib/api/client";
 
@@ -13,6 +14,26 @@ export default function OnboardingPage() {
   const [niche, setNiche] = useState(niches[0]?.niche ?? "general_practice");
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<OnboardingPhase>("form");
+  const [loaderStep, setLoaderStep] = useState(0);
+
+  const onboardingSteps = [
+    "Creating your clinic workspace",
+    "Applying specialty configuration",
+    "Redirecting to billing",
+  ];
+
+  useEffect(() => {
+    if (phase !== "redirecting") {
+      setLoaderStep(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setLoaderStep((step) => Math.min(step + 1, onboardingSteps.length - 1));
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [phase, onboardingSteps.length]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -48,6 +69,12 @@ export default function OnboardingPage() {
   const pending = phase === "redirecting";
 
   return (
+    <>
+      <MultiStepLoader
+        loading={pending}
+        steps={onboardingSteps}
+        currentStep={loaderStep}
+      />
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 py-16">
       <h1 className="text-3xl font-semibold tracking-tight">Set up your clinic</h1>
       <p className="mt-2 text-[color:var(--muted)]">
@@ -111,5 +138,6 @@ export default function OnboardingPage() {
         </button>
       </form>
     </div>
+    </>
   );
 }

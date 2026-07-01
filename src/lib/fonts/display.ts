@@ -1,8 +1,2 @@
-import { Source_Serif_4 } from "next/font/google";
-
-export const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
+/** @deprecated Import from `@/lib/fonts` instead. */
+export { funnelDisplay as sourceSerif, fontVariables } from "@/lib/fonts";

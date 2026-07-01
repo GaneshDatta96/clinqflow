@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Copy, CheckCircle, LoaderCircle } from "lucide-react";
+import { Copy, CheckCircle, Users } from "lucide-react";
 import { fetchApi, getErrorMessage, readApiError } from "@/lib/api/client";
+import { SkeletonFormCard, SkeletonPageHeader } from "@/components/ui/skeleton";
+import {
+  AnimatedTooltipHint,
+  PlaceholdersVanishInput,
+  StatefulButton,
+} from "@/components/ui/aceternity";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const patientSchema = z.object({
   first_name: z.string().min(1),
@@ -28,13 +35,15 @@ export default function AppPatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [clinicsLoading, setClinicsLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
 
   const form = useForm<z.infer<typeof patientSchema>>({
     resolver: zodResolver(patientSchema),
   });
 
   useEffect(() => {
+    setClinicsLoading(true);
     fetchApi<{ clinics: Clinic[] }>("/api/clinics")
       .then((data) => {
         const list = data.clinics ?? [];
@@ -51,49 +60,61 @@ export default function AppPatientsPage() {
           form.setValue("clinic_id", list[0].id!);
         }
       })
-      .catch((err) => setError(getErrorMessage(err, "Unable to load clinics.")));
+      .catch((err) => setError(getErrorMessage(err, "Unable to load clinics.")))
+      .finally(() => setClinicsLoading(false));
   }, [form]);
 
-  const onSubmit = (values: z.infer<typeof patientSchema>) => {
-    startTransition(async () => {
-      setError(null);
-      try {
-        const res = await fetch("/api/patients/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
-        });
-        if (!res.ok) throw await readApiError(res);
-        const patient = (await res.json()) as Patient;
-        setPatients((p) => [patient, ...p]);
+  async function onSubmit(values: z.infer<typeof patientSchema>) {
+    setIsPending(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/patients/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw await readApiError(res);
+      const patient = (await res.json()) as Patient;
+      setPatients((p) => [patient, ...p]);
 
-        const linkRes = await fetch("/api/intake/links", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patient_id: patient.id,
-            clinic_id: values.clinic_id,
-          }),
-        });
-        if (linkRes.ok) {
-          const linkData = await linkRes.json();
-          await navigator.clipboard.writeText(linkData.url);
-          setCopiedId(patient.id);
-        }
-        form.reset({ ...values, first_name: "", last_name: "", email: "" });
-      } catch (e) {
-        setError(getErrorMessage(e, "Error creating patient"));
+      const linkRes = await fetch("/api/intake/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: patient.id,
+          clinic_id: values.clinic_id,
+        }),
+      });
+      if (linkRes.ok) {
+        const linkData = await linkRes.json();
+        await navigator.clipboard.writeText(linkData.url);
+        setCopiedId(patient.id);
       }
-    });
-  };
+      form.reset({ ...values, first_name: "", last_name: "", email: "" });
+    } catch (e) {
+      setError(getErrorMessage(e, "Error creating patient"));
+      throw e;
+    } finally {
+      setIsPending(false);
+    }
+  }
 
   const selectedClinic = clinics.find((c) => c.id === form.watch("clinic_id"));
+
+  if (clinicsLoading) {
+    return (
+      <div className="space-y-8">
+        <SkeletonPageHeader />
+        <SkeletonFormCard fields={4} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-semibold">Patients</h1>
-        <p className="mt-2 text-[color:var(--muted)]">
+        <h1 className="display-font text-3xl tracking-tight">Patients</h1>
+        <p className="mt-2 font-serif text-[color:var(--muted)]">
           Create patients and generate secure intake links.
         </p>
       </header>
@@ -129,23 +150,46 @@ export default function AppPatientsPage() {
             {...form.register("last_name")}
           />
         </div>
-        <input
-          placeholder="Email"
+        <PlaceholdersVanishInput
           type="email"
-          className="w-full rounded-xl border px-4 py-3"
-          {...form.register("email")}
+          name="email"
+          required
+          placeholders={[
+            "patient@email.com",
+            "maria.garcia@example.com",
+            "intake-ready@clinicmail.com",
+          ]}
+          value={form.watch("email") ?? ""}
+          onChange={(value) =>
+            form.setValue("email", value, { shouldValidate: true, shouldDirty: true })
+          }
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
+        <StatefulButton
+          type="button"
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+          loadingLabel="Creating patient…"
+          successLabel="Link copied"
+          className="w-full sm:w-auto"
+          onClick={async () => {
+            const valid = await form.trigger();
+            if (!valid) {
+              throw new Error("Please complete all fields.");
+            }
+            await onSubmit(form.getValues());
+          }}
         >
-          {isPending && <LoaderCircle className="h-4 w-4 animate-spin" />}
           Create patient & copy intake link
-        </button>
+        </StatefulButton>
       </form>
 
+      {patients.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No patients yet"
+          description="Create your first patient to generate a secure intake link."
+        />
+      ) : (
       <ul className="space-y-3">
         {patients.map((p) => (
           <li
@@ -163,9 +207,15 @@ export default function AppPatientsPage() {
           </li>
         ))}
       </ul>
+      )}
       {selectedClinic && (
-        <p className="text-sm text-[color:var(--muted)]">
+        <p className="caption flex items-center gap-1.5 text-[color:var(--muted)]">
           Intake URLs use path /c/{selectedClinic.slug} with a single secure link per patient.
+          <AnimatedTooltipHint label="Each patient gets one signed link with their ID and access token embedded.">
+            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-[color:var(--line)] text-[10px] font-bold text-[color:var(--muted)]">
+              ?
+            </span>
+          </AnimatedTooltipHint>
         </p>
       )}
     </div>

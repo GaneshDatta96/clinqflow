@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LoaderCircle } from "lucide-react";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { getErrorMessage, readApiError } from "@/lib/api/client";
 
 function AcceptInviteContent() {
@@ -74,13 +75,16 @@ function AcceptInviteContent() {
 export default function AcceptInvitePage() {
   return (
     <div className="mx-auto flex max-w-md flex-1 flex-col justify-center px-6 py-20">
-      <h1 className="text-2xl font-semibold">Accept invitation</h1>
+      <h1 className="display-font text-2xl tracking-tight">Accept invitation</h1>
       <Suspense
         fallback={
-          <p className="mt-4 inline-flex items-center gap-2 text-[color:var(--muted)]">
-            <LoaderCircle className="h-4 w-4 animate-spin" />
-            Loading…
-          </p>
+          <div className="mt-6 space-y-3" aria-busy aria-label="Loading invite">
+            <SkeletonText lines={2} />
+            <div className="inline-flex items-center gap-2 text-sm text-[color:var(--muted)]">
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+              Loading invite…
+            </div>
+          </div>
         }
       >
         <AcceptInviteContent />

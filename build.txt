@@ -572,6 +572,14 @@ Other
 [2026-06-23] - fix: Fail-open rate limiting when Upstash is missing or errors
 - assertRateLimit no longer returns 503 in production when Redis is unconfigured or unreachable; logs rate_limit.skipped / rate_limit.unavailable and allows the request (fixes signup 503 on first attempt).
 
+[2026-06-23] - feat: Typography system and Aceternity-style UI (3 tiers)
+- Fonts: Google Sans (UI), EB Garamond (prose), Funnel Display (headings) via next/font in src/lib/fonts/index.ts.
+- Added src/components/ui/aceternity/* (sticky scroll, bento, lamp, loaders, tooltips, timeline, modals, tabs, focus cards, compare, glare card, tracing beam, testimonials, vanish input).
+- Tier 1–3 wired: homepage marketing, auth/onboarding loaders, dashboard focus cards + empty states, SOAP approve modal, encounter tabs, patients vanish input, team invites, marketing shell grid + tracing beam.
+- Skeleton loaders and AnimatedTooltipHint on auth, patients, and settings surfaces.
+- Replaced custom petal SVG with Lucide Flower2.
+- Verified with npm run typecheck.
+
 [2026-06-23] - fix: Onboarding → billing flow after email verification
 - Set active-tenant cookie on onboarding API response via NextResponse.cookies (reliable Set-Cookie).
 - Full-page redirect to /app/billing?onboarded=1 with clear loading state; prevent double-submit confusion.

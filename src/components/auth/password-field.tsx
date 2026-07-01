@@ -1,6 +1,7 @@
 "use client";
 
 import { assessPasswordStrength } from "@/lib/auth/password";
+import { AnimatedTooltipHint } from "@/components/ui/aceternity";
 
 const STRENGTH_COLORS: Record<ReturnType<typeof assessPasswordStrength>["label"], string> = {
   weak: "bg-red-500",
@@ -19,6 +20,7 @@ export function PasswordField(props: {
   email?: string;
   showStrength?: boolean;
   hint?: string;
+  tooltip?: string;
 }) {
   const strength =
     props.showStrength && props.value.length > 0
@@ -27,7 +29,16 @@ export function PasswordField(props: {
 
   return (
     <label className="block">
-      <span className="text-sm font-semibold">{props.label}</span>
+      <span className="flex items-center gap-1.5 text-sm font-semibold">
+        {props.label}
+        {props.tooltip ? (
+          <AnimatedTooltipHint label={props.tooltip}>
+            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-[color:var(--line)] text-[10px] font-bold text-[color:var(--muted)]">
+              ?
+            </span>
+          </AnimatedTooltipHint>
+        ) : null}
+      </span>
       <input
         id={props.id}
         type="password"

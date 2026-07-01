@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { SignupSuccessPanel } from "@/components/auth/signup-success-panel";
 import { PasswordField } from "@/components/auth/password-field";
+import { MultiStepLoader } from "@/components/ui/aceternity";
 import { validatePassword } from "@/lib/auth/password";
 import { createSupabaseBrowserClient } from "@/lib/db/supabase-browser";
 import { getErrorMessage, readApiError } from "@/lib/api/client";
@@ -28,6 +29,26 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [resetSessionReady, setResetSessionReady] = useState(mode !== "reset");
   const [resetEmail, setResetEmail] = useState("");
+  const [signupLoaderStep, setSignupLoaderStep] = useState(0);
+
+  const signupLoaderSteps = [
+    "Creating your clinic account",
+    "Securing your workspace",
+    "Sending verification email",
+  ];
+
+  useEffect(() => {
+    if (!pending || mode !== "signup") {
+      setSignupLoaderStep(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setSignupLoaderStep((step) => Math.min(step + 1, signupLoaderSteps.length - 1));
+    }, 900);
+
+    return () => window.clearInterval(interval);
+  }, [pending, mode, signupLoaderSteps.length]);
 
   useEffect(() => {
     const urlError = searchParams.get("error");
@@ -237,6 +258,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
+    <>
+      <MultiStepLoader
+        loading={pending && mode === "signup"}
+        steps={signupLoaderSteps}
+        currentStep={signupLoaderStep}
+      />
     <form onSubmit={handleSubmit} className="mx-auto w-full max-w-md space-y-4">
       {mode === "signup" && (
         <label className="block">
@@ -292,6 +319,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           autoComplete="new-password"
           email={email}
           showStrength
+          tooltip="At least 8 characters with upper & lower case, a number, and good complexity."
           hint="At least 8 characters with upper & lower case, a number, and good complexity."
         />
       )}
@@ -365,5 +393,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       </button>
       )}
     </form>
+    </>
   );
 }

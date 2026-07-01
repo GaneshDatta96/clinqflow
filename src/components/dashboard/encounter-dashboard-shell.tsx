@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Users } from "lucide-react";
 import { ChevronRight, FileText, HeartPulse, Stethoscope, User } from "lucide-react";
+import { FocusCards } from "@/components/ui/aceternity";
+import { EmptyState } from "@/components/ui/empty-state";
 import { type EncounterDashboardCase } from "@/lib/dashboard/encounter-view";
 import { SoapApproveButton } from "@/components/dashboard/soap-approve-button";
 
@@ -21,18 +23,19 @@ export function EncounterDashboardShell({
 
   if (!active) {
     return (
-      <section className="rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-8 text-center">
-        <h2 className="text-2xl font-semibold">No encounters yet</h2>
-        <p className="mt-2 text-[color:var(--muted)]">
-          Create a patient and send an intake link to get started.
-        </p>
-        <Link
-          href="/app/patients"
-          className="mt-6 inline-flex rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-white"
-        >
-          Manage patients
-        </Link>
-      </section>
+      <EmptyState
+        icon={Users}
+        title="No encounters yet"
+        description="Create a patient and send an intake link to get started."
+        action={
+          <Link
+            href="/app/patients"
+            className="inline-flex rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+          >
+            Manage patients
+          </Link>
+        }
+      />
     );
   }
 
@@ -46,31 +49,20 @@ export function EncounterDashboardShell({
     >
       <aside className="glass-panel rounded-[1.75rem] p-4 sm:p-5">
         <p className="section-label">Encounter queue</p>
-        <h2 className={`mt-2 font-semibold ${preview ? "text-xl" : "text-2xl"}`}>Patients</h2>
-        <div className="mt-5 space-y-3">
-          {cases.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setSelectedId(item.id)}
-              disabled={preview}
-              className={`w-full rounded-[1.35rem] border px-4 py-3.5 text-left transition ${
-                selectedId === item.id
-                  ? "border-transparent bg-[color:var(--foreground)] text-white shadow-[0_8px_24px_rgba(11,16,32,0.12)]"
-                  : "border-[color:var(--line)] bg-white/80"
-              }`}
-            >
-              <p className={`font-semibold ${preview ? "text-base" : "text-lg"}`}>
-                {item.patient.first_name} {item.patient.last_name}
-              </p>
-              <p className="mt-1 text-sm opacity-80 line-clamp-2">
-                {item.chief_complaint}
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-wider opacity-70">
-                {preview ? formatEncounterStatus(item.status) : item.status}
-              </p>
-            </button>
-          ))}
+        <h2 className={`display-font mt-2 tracking-tight ${preview ? "text-xl" : "text-2xl"}`}>
+          Patients
+        </h2>
+        <div className="mt-5">
+          <FocusCards
+            activeId={selectedId}
+            onSelect={preview ? undefined : setSelectedId}
+            items={cases.map((item) => ({
+              id: item.id,
+              title: `${item.patient.first_name} ${item.patient.last_name}`,
+              subtitle: item.chief_complaint,
+              body: preview ? formatEncounterStatus(item.status) : item.status,
+            }))}
+          />
         </div>
       </aside>
 

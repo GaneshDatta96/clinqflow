@@ -26,9 +26,9 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-accent: var(--accent);
-  --font-display: var(--font-source-serif);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-ibm-plex-mono);
+  --font-sans: var(--font-google-sans);
+  --font-serif: var(--font-eb-garamond);
+  --font-display: var(--font-funnel-display);
 }
 
 * {
@@ -43,11 +43,74 @@ body {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-google-sans), system-ui, sans-serif;
   font-size: 15px;
+  font-weight: 400;
   line-height: 1.65;
   letter-spacing: -0.011em;
   text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-funnel-display), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+h2 {
+  font-weight: 600;
+}
+
+h3,
+h4 {
+  font-weight: 600;
+}
+
+.display-font {
+  font-family: var(--font-funnel-display), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.display-font-light {
+  font-family: var(--font-funnel-display), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+}
+
+.font-serif,
+.prose-serif {
+  font-family: var(--font-eb-garamond), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.prose-serif em,
+.font-serif em {
+  font-style: italic;
+}
+
+.section-label {
+  color: var(--muted);
+  font-family: var(--font-google-sans), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.caption {
+  font-family: var(--font-google-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--muted-strong);
+}
+
+.text-emphasis {
+  font-weight: 600;
 }
 
 a {
@@ -79,20 +142,6 @@ nextjs-portal {
 
 ::selection {
   background: rgba(124, 58, 237, 0.12);
-}
-
-.display-font {
-  font-family: var(--font-source-serif), Georgia, "Times New Roman", serif;
-  letter-spacing: -0.03em;
-  font-weight: 500;
-}
-
-.section-label {
-  color: var(--muted);
-  font-family: var(--font-ibm-plex-mono), monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 .surface-panel {
@@ -166,10 +215,17 @@ nextjs-portal {
   border: 1px solid var(--line);
 }
 
+.legal-prose {
+  font-family: var(--font-eb-garamond), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  line-height: 1.75;
+}
+
 .legal-prose h2 {
   margin-top: 2rem;
+  font-family: var(--font-funnel-display), system-ui, sans-serif;
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--foreground);
 }
@@ -225,8 +281,9 @@ nextjs-portal {
 }
 
 .legal-prose code {
-  font-family: var(--font-ibm-plex-mono), monospace;
+  font-family: var(--font-google-sans), system-ui, sans-serif;
   font-size: 0.8125rem;
+  font-weight: 500;
   background: var(--surface-muted);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;

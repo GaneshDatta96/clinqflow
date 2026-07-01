@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { SkeletonAuthForm } from "@/components/ui/skeleton";
+import { GridBackground } from "@/components/ui/aceternity";
 import { buildPageMetadata, NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -13,13 +15,14 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function LoginPage() {
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
-      <p className="mt-2 text-[color:var(--muted)]">
+    <GridBackground containerClassName="flex-1">
+    <div className="relative mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-16">
+      <h1 className="display-font text-3xl tracking-tight">Sign in</h1>
+      <p className="mt-2 font-serif text-[color:var(--muted)]">
         Access your clinic workspace, encounters, and intake queue.
       </p>
       <div className="mt-8">
-        <Suspense fallback={<p className="text-sm text-[color:var(--muted)]">Loading…</p>}>
+        <Suspense fallback={<SkeletonAuthForm />}>
           <AuthForm mode="login" />
         </Suspense>
       </div>
@@ -35,5 +38,6 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+    </GridBackground>
   );
 }

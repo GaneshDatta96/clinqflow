@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { LoaderCircle, RefreshCw } from "lucide-react";
+import { AnimatedTabs } from "@/components/ui/aceternity";
 import { getErrorMessage, readApiError } from "@/lib/api/client";
 import { type EncounterDashboardCase } from "@/lib/dashboard/encounter-view";
 import { SoapApproveButton } from "@/components/dashboard/soap-approve-button";
@@ -47,17 +48,17 @@ export function EncounterDetailView({ encounter }: { encounter: EncounterDashboa
               AI disclaimer
             </a>
           </p>
-          {(["subjective", "objective", "assessment", "plan"] as const).map((key) => (
-            <div
-              key={key}
-              className="rounded-xl border border-[color:var(--line)] bg-white/80 p-4"
-            >
-              <p className="text-sm font-semibold uppercase tracking-wide">{key}</p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[color:var(--muted-strong)]">
-                {encounter.soap![key]}
-              </p>
-            </div>
-          ))}
+          <AnimatedTabs
+            tabs={(["subjective", "objective", "assessment", "plan"] as const).map((key) => ({
+              id: key,
+              label: key.charAt(0).toUpperCase() + key.slice(1),
+              content: (
+                <p className="whitespace-pre-wrap font-serif text-sm leading-7 text-[color:var(--muted-strong)]">
+                  {encounter.soap![key]}
+                </p>
+              ),
+            }))}
+          />
           <div className="flex flex-wrap gap-3">
             <SoapApproveButton
               encounterId={encounter.id}

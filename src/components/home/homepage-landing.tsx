@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ChevronDown, ShieldCheck } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
-import { nicheConfigs } from "@/lib/clinics/niche-configs";
 import { BRAND } from "@/lib/brand/site";
 import { HOME_FAQS } from "@/lib/seo/home-faqs";
 import { faqPageSchema, softwareApplicationSchema } from "@/lib/seo/schema";
@@ -14,6 +13,17 @@ import {
 } from "@/components/home/homepage-product-previews";
 import { GradientRule, PetalAccent } from "@/components/home/petal-accent";
 import { PricingPlanActions } from "@/components/home/pricing-plan-actions";
+import {
+  AnimatedTestimonials,
+  BentoGrid,
+  Compare,
+  GlareCard,
+  HeroHighlight,
+  LampHeader,
+  Spotlight,
+  StickyScrollReveal,
+  Timeline,
+} from "@/components/ui/aceternity";
 
 const heroPoints = [
   "Patients complete structured intake before they arrive",
@@ -62,6 +72,44 @@ const calmOutcomes = [
     title: "Operational calmness",
     description:
       "The system is designed to reduce cognitive overload, not add another glowing dashboard for staff to babysit.",
+  },
+];
+
+const patientJourney = [
+  {
+    title: "Clinic sends a secure intake link",
+    description:
+      "Staff create the patient record and share one signed URL with the patient ID and access token embedded.",
+  },
+  {
+    title: "Patient completes structured intake at home",
+    description:
+      "Specialty questionnaires and consent capture happen in a calmer pre-visit step—not in the waiting room rush.",
+  },
+  {
+    title: "Team reviews status in one queue",
+    description:
+      "Front desk and practitioners see who completed intake, what's ready for review, and what still needs attention.",
+  },
+  {
+    title: "Practitioner approves draft documentation",
+    description:
+      "SOAP drafts stay editable until a licensed clinician reviews and approves. Nothing auto-publishes to a chart.",
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "Our front desk stopped chasing intake packets. Patients complete forms before they arrive and we actually read them.",
+    name: "Outpatient clinic team",
+    role: "Functional medicine practice",
+  },
+  {
+    quote:
+      "The workflow feels calm—queue, review, approve. It is not another dashboard we have to babysit.",
+    name: "Practice manager",
+    role: "Multi-provider wellness clinic",
   },
 ];
 
@@ -212,15 +260,12 @@ function ShowcaseCard({
 }
 
 export function HomepageLanding() {
-  const niches = Object.values(nicheConfigs)
-    .map((config) => config.label)
-    .slice(0, 6);
-
   return (
     <div className="overflow-x-hidden pt-[4.5rem]">
       <JsonLd data={[softwareApplicationSchema(), faqPageSchema(HOME_FAQS)]} />
-      <section className="mx-auto max-w-[1280px] px-5 pb-16 pt-10 sm:px-6 lg:px-10 lg:pb-20 lg:pt-16">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+      <section className="relative mx-auto max-w-[1280px] overflow-hidden px-5 pb-16 pt-10 sm:px-6 lg:px-10 lg:pb-20 lg:pt-16">
+        <Spotlight className="-top-40 left-0 md:-top-20 md:left-60" fill="white" />
+        <div className="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
             <div className="mb-5 flex items-center gap-3">
               <PetalAccent className="h-8 w-8 text-[color:var(--primary)]" />
@@ -237,11 +282,11 @@ export function HomepageLanding() {
               </Link>
             </div>
 
-            <h1 className="max-w-[20ch] text-balance text-[clamp(2.25rem,4.8vw,3.65rem)] font-semibold leading-[1.02] tracking-[-0.045em] text-[color:var(--foreground)] sm:max-w-none">
+            <HeroHighlight highlight="documentation workflow">
               Patient intake and documentation workflow software for clinics
-            </h1>
+            </HeroHighlight>
 
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-[color:var(--muted-strong)] sm:text-[1.05rem]">
+            <p className="mt-5 max-w-lg font-serif text-base leading-relaxed text-[color:var(--muted-strong)] sm:text-[1.05rem]">
               Reduce intake chaos before the appointment begins. CliniqFlow collects structured
               patient intake, prepares draft documentation, and keeps everything in one practitioner
               dashboard.
@@ -281,63 +326,66 @@ export function HomepageLanding() {
       </div>
 
       <PageSection id="workflow">
-        <div className="grid gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:gap-14">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <SectionIntro
-              label="Workflow"
-              title="Healthcare intake workflow for calmer pre-visit preparation"
-              description="Patient communication, intake structure, practitioner review, and documentation — organized in one pre-visit workflow."
-            />
+        <LampHeader className="mb-10 items-start">
+          <SectionIntro
+            label="Workflow"
+            title="Healthcare intake workflow for calmer pre-visit preparation"
+            description="Patient communication, intake structure, practitioner review, and documentation — organized in one pre-visit workflow."
+          />
+        </LampHeader>
 
-            <p className="mt-4 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-              Learn more about{" "}
-              <Link href="/how-patient-intake-works" className="font-semibold text-[color:var(--accent)]">
-                how patient intake works
-              </Link>
-              ,{" "}
-              <Link href="/clinic-workflows" className="font-semibold text-[color:var(--accent)]">
-                clinic documentation workflows
-              </Link>
-              , and{" "}
-              <Link href="/security" className="font-semibold text-[color:var(--accent)]">
-                data safeguards
-              </Link>
-              .
-            </p>
+        <StickyScrollReveal
+          items={workflowMoments.map((item) => ({
+            step: item.step,
+            title: item.title,
+            description: item.description,
+          }))}
+        />
 
-            <div className="mt-6 rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-muted)] p-5">
-              <p className="text-sm font-semibold text-[color:var(--foreground)]">
-                Built for specialty clinics
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {niches.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-[color:var(--line)] bg-[color:var(--surface-raised)] px-3 py-1 text-xs font-medium text-[color:var(--charcoal)]"
-                  >
-                    {label}
-                  </span>
-                ))}
+        <p className="mt-8 text-sm leading-relaxed text-[color:var(--muted-strong)]">
+          Learn more about{" "}
+          <Link href="/how-patient-intake-works" className="font-semibold text-[color:var(--accent)]">
+            how patient intake works
+          </Link>
+          ,{" "}
+          <Link href="/clinic-workflows" className="font-semibold text-[color:var(--accent)]">
+            clinic documentation workflows
+          </Link>
+          , and{" "}
+          <Link href="/security" className="font-semibold text-[color:var(--accent)]">
+            data safeguards
+          </Link>
+          .
+        </p>
+      </PageSection>
+
+      <PageSection id="compare" muted>
+        <SectionIntro
+          label="Compare"
+          title="Paper intake vs structured digital intake"
+          description="Drag to compare the old front-desk scramble with a calmer pre-visit workflow."
+          centered
+          className="max-w-3xl"
+        />
+        <div className="mt-10">
+          <Compare
+            beforeLabel="Paper & inbox chaos"
+            afterLabel="CliniqFlow"
+            before={
+              <div className="space-y-2 font-serif text-sm text-[color:var(--muted-strong)]">
+                <p>Clipboards in the waiting room</p>
+                <p>Staff re-typing patient history</p>
+                <p>Practitioner starts cold every visit</p>
               </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4">
-            {workflowMoments.map((item) => (
-              <article
-                key={item.step}
-                className="rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-5 sm:p-6"
-              >
-                <p className="section-label">{item.step}</p>
-                <h3 className="mt-2 text-[1.15rem] font-semibold tracking-[-0.03em] text-[color:var(--foreground)] sm:text-[1.25rem]">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-          </div>
+            }
+            after={
+              <div className="space-y-2 font-serif text-sm text-[color:var(--foreground)]">
+                <p>Signed link before the appointment</p>
+                <p>Structured specialty questionnaires</p>
+                <p>Review-ready draft documentation</p>
+              </div>
+            }
+          />
         </div>
       </PageSection>
 
@@ -360,54 +408,73 @@ export function HomepageLanding() {
           .
         </p>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:gap-5">
-          <ShowcaseCard
-            label="Practitioner dashboard"
-            title="One queue for patients and encounters"
-            description="Status, SOAP review, and intake themes in a single operational view."
-            className="lg:col-span-7"
-          >
-            <DashboardProductPreview />
-          </ShowcaseCard>
+        <div className="mt-10">
+          <BentoGrid
+            items={[
+              {
+                label: "Practitioner dashboard",
+                title: "One queue for patients and encounters",
+                description:
+                  "Status, SOAP review, and intake themes in a single operational view.",
+                className: "lg:col-span-7",
+                children: <DashboardProductPreview />,
+              },
+              {
+                label: "Patient intake",
+                title: "Structured intake from a secure link",
+                description:
+                  "Specialty questionnaires and consent capture before the visit.",
+                className: "lg:col-span-5",
+                children: <IntakeProductPreview />,
+              },
+              {
+                label: "Clinical control",
+                title: "Practitioner review, not autopilot",
+                description:
+                  "Draft notes stay editable until a licensed clinician approves them.",
+                dark: true,
+                className: "lg:col-span-4",
+                children: (
+                  <div className="space-y-2.5">
+                    {[
+                      "SOAP notes start in draft status",
+                      "Evidence and data gaps stay visible",
+                      "Approval remains with the practitioner",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-start gap-2.5 text-sm leading-6 text-white/80"
+                      >
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-white/60" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                label: "Encounter review",
+                title: "SOAP sections in patient context",
+                description:
+                  "Subjective, objective, assessment, and plan — where the intake first became useful.",
+                className: "lg:col-span-8",
+                children: <EncounterProductPreview />,
+              },
+            ]}
+          />
+        </div>
+      </PageSection>
 
-          <ShowcaseCard
-            label="Patient intake"
-            title="Structured intake from a secure link"
-            description="Specialty questionnaires and consent capture before the visit."
-            className="lg:col-span-5"
-          >
-            <IntakeProductPreview />
-          </ShowcaseCard>
-
-          <ShowcaseCard
-            label="Clinical control"
-            title="Practitioner review, not autopilot"
-            description="Draft notes stay editable until a licensed clinician approves them."
-            dark
-            className="lg:col-span-4"
-          >
-            <div className="space-y-2.5">
-              {[
-                "SOAP notes start in draft status",
-                "Evidence and data gaps stay visible",
-                "Approval remains with the practitioner",
-              ].map((item) => (
-                <div key={item} className="flex items-start gap-2.5 text-sm leading-6 text-white/80">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-white/60" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </ShowcaseCard>
-
-          <ShowcaseCard
-            label="Encounter review"
-            title="SOAP sections in patient context"
-            description="Subjective, objective, assessment, and plan — where the intake first became useful."
-            className="lg:col-span-8"
-          >
-            <EncounterProductPreview />
-          </ShowcaseCard>
+      <PageSection id="journey">
+        <SectionIntro
+          label="Patient journey"
+          title="From intake link to approved documentation"
+          description="A clear path for patients and practitioners—without turning intake into autopilot charting."
+          centered
+          className="max-w-3xl"
+        />
+        <div className="mt-10">
+          <Timeline items={patientJourney} />
         </div>
       </PageSection>
 
@@ -437,67 +504,86 @@ export function HomepageLanding() {
         </div>
       </PageSection>
 
+      <PageSection id="testimonials" muted>
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+          <SectionIntro
+            label="Clinics like yours"
+            title="Built for teams who want calmer pre-visit preparation"
+            description="Independent outpatient clinics use CliniqFlow to organize intake before the visit—not replace clinical judgment."
+          />
+          <AnimatedTestimonials items={testimonials} />
+        </div>
+      </PageSection>
+
       <PageSection id="pricing" muted>
-        <SectionIntro
-          label="Pricing"
-          title="Simple clinic pricing."
-          description="Sign up for your clinic workspace, then subscribe to the plan that fits your team."
-          centered
-          className="max-w-3xl"
-        />
+        <LampHeader className="mb-10">
+          <SectionIntro
+            label="Pricing"
+            title="Simple clinic pricing."
+            description="Sign up for your clinic workspace, then subscribe to the plan that fits your team."
+            centered
+            className="max-w-3xl"
+          />
+        </LampHeader>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {pricingPlans.map((plan) => (
-            <article
-              key={plan.name}
-              className={`flex flex-col rounded-[1.75rem] border p-6 sm:p-7 ${
-                plan.highlighted
-                  ? "border-[color:var(--primary)] bg-[color:var(--surface-raised)] shadow-[var(--shadow)]"
-                  : "border-[color:var(--line)] bg-[color:var(--surface-raised)]"
-              }`}
-            >
-              {plan.highlighted ? (
-                <span className="section-label text-[color:var(--accent)]">Recommended</span>
-              ) : null}
-              <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[color:var(--foreground)]">
-                {plan.name}
-              </h3>
-              <p className="mt-3">
-                <span className="display-font text-[2.35rem] leading-none">{plan.price}</span>
-                <span className="text-sm text-[color:var(--muted)]">{plan.period}</span>
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted-strong)]">
-                {plan.description}
-              </p>
-              <ul className="mt-5 flex-1 space-y-2">
-                {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2.5 text-sm leading-6 text-[color:var(--muted-strong)]"
-                  >
-                    <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--accent)]" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              {"external" in plan && plan.external ? (
-                <PricingPlanActions
-                  cta={plan.cta}
-                  href={plan.href}
-                  highlighted={plan.highlighted}
-                  external
-                />
-              ) : (
-                <PricingPlanActions
-                  cta={plan.cta}
-                  href={plan.href}
-                  highlighted={plan.highlighted}
-                  showRazorpay={"showRazorpay" in plan && plan.showRazorpay}
-                  razorpayPlan={plan.name === "Growth" ? "growth" : "starter"}
-                />
-              )}
-            </article>
-          ))}
+          {pricingPlans.map((plan) => {
+            const card = (
+              <article className="flex h-full flex-col p-6 sm:p-7">
+                {plan.highlighted ? (
+                  <span className="section-label text-[color:var(--accent)]">Recommended</span>
+                ) : null}
+                <h3 className="display-font mt-2 text-lg tracking-tight text-[color:var(--foreground)]">
+                  {plan.name}
+                </h3>
+                <p className="mt-3">
+                  <span className="display-font text-[2.35rem] leading-none">{plan.price}</span>
+                  <span className="text-sm text-[color:var(--muted)]">{plan.period}</span>
+                </p>
+                <p className="mt-3 font-serif text-sm leading-relaxed text-[color:var(--muted-strong)]">
+                  {plan.description}
+                </p>
+                <ul className="mt-5 flex-1 space-y-2">
+                  {plan.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2.5 text-sm leading-6 text-[color:var(--muted-strong)]"
+                    >
+                      <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--accent)]" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                {"external" in plan && plan.external ? (
+                  <PricingPlanActions
+                    cta={plan.cta}
+                    href={plan.href}
+                    highlighted={plan.highlighted}
+                    external
+                  />
+                ) : (
+                  <PricingPlanActions
+                    cta={plan.cta}
+                    href={plan.href}
+                    highlighted={plan.highlighted}
+                    showRazorpay={"showRazorpay" in plan && plan.showRazorpay}
+                    razorpayPlan={plan.name === "Growth" ? "growth" : "starter"}
+                  />
+                )}
+              </article>
+            );
+
+            return plan.highlighted ? (
+              <GlareCard key={plan.name}>{card}</GlareCard>
+            ) : (
+              <article
+                key={plan.name}
+                className="flex flex-col rounded-[1.75rem] border border-[color:var(--line)] bg-[color:var(--surface-raised)]"
+              >
+                {card}
+              </article>
+            );
+          })}
         </div>
       </PageSection>
 

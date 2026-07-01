@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
 import { GoogleTag } from "@/components/analytics/google-tag";
-import { sourceSerif } from "@/lib/fonts/display";
+import { fontVariables } from "@/lib/fonts";
 import { AppProviders } from "@/components/providers/app-providers";
 import { GlobalFooter } from "@/components/layout/footer";
 import { GlobalHeader } from "@/components/layout/header";
@@ -12,19 +11,6 @@ import { CSP_NONCE_HEADER } from "@/lib/security/csp";
 import { buildRootMetadata } from "@/lib/seo/metadata";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-});
 
 export const metadata: Metadata = buildRootMetadata();
 
@@ -36,7 +22,7 @@ export default async function RootLayout({
   const nonce = (await headers()).get(CSP_NONCE_HEADER) ?? undefined;
 
   return (
-    <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} ${sourceSerif.variable} h-full antialiased`}>
+    <html lang="en" className={`${fontVariables} h-full antialiased`}>
       <head>
         <GoogleTag nonce={nonce} />
       </head>

@@ -45,7 +45,7 @@ export function SignupSuccessPanel(props: {
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-semibold tracking-tight text-[color:var(--foreground)]">
+              <h2 className="display-font text-2xl tracking-tight text-[color:var(--foreground)]">
                 {props.fullName.trim()
                   ? `Almost there, ${props.fullName.trim().split(/\s+/)[0]}`
                   : "Almost there"}

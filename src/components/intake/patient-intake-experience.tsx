@@ -21,6 +21,7 @@ import {
 import { type NicheIntakePayload } from "@/lib/schemas/niche-intake";
 import { type SoapDraft } from "@/lib/schemas/soap";
 import { ClientApiError, getErrorMessage, readApiError } from "@/lib/api/client";
+import { MultiStepLoader } from "@/components/ui/aceternity";
 import Link from "next/link";
 import { type PatientDetails } from "./patient-creation-form";
 
@@ -69,6 +70,26 @@ export function PatientIntakeExperience(props: {
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaSiteKey, setCaptchaSiteKey] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [loaderStep, setLoaderStep] = useState(0);
+
+  const intakeLoaderSteps = [
+    "Saving your responses",
+    "Organizing intake themes",
+    "Preparing clinic-ready documentation",
+  ];
+
+  useEffect(() => {
+    if (!submission.pending) {
+      setLoaderStep(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setLoaderStep((step) => Math.min(step + 1, intakeLoaderSteps.length - 1));
+    }, 1400);
+
+    return () => window.clearInterval(interval);
+  }, [submission.pending, intakeLoaderSteps.length]);
 
   const activePatientId = patient?.id ?? props.initialPatientId ?? null;
   const isPublicMode = props.mode === "public";
@@ -349,6 +370,12 @@ export function PatientIntakeExperience(props: {
   }
 
   return (
+    <>
+      <MultiStepLoader
+        loading={submission.pending}
+        steps={intakeLoaderSteps}
+        currentStep={loaderStep}
+      />
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <div className="space-y-3">
@@ -428,6 +455,7 @@ export function PatientIntakeExperience(props: {
         />
       </section>
     </div>
+    </>
   );
 }
 

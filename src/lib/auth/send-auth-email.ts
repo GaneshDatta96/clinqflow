@@ -1,4 +1,9 @@
-import { findAuthUserByEmail, isEmailConfirmed } from "@/lib/auth/auth-users";
+import { after } from "next/server";
+import {
+  findAuthUserByEmail,
+  isAuthDuplicateEmailError,
+  isEmailConfirmed,
+} from "@/lib/auth/auth-users";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { sendEmail } from "@/lib/email/client";
 import {
@@ -43,6 +48,24 @@ async function sendVerificationEmail(args: {
   });
 }
 
+function scheduleVerificationEmail(args: {
+  email: string;
+  fullName?: string;
+  properties: Record<string, unknown> | undefined;
+  purpose?: "signup" | "resend";
+}) {
+  after(async () => {
+    try {
+      await sendVerificationEmail(args);
+    } catch (error) {
+      console.error("[auth] verification email failed", {
+        email: args.email,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+}
+
 async function sendAlreadyRegisteredNotice(args: {
   email: string;
   fullName?: string;
@@ -57,6 +80,22 @@ async function sendAlreadyRegisteredNotice(args: {
     subject: template.subject,
     html: template.html,
     text: template.text,
+  });
+}
+
+function scheduleAlreadyRegisteredNotice(args: {
+  email: string;
+  fullName?: string;
+}) {
+  after(async () => {
+    try {
+      await sendAlreadyRegisteredNotice(args);
+    } catch (error) {
+      console.error("[auth] already-registered notice failed", {
+        email: args.email,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   });
 }
 
@@ -78,10 +117,46 @@ export async function sendSignupVerificationEmail(args: {
 
   const email = args.email.trim().toLowerCase();
   const fullName = args.fullName.trim();
+
+  const { error: createError } = await admin.auth.admin.createUser({
+    email,
+    password: args.password,
+    email_confirm: false,
+    user_metadata: { full_name: fullName },
+  });
+
+  if (!createError) {
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password: args.password,
+    });
+
+    if (error) {
+      throw badRequest(error.message);
+    }
+
+    scheduleVerificationEmail({
+      email,
+      fullName,
+      properties: data.properties as Record<string, unknown> | undefined,
+    });
+
+    return { emailSent: true, existingAccount: false as const };
+  }
+
+  if (!isAuthDuplicateEmailError(createError)) {
+    throw badRequest(createError.message);
+  }
+
   const existing = await findAuthUserByEmail(email);
 
-  if (existing && isEmailConfirmed(existing)) {
-    await sendAlreadyRegisteredNotice({
+  if (!existing) {
+    throw badRequest(createError.message);
+  }
+
+  if (isEmailConfirmed(existing)) {
+    scheduleAlreadyRegisteredNotice({
       email,
       fullName:
         fullName ||
@@ -92,27 +167,15 @@ export async function sendSignupVerificationEmail(args: {
     return { emailSent: true, existingAccount: true as const };
   }
 
-  if (existing) {
-    const { error: updateError } = await admin.auth.admin.updateUserById(
-      existing.id,
-      {
-        password: args.password,
-        user_metadata: { full_name: fullName },
-      },
-    );
-    if (updateError) {
-      throw badRequest(updateError.message);
-    }
-  } else {
-    const { error: createError } = await admin.auth.admin.createUser({
-      email,
+  const { error: updateError } = await admin.auth.admin.updateUserById(
+    existing.id,
+    {
       password: args.password,
-      email_confirm: false,
       user_metadata: { full_name: fullName },
-    });
-    if (createError) {
-      throw badRequest(createError.message);
-    }
+    },
+  );
+  if (updateError) {
+    throw badRequest(updateError.message);
   }
 
   const { data, error } = await admin.auth.admin.generateLink({
@@ -125,7 +188,7 @@ export async function sendSignupVerificationEmail(args: {
     throw badRequest(error.message);
   }
 
-  await sendVerificationEmail({
+  scheduleVerificationEmail({
     email,
     fullName,
     properties: data.properties as Record<string, unknown> | undefined,
@@ -154,7 +217,7 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
   }
 
   if (isEmailConfirmed(existing)) {
-    await sendAlreadyRegisteredNotice({
+    scheduleAlreadyRegisteredNotice({
       email,
       fullName:
         typeof existing.user_metadata?.full_name === "string"
@@ -178,7 +241,7 @@ export async function resendSignupVerificationEmail(args: { email: string }) {
       ? existing.user_metadata.full_name
       : undefined;
 
-  await sendVerificationEmail({
+  scheduleVerificationEmail({
     email,
     fullName,
     properties: data.properties as Record<string, unknown> | undefined,
@@ -220,11 +283,20 @@ export async function sendPasswordResetEmail(args: { email: string }) {
 
   const template = buildPasswordResetEmail({ resetUrl });
 
-  await sendEmail({
-    to: email,
-    subject: template.subject,
-    html: template.html,
-    text: template.text,
+  after(async () => {
+    try {
+      await sendEmail({
+        to: email,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      });
+    } catch (sendError) {
+      console.error("[auth] password reset email failed", {
+        email,
+        error: sendError instanceof Error ? sendError.message : String(sendError),
+      });
+    }
   });
 
   return { emailSent: true as const };

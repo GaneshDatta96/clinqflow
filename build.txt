@@ -520,3 +520,9 @@ END legal-compliance-v1
 [2026-06-11] - fix: Allow Google Analytics in Content Security Policy
 - Updated next.config.ts script-src to include https://www.googletagmanager.com for gtag.js.
 - Updated connect-src for GA4 measurement endpoints (google-analytics.com, googletagmanager.com).
+
+[2026-06-23] - feat: Faster signup flow and polished success state
+- Signup API returns immediately: verification email sends in background via next/server after().
+- Replaced slow listUsers email lookup with profiles + getUserById; create-first path for new accounts.
+- Redesigned /signup page (glass card, desktop value props); added SignupSuccessPanel replacing plain green text.
+- Auth form shows spinner during signup and dedicated post-signup steps (verify email, resend, sign in).

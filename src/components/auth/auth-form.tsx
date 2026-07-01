@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LoaderCircle } from "lucide-react";
+import { SignupSuccessPanel } from "@/components/auth/signup-success-panel";
 import { createSupabaseBrowserClient } from "@/lib/db/supabase-browser";
+import { getErrorMessage, readApiError } from "@/lib/api/client";
 
 type AuthMode = "login" | "signup" | "forgot" | "reset";
 
@@ -19,6 +22,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [pending, setPending] = useState(false);
   const [resendPending, setResendPending] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
+  const [signupComplete, setSignupComplete] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [resetSessionReady, setResetSessionReady] = useState(mode !== "reset");
 
   useEffect(() => {
@@ -56,6 +61,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
 
     setError(null);
+    setResendMessage(null);
     setResendPending(true);
 
     try {
@@ -64,14 +70,19 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to resend verification email.");
+        throw await readApiError(response);
       }
-      setMessage("Verification email sent again. Check your inbox and spam folder.");
+      const resentCopy =
+        "Fresh verification email sent. Check your inbox and spam folder.";
+      if (signupComplete) {
+        setResendMessage(resentCopy);
+      } else {
+        setMessage(resentCopy);
+      }
       setNeedsVerification(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to resend verification email.");
+      setError(getErrorMessage(err, "Unable to resend verification email."));
     } finally {
       setResendPending(false);
     }
@@ -81,6 +92,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     event.preventDefault();
     setError(null);
     setMessage(null);
+    setResendMessage(null);
     setNeedsVerification(false);
     setPending(true);
 
@@ -111,9 +123,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
-        const payload = (await response.json()) as { error?: string };
         if (!response.ok) {
-          throw new Error(payload.error ?? "Unable to send reset email.");
+          throw await readApiError(response);
         }
         setMessage("Check your email for a password reset link.");
         return;
@@ -129,27 +140,23 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             full_name: fullName,
           }),
         });
-        const payload = (await response.json()) as { error?: string };
         if (!response.ok) {
-          throw new Error(payload.error ?? "Unable to create account.");
+          throw await readApiError(response);
         }
-        setMessage(
-          "Account created. Check your email to verify your address, then sign in.",
-        );
+        setSignupComplete(true);
         setNeedsVerification(true);
         return;
       }
 
-      const supabase = createSupabaseBrowserClient();
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      const { data: signInData, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-      if (signInError) {
-        const authMessage = signInError.message.toLowerCase();
+      if (!response.ok) {
+        const apiError = await readApiError(response);
+        const authMessage = apiError.message.toLowerCase();
         if (authMessage.includes("email not confirmed")) {
           setMessage(
             "Verify your email first — we sent a link when you signed up. Need a fresh one?",
@@ -157,37 +164,62 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           setNeedsVerification(true);
           return;
         }
-        throw signInError;
+        throw apiError;
       }
 
-      if (!signInData.user?.email_confirmed_at) {
+      const payload = (await response.json()) as {
+        emailConfirmed?: boolean;
+      };
+
+      if (!payload.emailConfirmed) {
         setMessage(
           "Verify your email first — we sent a link when you signed up. Need a fresh one?",
         );
         setNeedsVerification(true);
+        const supabase = createSupabaseBrowserClient();
         await supabase.auth.signOut();
         return;
       }
 
       const roleRes = await fetch("/api/auth/session-role");
-      const roleData = await roleRes.json().catch(() => ({}));
       if (!roleRes.ok) {
-        setError(
-          typeof roleData.error === "string"
-            ? roleData.error
-            : "Could not resolve your workspace role. Try again.",
-        );
+        const roleError = await readApiError(roleRes);
+        setError(roleError.message);
         router.push("/app/dashboard");
         router.refresh();
         return;
       }
+      const roleData = (await roleRes.json()) as {
+        path?: string;
+        mfaRedirect?: string | null;
+      };
+
+      if (roleData.mfaRedirect) {
+        router.push(roleData.mfaRedirect);
+        router.refresh();
+        return;
+      }
+
       router.push(roleData.path ?? "/app/dashboard");
       router.refresh();
+      return;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed.");
+      setError(getErrorMessage(err, "Authentication failed."));
     } finally {
       setPending(false);
     }
+  }
+
+  if (mode === "signup" && signupComplete) {
+    return (
+      <SignupSuccessPanel
+        email={email}
+        fullName={fullName}
+        resendPending={resendPending}
+        resendMessage={resendMessage}
+        onResend={handleResendVerification}
+      />
+    );
   }
 
   return (
@@ -196,9 +228,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <label className="block">
           <span className="text-sm font-semibold">Full name</span>
           <input
-            className="mt-1 w-full rounded-xl border border-[color:var(--line)] px-4 py-3"
+            className="mt-1.5 w-full rounded-xl border border-[color:var(--line)] bg-white px-4 py-3 outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent)]/15"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            autoComplete="name"
             required
           />
         </label>
@@ -208,9 +241,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           <span className="text-sm font-semibold">Email</span>
           <input
             type="email"
-            className="mt-1 w-full rounded-xl border border-[color:var(--line)] px-4 py-3"
+            className="mt-1.5 w-full rounded-xl border border-[color:var(--line)] bg-white px-4 py-3 outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent)]/15"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
           />
         </label>
@@ -241,12 +275,16 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           <span className="text-sm font-semibold">Password</span>
           <input
             type="password"
-            className="mt-1 w-full rounded-xl border border-[color:var(--line)] px-4 py-3"
+            className="mt-1.5 w-full rounded-xl border border-[color:var(--line)] bg-white px-4 py-3 outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent)]/15"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
             required
             minLength={8}
           />
+          <p className="mt-1.5 text-xs text-[color:var(--muted)]">
+            At least 8 characters.
+          </p>
         </label>
       )}
       {mode === "reset" && resetSessionReady && (
@@ -283,18 +321,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           Request a new reset link
         </Link>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
       {message && <p className="text-sm text-green-700">{message}</p>}
-      {mode === "signup" && message ? (
-        <button
-          type="button"
-          disabled={resendPending || !email.trim()}
-          onClick={handleResendVerification}
-          className="w-full rounded-full border border-[color:var(--line)] py-3 text-sm font-semibold disabled:opacity-60"
-        >
-          {resendPending ? "Sending…" : "Resend verification email"}
-        </button>
-      ) : null}
       {mode === "login" && needsVerification ? (
         <button
           type="button"
@@ -309,17 +341,22 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       <button
         type="submit"
         disabled={pending || (mode === "reset" && !resetSessionReady)}
-        className="w-full rounded-full bg-[color:var(--accent)] py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] py-3 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {pending
-          ? "Please wait…"
-          : mode === "login"
-            ? "Sign in"
-            : mode === "signup"
-              ? "Create account"
-              : mode === "reset"
-                ? "Update password"
-                : "Send reset link"}
+        {pending ? (
+          <>
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            {mode === "signup" ? "Creating your account…" : "Please wait…"}
+          </>
+        ) : mode === "login" ? (
+          "Sign in"
+        ) : mode === "signup" ? (
+          "Create account"
+        ) : mode === "reset" ? (
+          "Update password"
+        ) : (
+          "Send reset link"
+        )}
       </button>
       )}
     </form>

@@ -606,3 +606,7 @@ Other
 - CSP allows Razorpay checkout script, API connect, and payment frames.
 
 [2026-06-23] - release: pushed to origin/main (brand + perf + workspace fixes)
+
+[2026-06-23] - fix: Turbopack build — dynamic imports in client boundary
+- Moved homepage dynamic() imports with ssr:false into homepage-dynamic-imports.tsx (use client).
+- homepage-landing.tsx stays a Server Component; verified with npm run build.

@@ -1,14 +1,20 @@
 import type { ReactNode } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ChevronDown, ShieldCheck } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { BRAND } from "@/lib/brand/site";
 import { HOME_FAQS } from "@/lib/seo/home-faqs";
 import { faqPageSchema, softwareApplicationSchema } from "@/lib/seo/schema";
+import {
+  AnimatedTestimonials,
+  Compare,
+  DashboardProductPreview,
+  EncounterProductPreview,
+  IntakeProductPreview,
+  StickyScrollReveal,
+  Timeline,
+} from "@/components/home/homepage-dynamic-imports";
 import { HeroOperationalPreview } from "@/components/home/homepage-product-previews";
-import { PreviewPlaceholder } from "@/components/home/preview-placeholder";
-import { ProductPreviewFrame } from "@/components/home/product-preview-frame";
 import { GradientRule, PetalAccent } from "@/components/home/petal-accent";
 import { PricingPlanActions } from "@/components/home/pricing-plan-actions";
 import {
@@ -18,92 +24,6 @@ import {
   LampHeader,
   Spotlight,
 } from "@/components/ui/aceternity";
-
-const DashboardProductPreview = dynamic(
-  () =>
-    import("@/components/home/live-product-previews").then(
-      (mod) => mod.DashboardProductPreview,
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <ProductPreviewFrame
-        label="cliniqflow.app/app/dashboard"
-        aspect="wide"
-        elevated
-        ariaLabel="Loading dashboard preview"
-      >
-        <PreviewPlaceholder />
-      </ProductPreviewFrame>
-    ),
-  },
-);
-
-const EncounterProductPreview = dynamic(
-  () =>
-    import("@/components/home/live-product-previews").then(
-      (mod) => mod.EncounterProductPreview,
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <ProductPreviewFrame
-        label="cliniqflow.app/app/encounters"
-        aspect="wide"
-        elevated
-        ariaLabel="Loading encounter preview"
-      >
-        <PreviewPlaceholder />
-      </ProductPreviewFrame>
-    ),
-  },
-);
-
-const IntakeProductPreview = dynamic(
-  () =>
-    import("@/components/home/live-product-previews").then(
-      (mod) => mod.IntakeProductPreview,
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <ProductPreviewFrame
-        label="cliniqflow.app/c/intake"
-        aspect="tall"
-        elevated
-        ariaLabel="Loading intake preview"
-      >
-        <PreviewPlaceholder />
-      </ProductPreviewFrame>
-    ),
-  },
-);
-
-const StickyScrollReveal = dynamic(
-  () =>
-    import("@/components/ui/aceternity/sticky-scroll-reveal").then(
-      (mod) => mod.StickyScrollReveal,
-    ),
-  { loading: () => <div className="min-h-[28rem] animate-pulse rounded-[2rem] bg-[color:var(--line)]/40" aria-hidden /> },
-);
-
-const Compare = dynamic(
-  () => import("@/components/ui/aceternity/compare").then((mod) => mod.Compare),
-  { loading: () => <div className="min-h-[20rem] animate-pulse rounded-[2rem] bg-[color:var(--line)]/40" aria-hidden /> },
-);
-
-const Timeline = dynamic(
-  () => import("@/components/ui/aceternity/timeline").then((mod) => mod.Timeline),
-  { loading: () => <div className="min-h-[24rem] animate-pulse rounded-[2rem] bg-[color:var(--line)]/40" aria-hidden /> },
-);
-
-const AnimatedTestimonials = dynamic(
-  () =>
-    import("@/components/ui/aceternity/animated-testimonials").then(
-      (mod) => mod.AnimatedTestimonials,
-    ),
-  { loading: () => <div className="min-h-[18rem] animate-pulse rounded-[2rem] bg-[color:var(--line)]/40" aria-hidden /> },
-);
 
 const heroPoints = [
   "Patients complete structured intake before they arrive",

@@ -199,7 +199,11 @@ export const requireTenantContext = cache(async (tenantId?: string) => {
   }
 
   const activeTenantId = await resolveActiveTenantId(tenantId);
-  const membership = await getTenantMembership(supabase, user.id, activeTenantId);
+  let membership = await getTenantMembership(supabase, user.id, activeTenantId);
+
+  if (!membership && activeTenantId) {
+    membership = await getTenantMembership(supabase, user.id);
+  }
 
   if (!membership) {
     throw forbidden("You are not a member of this organization.");
@@ -314,19 +318,47 @@ export const getAppShellData = cache(async () => {
     };
   }
 
-  const staffResult = await requirePlatformAdminContext();
-  const [actingTenantId, activeTenantId] = await Promise.all([
-    getActingTenantIdFromCookies(),
-    getActiveTenantIdFromCookies(),
-  ]);
+  try {
+    const staffResult = await requirePlatformAdminContext();
+    const [actingTenantId, activeTenantId] = await Promise.all([
+      getActingTenantIdFromCookies(),
+      getActiveTenantIdFromCookies(),
+    ]);
 
-  return {
-    context: staffResult.context,
-    platformStaffOnly: true,
-    actingTenantId,
-    activeTenantId: activeTenantId ?? "",
-    tenantOptions: [] as Awaited<ReturnType<typeof listUserTenants>>,
-  };
+    return {
+      context: staffResult.context,
+      platformStaffOnly: true,
+      actingTenantId,
+      activeTenantId: activeTenantId ?? "",
+      tenantOptions: [] as Awaited<ReturnType<typeof listUserTenants>>,
+    };
+  } catch {
+    const { supabase, user } = await requireUser();
+    const tenantOptions = await listUserTenants(user.id);
+
+    if (tenantOptions.length === 0) {
+      redirect("/onboarding");
+    }
+
+    const primary = tenantOptions[0]!;
+    const tenant = await loadTenantById(supabase, primary.tenantId);
+
+    if (!tenant) {
+      redirect("/onboarding");
+    }
+
+    return {
+      context: buildTenantContext({
+        tenant,
+        userId: user.id,
+        role: primary.role,
+      }),
+      platformStaffOnly: false,
+      actingTenantId: null,
+      activeTenantId: primary.tenantId,
+      tenantOptions,
+    };
+  }
 });
 
 /** Redirect unpaid workspaces to billing (sign up → subscribe, no silent free trial). */

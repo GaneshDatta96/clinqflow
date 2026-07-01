@@ -571,3 +571,10 @@ Other
 
 [2026-06-23] - fix: Fail-open rate limiting when Upstash is missing or errors
 - assertRateLimit no longer returns 503 in production when Redis is unconfigured or unreachable; logs rate_limit.skipped / rate_limit.unavailable and allows the request (fixes signup 503 on first attempt).
+
+[2026-06-23] - fix: Onboarding → billing flow after email verification
+- Set active-tenant cookie on onboarding API response via NextResponse.cookies (reliable Set-Cookie).
+- Full-page redirect to /app/billing?onboarded=1 with clear loading state; prevent double-submit confusion.
+- Fallback tenant resolution when active-tenant cookie is stale; getAppShellData no longer throws for new clinic users.
+- Billing welcome banner after onboarding; improved workspace error recovery links.
+- Starter subscription row uses correct seat/AI limits on bootstrap.

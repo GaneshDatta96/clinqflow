@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { badRequest } from "@/lib/api/errors";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { nicheConfigs } from "@/lib/clinics/niche-configs";
 
 function slugify(value: string) {
@@ -70,8 +71,8 @@ export async function bootstrapTenantForUser(args: {
     tenant_id: tenant.id,
     plan_key: "starter",
     status: "incomplete",
-    seat_limit: 0,
-    ai_monthly_limit: 0,
+    seat_limit: PLAN_LIMITS.starter.seats,
+    ai_monthly_limit: PLAN_LIMITS.starter.aiMonthly,
   });
 
   const clinicSlug = `${baseSlug}-main`;

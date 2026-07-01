@@ -1,7 +1,9 @@
+import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createApiHandler, jsonCreated } from "@/lib/api/handler";
+import { createApiHandler } from "@/lib/api/handler";
+import { PRIVATE_NO_STORE } from "@/lib/http/cache-control";
 import { requireUser } from "@/lib/tenancy/context";
-import { setActiveTenantCookie } from "@/lib/tenancy/active-tenant";
+import { ACTIVE_TENANT_COOKIE } from "@/lib/tenancy/active-tenant";
 import { bootstrapTenantForUser } from "@/lib/tenancy/onboarding";
 
 const onboardingSchema = z.object({
@@ -25,14 +27,27 @@ export const POST = createApiHandler({
       niche: body.niche,
     });
 
-    if (result.tenant?.id) {
-      await setActiveTenantCookie(result.tenant.id);
-    }
-
-    return jsonCreated({
+    const payload = {
       tenant: result.tenant,
       clinic: result.clinic,
       created: result.created,
+    };
+
+    const response = NextResponse.json(payload, {
+      status: result.created ? 201 : 200,
+      headers: { "Cache-Control": PRIVATE_NO_STORE },
     });
+
+    if (result.tenant?.id) {
+      response.cookies.set(ACTIVE_TENANT_COOKIE, result.tenant.id, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 90,
+      });
+    }
+
+    return response;
   },
 });

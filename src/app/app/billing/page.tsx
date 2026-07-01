@@ -6,8 +6,13 @@ import { BillingActions } from "@/components/settings/billing-actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ onboarded?: string }>;
+}) {
   const { context, supabase } = await requireTenantContextForPage();
+  const params = await searchParams;
   const { data: profile } = await supabase
     .from("profiles")
     .select("email")
@@ -23,6 +28,11 @@ export default async function BillingPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-3xl font-semibold">Billing</h1>
+      {params.onboarded === "1" ? (
+        <p className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          Your clinic workspace is ready. Choose a plan below to activate it.
+        </p>
+      ) : null}
       {entitlements.status !== "active" ? (
         <p className="text-sm leading-6 text-[color:var(--muted)]">
           Subscribe to activate your clinic workspace. CliniqFlow does not include a free trial—choose

@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/dashboard", destination: "/app/dashboard", permanent: true },
+      { source: "/patients", destination: "/app/patients", permanent: true },
+    ];
+  },
 };
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;

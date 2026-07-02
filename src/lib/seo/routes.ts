@@ -1,10 +1,23 @@
 import { LEGAL_PAGES } from "@/lib/legal/site";
+import { NICHE_PAGES } from "@/lib/seo/niche-pages";
 
 export type SitemapEntry = {
   path: string;
   priority: number;
   changeFrequency: "weekly" | "monthly" | "yearly";
+  /** ISO date of the last meaningful content change for this route. */
+  lastModified: string;
 };
+
+/** Bump when a page's indexable content changes so GSC re-crawls promptly. */
+export const CONTENT_UPDATED = {
+  home: "2026-07-02",
+  landing: "2026-07-02",
+  niche: "2026-07-02",
+  legal: "2026-05-30",
+  intakeGuide: "2026-07-02",
+  clinicWorkflows: "2026-07-02",
+} as const;
 
 export const SEO_LANDING_PAGES = [
   { path: "/contact", label: "Contact" },
@@ -18,20 +31,39 @@ export const SEO_LANDING_PAGES = [
 export const MARKETING_PAGE_PATHS = [
   "/",
   ...SEO_LANDING_PAGES.map((p) => p.path),
+  ...NICHE_PAGES.map((p) => `/for/${p.slug}`),
   ...LEGAL_PAGES.map((p) => p.href),
 ] as const;
 
 export const SITEMAP_ENTRIES: SitemapEntry[] = [
-  { path: "/", priority: 1, changeFrequency: "weekly" },
+  {
+    path: "/",
+    priority: 1,
+    changeFrequency: "weekly",
+    lastModified: CONTENT_UPDATED.home,
+  },
   ...SEO_LANDING_PAGES.map((p) => ({
     path: p.path,
     priority: 0.8,
     changeFrequency: "monthly" as const,
+    lastModified:
+      p.path === "/how-patient-intake-works"
+        ? CONTENT_UPDATED.intakeGuide
+        : p.path === "/clinic-workflows"
+          ? CONTENT_UPDATED.clinicWorkflows
+          : CONTENT_UPDATED.landing,
+  })),
+  ...NICHE_PAGES.map((p) => ({
+    path: `/for/${p.slug}`,
+    priority: 0.7,
+    changeFrequency: "monthly" as const,
+    lastModified: CONTENT_UPDATED.niche,
   })),
   ...LEGAL_PAGES.map((p) => ({
     path: p.href,
     priority: 0.5,
     changeFrequency: "yearly" as const,
+    lastModified: CONTENT_UPDATED.legal,
   })),
 ];
 

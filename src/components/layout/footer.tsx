@@ -7,15 +7,8 @@ import { BRAND } from "@/lib/brand/site";
 import { BrandLogo } from "@/components/brand/logo";
 import { LEGAL, LEGAL_PAGES } from "@/lib/legal/site";
 import { SEO_LANDING_PAGES } from "@/lib/seo/routes";
+import { NICHE_PAGES } from "@/lib/seo/niche-pages";
 import { isPatientIntakePath } from "@/lib/routing/patient-intake-shell";
-
-const homeFooterLinks = [
-  { label: "Product", href: "/#product" },
-  { label: "Workflow", href: "/#workflow" },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "Why it helps", href: "/#why-cliniqflow" },
-  { label: "FAQ", href: "/#faq" },
-];
 
 export function GlobalFooter() {
   const pathname = usePathname();
@@ -36,10 +29,15 @@ export function GlobalFooter() {
             <p className="max-w-sm text-sm leading-6 text-[color:var(--muted)]">
               {BRAND.positioning}
             </p>
-            <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
-              Sign up
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href={BRAND.loginHref} className="btn-secondary !px-4 !py-2.5 !text-sm">
+                Sign in
+              </Link>
+              <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
+                Sign up
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
             <p className="text-sm text-[color:var(--muted)]">
               <a
                 href={`tel:${LEGAL.supportPhoneTel}`}
@@ -73,15 +71,15 @@ export function GlobalFooter() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-[color:var(--foreground)]">Homepage</p>
+            <p className="text-sm font-semibold text-[color:var(--foreground)]">By practice</p>
             <nav className="mt-3 flex flex-col gap-2">
-              {homeFooterLinks.map((link) => (
+              {NICHE_PAGES.map((page) => (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  key={page.slug}
+                  href={`/for/${page.slug}`}
                   className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--primary)]"
                 >
-                  {link.label}
+                  {page.label}
                 </Link>
               ))}
             </nav>

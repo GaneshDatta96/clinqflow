@@ -629,3 +629,32 @@ Other
 
 - Anchored paper vs CliniqFlow lists to left/right panes so the digital side is visible at all slider positions.
 - Replaced bottom range bar with centered vertical drag handle and pointer drag on the card.
+
+[2026-07-02] - feat: SEO Phase 3 sprint — niche pages, OG, sitemap, content depth, guest auth shell
+Guest auth navigation
+- src/components/layout/header.tsx: AuthActions component + showGuestShell for /login, /signup, /forgot-password, /reset-password, /onboarding, /invite (context-aware Log in / Sign up CTAs; hides current-page button).
+- src/components/layout/footer.tsx: Sign in button alongside Sign up in brand column.
+
+Niche vertical landing pages (5 static routes)
+- src/lib/seo/niche-pages.ts: compliance-safe copy for general-practice, functional-medicine, chiropractic, aesthetic-clinics, holistic-practices (maps to niche_configs.json keys).
+- src/app/for/[niche]/page.tsx: generateStaticParams, per-page metadata with ogTitle/ogSubtitle.
+- Footer "By practice" column links all /for/* pages; MARKETING_PAGE_PATHS + sitemap include them at priority 0.7.
+
+Per-page Open Graph images
+- src/app/api/og/route.tsx: dynamic 1200×630 OG generator (title + subtitle query params, brand logo).
+- src/lib/seo/metadata.ts: buildPageMetadata() builds unique /api/og URLs per page; optional ogTitle/ogSubtitle overrides.
+
+Sitemap and redirects
+- src/lib/seo/routes.ts: per-route lastModified via CONTENT_UPDATED map (home, landing, niche, legal, intake, clinic-workflows).
+- src/app/sitemap.ts: uses entry.lastModified instead of single new Date().
+- next.config.ts: 301 redirects /dashboard → /app/dashboard, /patients → /app/patients.
+
+Content depth (GSC query clusters)
+- src/app/clinic-workflows/page.tsx: expanded for "clinic workflow software" cluster — team roles, status queue, workflow vs charting, links to /for/*.
+- src/app/how-patient-intake-works/page.tsx: step-by-step intake flow, intake vs EHR section, specialty links, HowTo JSON-LD.
+- src/lib/seo/schema.ts: howToSchema() builder.
+- src/components/seo/marketing-page-shell.tsx: optional extraJsonLd prop for combined breadcrumb + HowTo schema.
+
+GSC baseline (2026-07-02 export): 2 indexed pages, 3 clicks, ~66 impressions; primary queries = clinic workflow + patient intake software long-tail. Post-deploy: request indexing for all marketing + /for/* URLs and resubmit sitemap.xml.
+
+Verified with npm run typecheck and npm run build.

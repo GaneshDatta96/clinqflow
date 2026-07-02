@@ -13,11 +13,23 @@ type BuildPageMetadataArgs = {
   path: string;
   robots?: Metadata["robots"];
   openGraphType?: "website" | "article";
+  /** Headline rendered on the generated OG image. Defaults to `title`. */
+  ogTitle?: string;
+  /** Sub-line rendered on the generated OG image. Defaults to `description`. */
+  ogSubtitle?: string;
 };
 
 function absoluteUrl(path: string) {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return new URL(normalized, SITE_URL).toString();
+}
+
+/** Builds a per-page OG image URL served by /api/og. */
+function buildOgImageUrl(title: string, subtitle: string) {
+  const url = new URL("/api/og", SITE_URL);
+  url.searchParams.set("title", title);
+  url.searchParams.set("subtitle", subtitle);
+  return url.toString();
 }
 
 export function buildPageMetadata({
@@ -26,9 +38,11 @@ export function buildPageMetadata({
   path,
   robots,
   openGraphType = "website",
+  ogTitle,
+  ogSubtitle,
 }: BuildPageMetadataArgs): Metadata {
   const canonical = absoluteUrl(path);
-  const ogImage = absoluteUrl(OG_IMAGE_PATH);
+  const ogImage = buildOgImageUrl(ogTitle ?? title, ogSubtitle ?? description);
 
   return {
     title,

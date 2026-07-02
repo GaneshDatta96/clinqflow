@@ -18,6 +18,7 @@ type MarketingPageShellProps = {
   breadcrumbPath: string;
   sections: MarketingSection[];
   relatedLinks?: { href: string; label: string }[];
+  extraJsonLd?: Record<string, unknown> | Record<string, unknown>[];
 };
 
 export function MarketingPageShell({
@@ -28,16 +29,20 @@ export function MarketingPageShell({
   breadcrumbPath,
   sections,
   relatedLinks = [],
+  extraJsonLd,
 }: MarketingPageShellProps) {
   const breadcrumbs = [
     { name: "Home", path: "/" },
     { name: breadcrumbLabel, path: breadcrumbPath },
   ];
+  const jsonLd = extraJsonLd
+    ? [breadcrumbSchema(breadcrumbs), ...(Array.isArray(extraJsonLd) ? extraJsonLd : [extraJsonLd])]
+    : breadcrumbSchema(breadcrumbs);
 
   return (
     <GridBackground containerClassName="flex-1">
       <div className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-16 pt-28 xl:px-10">
-        <JsonLd data={breadcrumbSchema(breadcrumbs)} />
+        <JsonLd data={jsonLd} />
 
         <nav aria-label="Breadcrumb" className="text-sm text-[color:var(--muted)]">
           <ol className="flex flex-wrap items-center gap-2">

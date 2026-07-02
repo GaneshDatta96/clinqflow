@@ -23,6 +23,45 @@ const homeNavigation = [
   { name: "FAQ", href: "#faq" },
 ];
 
+const authPaths = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/onboarding",
+  "/invite",
+];
+
+function isAuthPath(pathname: string) {
+  return authPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
+function AuthActions({ pathname }: { pathname: string }) {
+  const onLogin = pathname === "/login";
+  const onSignup = pathname === "/signup";
+
+  return (
+    <div className="flex items-center gap-3 sm:gap-4">
+      {!onLogin ? (
+        <Link
+          href={BRAND.loginHref}
+          className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--foreground)]"
+        >
+          Log in
+        </Link>
+      ) : null}
+      {!onSignup ? (
+        <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
+          Sign up
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -32,8 +71,9 @@ export function GlobalHeader() {
   const isHome = pathname === "/";
   const isApp = pathname.startsWith("/app");
   const showMarketingShell = !isApp && (isHome || isMarketingPath(pathname));
+  const showGuestShell = !isApp && isAuthPath(pathname);
 
-  if (pathname.startsWith("/proof") || isPatientIntakePath(pathname) || pathname.startsWith("/app")) {
+  if (pathname.startsWith("/proof") || isPatientIntakePath(pathname) || isApp) {
     return null;
   }
 
@@ -78,19 +118,10 @@ export function GlobalHeader() {
               )}
             </nav>
 
-            <div className="flex items-center gap-3 sm:gap-4">
-              <Link
-                href={BRAND.loginHref}
-                className="text-sm font-medium text-[color:var(--muted-strong)] transition-colors hover:text-[color:var(--foreground)]"
-              >
-                Log in
-              </Link>
-              <Link href={BRAND.signupHref} className="btn-primary !px-4 !py-2.5 !text-sm">
-                Sign up
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </div>
+            <AuthActions pathname={pathname} />
           </>
+        ) : showGuestShell ? (
+          <AuthActions pathname={pathname} />
         ) : (
           <nav className="flex flex-wrap items-center justify-end gap-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-raised)] p-1">
             {appNavigation.map((item) => (

@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+import { authUrl } from "@/lib/routing/zones";
 
 export function appAuthVerifyUrl(properties: Record<string, unknown> | undefined) {
   const token = properties?.hashed_token;
@@ -8,11 +8,10 @@ export function appAuthVerifyUrl(properties: Record<string, unknown> | undefined
     return null;
   }
 
-  const base = env.appUrl.replace(/\/$/, "");
   const params = new URLSearchParams({
     token,
     type: String(type),
   });
 
-  return `${base}/auth/verify?${params.toString()}`;
+  return authUrl(`/auth/verify?${params.toString()}`);
 }

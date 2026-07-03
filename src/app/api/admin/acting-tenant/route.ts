@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
 import { badRequest } from "@/lib/api/errors";
 import {
   ACTING_TENANT_COOKIE,
   requirePlatformStaff,
 } from "@/lib/tenancy/platform-admin";
+import { cookieDomainForHost } from "@/lib/routing/zones";
 
 const setSchema = z.object({
   tenant_id: z.string().uuid(),
@@ -31,12 +32,14 @@ export const POST = createApiHandler({
     }
 
     const cookieStore = await cookies();
+    const domain = cookieDomainForHost((await headers()).get("host"));
     cookieStore.set(ACTING_TENANT_COOKIE, tenant.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 4,
+      domain,
     });
 
     await supabase.from("audit_logs").insert({
@@ -65,7 +68,12 @@ export const DELETE = createApiHandler({
     await requirePlatformStaff();
 
     const cookieStore = await cookies();
-    cookieStore.delete(ACTING_TENANT_COOKIE);
+    const domain = cookieDomainForHost((await headers()).get("host"));
+    cookieStore.set(ACTING_TENANT_COOKIE, "", {
+      path: "/",
+      maxAge: 0,
+      domain,
+    });
 
     return jsonOk({ cleared: true });
   },

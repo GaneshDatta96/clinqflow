@@ -1,9 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { createApiHandler, jsonOk } from "@/lib/api/handler";
 import { unauthorized } from "@/lib/api/errors";
 import { env } from "@/lib/env";
+import { withCookieDomain } from "@/lib/routing/zones";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -17,6 +18,7 @@ export const POST = createApiHandler({
   schema: loginSchema,
   handler: async ({ body }) => {
     const cookieStore = await cookies();
+    const host = (await headers()).get("host");
     const supabase = createServerClient(
       env.supabaseUrl!,
       env.supabaseAnonKey!,
@@ -27,7 +29,7 @@ export const POST = createApiHandler({
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, withCookieDomain(options, host));
             });
           },
         },

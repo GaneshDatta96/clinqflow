@@ -3,9 +3,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ApiError } from "@/lib/api/errors";
 import { assertIpRateLimit } from "@/lib/api/upstash-rate-limit";
+import { withCookieDomain } from "@/lib/routing/zones";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
+  const host = request.headers.get("host");
 
   try {
     await assertIpRateLimit(request, "auth_sensitive", "/auth/callback");
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, withCookieDomain(options, host));
             });
           },
         },

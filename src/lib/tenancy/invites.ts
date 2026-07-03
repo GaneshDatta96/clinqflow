@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { getSupabaseAdmin } from "@/lib/db/supabase-admin";
 import { badRequest, forbidden, notFound } from "@/lib/api/errors";
 import { assertSeatAvailable } from "@/lib/billing/entitlements";
-import { env } from "@/lib/env";
+import { authUrl } from "@/lib/routing/zones";
 import type { TenantRole } from "@/lib/tenancy/types";
 
 const INVITE_TTL_DAYS = 7;
@@ -56,7 +56,9 @@ export async function createTenantInvite(args: {
     throw error ?? badRequest("Unable to create invite.");
   }
 
-  const acceptUrl = `${env.appUrl}/invite/accept?token=${encodeURIComponent(rawToken)}`;
+  const acceptUrl = authUrl(
+    `/invite/accept?token=${encodeURIComponent(rawToken)}`,
+  );
 
   await admin.from("audit_logs").insert({
     tenant_id: args.tenantId,

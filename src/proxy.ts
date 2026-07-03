@@ -9,6 +9,12 @@ import {
   CSP_NONCE_HEADER,
   generateCspNonce,
 } from "@/lib/security/csp";
+import {
+  ZONE_ORIGINS,
+  withCookieDomain,
+  zoneForHost,
+  zoneForPath,
+} from "@/lib/routing/zones";
 
 function finalizeResponse(
   response: NextResponse,
@@ -123,6 +129,27 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set(CSP_NONCE_HEADER, nonce);
   const enrichedRequest = new NextRequest(request, { headers: requestHeaders });
 
+  const host = request.headers.get("host");
+  const cookieDomainHost = host;
+
+  // Enforce subdomain zones: each host serves only its own zone; mismatches
+  // redirect to the canonical host. APIs are shared across all hosts (no CORS).
+  const hostZone = zoneForHost(host);
+  if (hostZone && !pathname.startsWith("/api")) {
+    const pathZone = zoneForPath(pathname);
+    if (pathZone !== hostZone) {
+      const target = new URL(
+        `${pathname}${request.nextUrl.search}`,
+        ZONE_ORIGINS[pathZone],
+      );
+      return finalizeResponse(
+        NextResponse.redirect(target, 308),
+        pathname,
+        nonce,
+      );
+    }
+  }
+
   let response = NextResponse.next({ request: enrichedRequest });
 
   const supabaseUrl =
@@ -158,7 +185,11 @@ export async function proxy(request: NextRequest) {
         });
         response = NextResponse.next({ request: enrichedRequest });
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(
+            name,
+            value,
+            withCookieDomain(options, cookieDomainHost),
+          );
         });
       },
     },

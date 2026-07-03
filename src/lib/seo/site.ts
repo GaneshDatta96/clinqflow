@@ -1,9 +1,12 @@
 import { BRAND } from "@/lib/brand/site";
+import { ZONE_ORIGINS } from "@/lib/routing/zones";
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  process.env.APP_URL ??
-  "https://cliniqflow.app";
+/**
+ * Canonical public origin for SEO (canonical tags, OG, sitemap, robots, schema).
+ * Always the marketing zone — never the app/auth subdomains — so indexable URLs
+ * stay on cliniqflow.app.
+ */
+export const SITE_URL = ZONE_ORIGINS.marketing;
 
 export const SITE_NAME = BRAND.nameDisplay;
 

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createApiHandler } from "@/lib/api/handler";
@@ -5,6 +6,7 @@ import { PRIVATE_NO_STORE } from "@/lib/http/cache-control";
 import { requireUser } from "@/lib/tenancy/context";
 import { ACTIVE_TENANT_COOKIE } from "@/lib/tenancy/active-tenant";
 import { bootstrapTenantForUser } from "@/lib/tenancy/onboarding";
+import { cookieDomainForHost } from "@/lib/routing/zones";
 
 const onboardingSchema = z.object({
   organization_name: z.string().trim().min(2).max(120),
@@ -39,12 +41,14 @@ export const POST = createApiHandler({
     });
 
     if (result.tenant?.id) {
+      const domain = cookieDomainForHost((await headers()).get("host"));
       response.cookies.set(ACTIVE_TENANT_COOKIE, result.tenant.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
         maxAge: 60 * 60 * 24 * 90,
+        domain,
       });
     }
 

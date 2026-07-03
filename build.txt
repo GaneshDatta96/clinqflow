@@ -658,3 +658,39 @@ Content depth (GSC query clusters)
 GSC baseline (2026-07-02 export): 2 indexed pages, 3 clicks, ~66 impressions; primary queries = clinic workflow + patient intake software long-tail. Post-deploy: request indexing for all marketing + /for/* URLs and resubmit sitemap.xml.
 
 Verified with npm run typecheck and npm run build.
+
+[2026-07-03] - feat: Split into 3 subdomain zones (marketing / app / auth) on one deployment
+Architecture
+- Single Next.js app; all three hosts point at the same deployment and are routed by zone:
+    marketing → cliniqflow.app       (public site, SEO, legal)
+    app       → app.cliniqflow.app   (workspace /app/*, billing, patient intake /c,/intake,/questionnaire)
+    auth      → mail.cliniqflow.app  (signup, login, forgot/reset, onboarding, invites, /auth/*, email links)
+
+Central zone module (src/lib/routing/zones.ts)
+- zoneForPath(), zoneForHost(), ZONE_ORIGINS, zoneUrl()/authUrl()/appUrl()/marketingUrl().
+- cookieDomainForHost()/withCookieDomain(): parent-domain (.cliniqflow.app) cookies in prod, host-only on localhost/*.vercel.app so local auth still works.
+
+Hostname enforcement (src/proxy.ts)
+- Each host serves only its own zone; cross-zone paths 308-redirect to the canonical origin (APIs excluded — shared across hosts, no CORS).
+- Supabase session setAll now issues cookies for the shared parent domain.
+
+Cross-subdomain session sharing (cookie domain added to every writer)
+- proxy.ts, supabase-server.ts, supabase-browser.ts (cookieOptions), api/auth/login, auth/callback, auth/verify.
+- Custom cookies: active-tenant (set/clear), acting-tenant (set/clear via maxAge 0 for cross-domain clear), onboarding active-tenant.
+
+Zone-absolute links (emails/external must carry the right subdomain)
+- Verify link + login link → mail.* (verification-link.ts, send-auth-email.ts).
+- Invite accept URL → mail.* (invites.ts). Patient intake link → app.* (api/intake/links).
+
+Post-login navigation (auth-form.tsx)
+- App-zone targets use full navigation so the proxy follows the cross-subdomain redirect with the shared cookie; same-zone (onboarding) stays soft-nav.
+
+SEO decoupling (src/lib/seo/site.ts)
+- SITE_URL is now always the marketing origin (canonical/OG/sitemap/robots/schema stay on cliniqflow.app regardless of app/auth origins).
+
+Env (.env.example)
+- NEXT_PUBLIC_ROOT_DOMAIN, NEXT_PUBLIC_MARKETING_URL, NEXT_PUBLIC_APP_ORIGIN, NEXT_PUBLIC_AUTH_ORIGIN (prod defaults = the subdomains; set all to localhost for single-host dev).
+
+Infra prerequisites (done by operator): 3 hosts on the Vercel project + DNS; Supabase Auth redirect URLs include mail.cliniqflow.app/auth/callback and /auth/verify.
+
+Verified with npm run typecheck and npm run build.

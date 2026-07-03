@@ -79,6 +79,18 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     void verifyResetSession();
   }, [mode]);
 
+  function goToPostAuth(path: string) {
+    // App-zone targets live on app.cliniqflow.app. A full navigation lets the
+    // proxy follow the cross-subdomain redirect cleanly (shared session cookie).
+    // Same-zone targets (e.g. /onboarding on the auth host) use soft navigation.
+    if (path.startsWith("/app")) {
+      window.location.assign(path);
+      return;
+    }
+    router.push(path);
+    router.refresh();
+  }
+
   async function handleResendVerification() {
     if (!email.trim()) {
       setError("Enter your email address first.");
@@ -220,8 +232,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       if (!roleRes.ok) {
         const roleError = await readApiError(roleRes);
         setError(roleError.message);
-        router.push("/app/dashboard");
-        router.refresh();
+        goToPostAuth("/app/dashboard");
         return;
       }
       const roleData = (await roleRes.json()) as {
@@ -229,14 +240,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         mfaRedirect?: string | null;
       };
 
-      if (roleData.mfaRedirect) {
-        router.push(roleData.mfaRedirect);
-        router.refresh();
-        return;
-      }
-
-      router.push(roleData.path ?? "/app/dashboard");
-      router.refresh();
+      goToPostAuth(roleData.mfaRedirect || roleData.path || "/app/dashboard");
       return;
     } catch (err) {
       setError(getErrorMessage(err, "Authentication failed."));

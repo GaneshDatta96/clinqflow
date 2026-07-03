@@ -8,7 +8,7 @@ import {
   hashToken,
   signIntakeJwt,
 } from "@/lib/auth/intake-tokens";
-import { env } from "@/lib/env";
+import { appUrl } from "@/lib/routing/zones";
 import { assertFeature } from "@/lib/billing/features";
 import { requirePermission, requireClinicAccess } from "@/lib/tenancy/context";
 
@@ -82,7 +82,9 @@ export const POST = createApiHandler({
       .single();
 
     const slug = clinic.data?.slug ?? "intake";
-    const url = `${env.appUrl}/c/${slug}?patientId=${body.patient_id}&token=${encodeURIComponent(jwt)}`;
+    const url = appUrl(
+      `/c/${slug}?patientId=${body.patient_id}&token=${encodeURIComponent(jwt)}`,
+    );
 
     return jsonCreated({
       linkId: link.id,

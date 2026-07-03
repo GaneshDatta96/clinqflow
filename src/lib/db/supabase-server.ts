@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { env, isAuthConfigured } from "@/lib/env";
+import { withCookieDomain } from "@/lib/routing/zones";
 
 export async function createSupabaseServerClient() {
   if (!isAuthConfigured()) {
@@ -8,6 +9,7 @@ export async function createSupabaseServerClient() {
   }
 
   const cookieStore = await cookies();
+  const host = (await headers()).get("host");
 
   return createServerClient(env.supabaseUrl!, env.supabaseAnonKey!, {
     cookies: {
@@ -17,7 +19,7 @@ export async function createSupabaseServerClient() {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            cookieStore.set(name, value, withCookieDomain(options, host));
           });
         } catch {
           // Called from Server Component — middleware handles refresh.

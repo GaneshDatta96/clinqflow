@@ -1,6 +1,11 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { cookieDomainForHost } from "@/lib/routing/zones";
 
 export const ACTIVE_TENANT_COOKIE = "cliniqflow_active_tenant_id";
+
+async function cookieDomain() {
+  return cookieDomainForHost((await headers()).get("host"));
+}
 
 export async function getActiveTenantIdFromCookies() {
   const cookieStore = await cookies();
@@ -15,10 +20,15 @@ export async function setActiveTenantCookie(tenantId: string) {
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 90,
+    domain: await cookieDomain(),
   });
 }
 
 export async function clearActiveTenantCookie() {
   const cookieStore = await cookies();
-  cookieStore.delete(ACTIVE_TENANT_COOKIE);
+  cookieStore.set(ACTIVE_TENANT_COOKIE, "", {
+    path: "/",
+    maxAge: 0,
+    domain: await cookieDomain(),
+  });
 }

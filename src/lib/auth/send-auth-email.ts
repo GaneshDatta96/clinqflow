@@ -14,9 +14,10 @@ import {
 import { env } from "@/lib/env";
 import { badRequest } from "@/lib/api/errors";
 import { appAuthVerifyUrl } from "@/lib/auth/verification-link";
+import { authUrl } from "@/lib/routing/zones";
 
 function loginUrl() {
-  return `${env.appUrl.replace(/\/$/, "")}/login`;
+  return authUrl("/login");
 }
 
 function readVerificationUrl(properties: Record<string, unknown> | undefined) {
